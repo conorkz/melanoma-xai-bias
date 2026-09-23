@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Data (large files)
+data/raw/
+data/HAM10000/
+!data/.gitkeep
+
+# Model artifacts
+checkpoints/*.pt
+checkpoints/*.pth
+outputs/
+
+# OS
+.DS_Store
