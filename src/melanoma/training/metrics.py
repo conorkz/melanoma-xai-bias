@@ -68,7 +68,12 @@ def binary_metrics(y_true, y_pred, y_prob=None) -> dict:
 
 
 def sensitivity_at_specificity(y_true, y_prob, target_specificity: float = 0.95) -> dict:
-    """Sensitivity at the highest threshold whose specificity meets the target."""
+    """Sensitivity at the operating point that meets the target specificity.
+
+    Among thresholds whose specificity is at least the target, this returns
+    the one with the highest sensitivity, together with its threshold and
+    achieved specificity.
+    """
     y_true = _validate_binary(y_true)
     y_prob = np.asarray(y_prob).ravel()
     if y_prob.size != y_true.size:
@@ -88,4 +93,81 @@ def sensitivity_at_specificity(y_true, y_prob, target_specificity: float = 0.95)
         "threshold": float(thresholds[idx]),
         "sensitivity": float(tpr[idx]),
         "specificity": float(specificities[idx]),
+    }
+
+
+BOOTSTRAP_METRICS = ("sensitivity", "specificity", "balanced_accuracy", "accuracy", "auc")
+
+
+def bootstrap_ci(
+    y_true,
+    y_prob,
+    metric: str = "sensitivity",
+    threshold: float = 0.5,
+    n_boot: int = 1000,
+    confidence: float = 0.95,
+    seed: int = 0,
+) -> dict:
+    """Percentile bootstrap confidence interval for a binary metric.
+
+    Resamples rows with replacement and skips degenerate resamples (for
+    example one with no positives for sensitivity, or one with a single class
+    for AUC). Returns the point estimate on the full sample plus the lower and
+    upper percentile bounds and the number of valid bootstrap samples.
+    """
+    if metric not in BOOTSTRAP_METRICS:
+        raise ValueError(f"metric must be one of {BOOTSTRAP_METRICS}, got {metric!r}")
+    if not isinstance(n_boot, int) or n_boot < 1:
+        raise ValueError(f"n_boot must be a positive integer, got {n_boot!r}")
+    if not 0.0 < confidence < 1.0:
+        raise ValueError(f"confidence must be in (0, 1), got {confidence}")
+    if not 0.0 <= threshold <= 1.0:
+        raise ValueError(f"threshold must be in [0, 1], got {threshold}")
+
+    y_true = _validate_binary(y_true)
+    y_prob = np.asarray(y_prob).ravel()
+    if y_prob.size != y_true.size:
+        raise ValueError(f"Length mismatch: y_true {y_true.size} vs y_prob {y_prob.size}")
+
+    if metric == "auc":
+        if len(np.unique(y_true)) < 2:
+            estimate = float("nan")
+        else:
+            estimate = float(roc_auc_score(y_true, y_prob))
+    else:
+        predictions = (y_prob >= threshold).astype(int)
+        estimate = float(binary_metrics(y_true, predictions, y_prob)[metric])
+
+    rng = np.random.default_rng(seed)
+    values = []
+    n = y_true.size
+    for _ in range(n_boot):
+        indices = rng.integers(0, n, n)
+        sample_true = y_true[indices]
+        sample_prob = y_prob[indices]
+        if metric == "auc":
+            if len(np.unique(sample_true)) < 2:
+                continue
+            value = float(roc_auc_score(sample_true, sample_prob))
+        else:
+            sample_pred = (sample_prob >= threshold).astype(int)
+            value = float(binary_metrics(sample_true, sample_pred, sample_prob)[metric])
+        if np.isfinite(value):
+            values.append(value)
+
+    if not values:
+        return {
+            "estimate": estimate,
+            "low": float("nan"),
+            "high": float("nan"),
+            "n_boot": 0,
+        }
+
+    alpha = (1.0 - confidence) / 2.0
+    low, high = np.percentile(values, [100.0 * alpha, 100.0 * (1.0 - alpha)])
+    return {
+        "estimate": estimate,
+        "low": float(low),
+        "high": float(high),
+        "n_boot": len(values),
     }

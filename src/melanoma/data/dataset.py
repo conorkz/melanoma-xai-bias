@@ -39,6 +39,7 @@ class HAM10000Dataset(Dataset):
         self.class_names = list(CLASS_NAMES) if task == "multiclass" else ["benign", "melanoma"]
 
         records = []
+        image_ids = []
         missing = 0
         for image_id, dx in zip(frame["image_id"], frame["dx"]):
             path = images_dir / f"{image_id}.jpg"
@@ -48,10 +49,12 @@ class HAM10000Dataset(Dataset):
                 missing += 1
                 continue
             records.append((path, dx))
+            image_ids.append(image_id)
         if not records:
             raise ValueError("No usable images found for this dataset")
         self.n_missing = missing
         self.records = records
+        self.image_ids = image_ids
 
         if task == "binary":
             self.labels = [1 if dx == MALIGNANT_CLASS else 0 for _, dx in records]

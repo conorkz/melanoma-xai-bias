@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from sklearn.metrics import roc_auc_score, roc_curve
 
 from melanoma.data.transforms import IMAGENET_MEAN, IMAGENET_STD
 from melanoma.utils import ensure_dir
@@ -79,6 +80,32 @@ def plot_training_history(history, path):
     axes[1].set_xlabel("epoch")
     axes[1].set_ylabel("balanced accuracy")
     axes[1].set_title("Validation balanced accuracy")
+    figure.tight_layout()
+    figure.savefig(path)
+    plt.close(figure)
+    return Path(path)
+
+
+def plot_roc_curve(y_true, y_prob, path, title="ROC curve"):
+    """Plot a ROC curve with its AUC, requiring both classes in y_true."""
+    y_true = np.asarray(y_true).ravel()
+    y_prob = np.asarray(y_prob).ravel()
+    if y_true.size == 0:
+        raise ValueError("Cannot plot an empty ROC curve")
+    if y_true.size != y_prob.size:
+        raise ValueError(f"Length mismatch: y_true {y_true.size} vs y_prob {y_prob.size}")
+    if len(np.unique(y_true)) < 2:
+        raise ValueError("ROC curve requires both positive and negative samples")
+    fpr, tpr, _ = roc_curve(y_true, y_prob)
+    auc = roc_auc_score(y_true, y_prob)
+    ensure_dir(Path(path).parent)
+    figure, axis = plt.subplots(figsize=(5, 4), dpi=150)
+    axis.plot(fpr, tpr, color="#3b6ea5", label=f"AUC = {auc:.3f}")
+    axis.plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1)
+    axis.set_xlabel("false positive rate")
+    axis.set_ylabel("true positive rate")
+    axis.set_title(title)
+    axis.legend(loc="lower right")
     figure.tight_layout()
     figure.savefig(path)
     plt.close(figure)

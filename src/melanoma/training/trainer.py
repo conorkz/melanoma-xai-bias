@@ -104,6 +104,10 @@ def fit(
 ):
     """Train with validation, early stopping, and best-checkpoint saving.
 
+    When checkpoint_path is given, the best epoch is saved during training and
+    loaded back into the model at the end, so the caller always holds the best
+    weights rather than the last epoch's weights.
+
     Returns a history dict with per-epoch losses and metrics, the best epoch,
     and whether training stopped early.
     """
@@ -148,5 +152,8 @@ def fit(
         if patience is not None and epochs_without_improvement >= patience:
             history["stopped_early"] = True
             break
+
+    if checkpoint_path is not None:
+        load_checkpoint(checkpoint_path, model, device=device)
 
     return history

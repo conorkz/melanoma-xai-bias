@@ -118,3 +118,17 @@ def test_sample_weights_match_labels(synthetic_dataset):
     weights = dataset.sample_weights()
     assert isinstance(weights, torch.Tensor)
     assert weights.tolist() == [float(label) for label in dataset.labels]
+
+
+def test_image_ids_match_frame_order(synthetic_dataset):
+    dataset = HAM10000Dataset(synthetic_dataset["frame"], synthetic_dataset["images_dir"])
+    assert dataset.image_ids == synthetic_dataset["frame"]["image_id"].tolist()
+
+
+def test_image_ids_skip_missing_images(synthetic_dataset):
+    frame = synthetic_dataset["frame"].copy()
+    missing_id = frame.iloc[0]["image_id"]
+    (synthetic_dataset["images_dir"] / f"{missing_id}.jpg").unlink()
+    dataset = HAM10000Dataset(frame, synthetic_dataset["images_dir"], strict=False)
+    assert missing_id not in dataset.image_ids
+    assert len(dataset.image_ids) == len(dataset)

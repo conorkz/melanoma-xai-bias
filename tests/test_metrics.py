@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from melanoma.training.metrics import binary_metrics, sensitivity_at_specificity
+from melanoma.training.metrics import binary_metrics, bootstrap_ci, sensitivity_at_specificity
 
 
 def test_perfect_predictions():
@@ -105,3 +105,48 @@ def test_sensitivity_at_specificity_invalid_target():
 def test_sensitivity_at_specificity_length_mismatch():
     with pytest.raises(ValueError):
         sensitivity_at_specificity([1, 0], [0.9])
+
+
+def test_bootstrap_ci_separable_data_is_degenerate():
+    y_true = [1] * 20 + [0] * 20
+    y_prob = [0.9] * 20 + [0.1] * 20
+    result = bootstrap_ci(y_true, y_prob, metric="sensitivity", threshold=0.5, n_boot=100, seed=0)
+    assert result["estimate"] == 1.0
+    assert result["low"] == 1.0
+    assert result["high"] == 1.0
+    assert result["n_boot"] > 0
+
+
+def test_bootstrap_ci_is_deterministic():
+    rng = np.random.default_rng(1)
+    y_true = rng.integers(0, 2, 100)
+    y_prob = rng.random(100)
+    first = bootstrap_ci(y_true, y_prob, metric="auc", n_boot=50, seed=7)
+    second = bootstrap_ci(y_true, y_prob, metric="auc", n_boot=50, seed=7)
+    assert first == second
+
+
+def test_bootstrap_ci_single_class_auc_is_nan():
+    result = bootstrap_ci([1, 1, 1], [0.9, 0.8, 0.7], metric="auc", n_boot=10)
+    assert np.isnan(result["estimate"])
+    assert np.isnan(result["low"])
+
+
+def test_bootstrap_ci_invalid_metric_raises():
+    with pytest.raises(ValueError, match="metric"):
+        bootstrap_ci([1, 0], [0.9, 0.1], metric="nonsense", n_boot=10)
+
+
+def test_bootstrap_ci_invalid_n_boot_raises():
+    with pytest.raises(ValueError):
+        bootstrap_ci([1, 0], [0.9, 0.1], n_boot=0)
+
+
+def test_bootstrap_ci_invalid_confidence_raises():
+    with pytest.raises(ValueError):
+        bootstrap_ci([1, 0], [0.9, 0.1], confidence=1.5)
+
+
+def test_bootstrap_ci_length_mismatch_raises():
+    with pytest.raises(ValueError):
+        bootstrap_ci([1, 0], [0.9])

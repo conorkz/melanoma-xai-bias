@@ -1,0 +1,45 @@
+# Base configuration for the RQ1 pilot benchmark (Phase 2).
+# One run = one backbone/loss/sampler/augmentation combination at one seed.
+run_name: pilot
+seed: 42
+
+data:
+  root: data
+  metadata_csv: data/raw/HAM10000_metadata.csv
+  images_dir: data/HAM10000/images
+  split:
+    val_fraction: 0.15
+    test_fraction: 0.15
+    seed: 42
+    # Generated on the first run and reused by every later seed.
+    file: outputs/splits/ham10000_lesion_seed42.csv
+  task: binary
+
+model:
+  backbone: efficientnet_b0
+  pretrained: true
+  num_classes: 2
+  drop_rate: 0.0
+
+training:
+  epochs: 15
+  batch_size: 64
+  lr: 0.0003
+  weight_decay: 0.0001
+  img_size: 160
+  loss: focal
+  focal_gamma: 2.0
+  focal_alpha: 0.75
+  sampler: class_balanced
+  augmentation: standard
+  num_workers: 4
+  early_stopping_patience: 5
+  grad_clip: 1.0
+  max_batches: null
+
+evaluation:
+  target_specificity: 0.95
+  bootstrap:
+    n_boot: 1000
+    confidence: 0.95
+    seed: 0

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from melanoma.data.splits import make_splits
+from melanoma.data.splits import make_splits, split_summary
 
 from conftest import make_synthetic_dataset
 
@@ -77,3 +77,23 @@ def test_does_not_mutate_input(synthetic_dataset):
     frame = synthetic_dataset["frame"].copy(deep=True)
     make_splits(frame)
     assert "split" not in frame.columns
+
+
+def test_split_summary_counts(synthetic_dataset):
+    splits = make_splits(synthetic_dataset["frame"], val_fraction=0.2, test_fraction=0.2, seed=5)
+    summary = split_summary(splits)
+    assert list(summary.index) == ["train", "val", "test"]
+    assert summary["total"].sum() == len(splits)
+    for class_name in synthetic_dataset["frame"]["dx"].unique():
+        assert summary[class_name].sum() == (splits["dx"] == class_name).sum()
+
+
+def test_split_summary_missing_split_column_raises(synthetic_dataset):
+    with pytest.raises(ValueError, match="split"):
+        split_summary(synthetic_dataset["frame"])
+
+
+def test_split_summary_missing_class_column_raises(synthetic_dataset):
+    splits = make_splits(synthetic_dataset["frame"])
+    with pytest.raises(ValueError, match="dx"):
+        split_summary(splits.drop(columns=["dx"]))

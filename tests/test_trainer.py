@@ -182,6 +182,48 @@ def test_save_and_load_checkpoint_roundtrip(tmp_path):
         assert torch.equal(original, loaded)
 
 
+def test_fit_restores_best_checkpoint(tmp_path, monkeypatch):
+    import melanoma.training.trainer as trainer_module
+
+    class BiasNet(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.bias = nn.Parameter(torch.zeros(1))
+
+        def forward(self, x):
+            return x * self.bias
+
+    model = BiasNet()
+    train_loader, val_loader = make_loaders(n=8, batch_size=4)
+    scores = iter([0.9, 0.5, 0.4])
+
+    def fake_train(model, loader, optimizer, criterion, device, grad_clip=None, max_batches=None):
+        with torch.no_grad():
+            model.bias.add_(1.0)
+        return 0.1
+
+    def fake_eval(model, loader, device, threshold=0.5, max_batches=None):
+        return {"balanced_accuracy": next(scores), "auc": 0.5}
+
+    monkeypatch.setattr(trainer_module, "train_one_epoch", fake_train)
+    monkeypatch.setattr(trainer_module, "evaluate_metrics", fake_eval)
+
+    checkpoint = tmp_path / "best.pt"
+    history = fit(
+        model,
+        train_loader,
+        val_loader,
+        make_optimizer(model),
+        nn.CrossEntropyLoss(),
+        "cpu",
+        epochs=3,
+        checkpoint_path=checkpoint,
+    )
+
+    assert history["best_epoch"] == 1
+    assert model.bias.item() == pytest.approx(1.0)
+
+
 def test_load_checkpoint_missing_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         load_checkpoint(tmp_path / "missing.pt", TinyNet(), device="cpu")

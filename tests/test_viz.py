@@ -7,6 +7,7 @@ import torch
 from melanoma.viz.plots import (
     denormalize_tensor,
     plot_class_distribution,
+    plot_roc_curve,
     plot_sample_grid,
     plot_training_history,
     save_heatmap_grid,
@@ -75,3 +76,14 @@ def test_save_heatmap_grid_writes_file(tmp_path):
 def test_save_heatmap_grid_empty_raises(tmp_path):
     with pytest.raises(ValueError):
         save_heatmap_grid([], tmp_path / "grid.png")
+
+
+def test_plot_roc_curve_writes_file(tmp_path):
+    path = plot_roc_curve([1, 1, 0, 0], [0.9, 0.7, 0.2, 0.1], tmp_path / "roc.png")
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_plot_roc_curve_single_class_raises(tmp_path):
+    with pytest.raises(ValueError):
+        plot_roc_curve([1, 1], [0.9, 0.8], tmp_path / "roc.png")

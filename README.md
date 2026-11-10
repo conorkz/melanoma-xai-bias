@@ -2,7 +2,7 @@
 
 Research prototype for the Master's thesis **"Interpretable Computer Vision for Fair Melanoma Detection"**.
 
-This repository is the Phase 0 and Phase 1 deliverable: a reproducible project skeleton, an exploratory data analysis of HAM10000, a working training pipeline with class imbalance handling (focal loss, class-balanced sampling), gradient-based explanations (Grad-CAM via Captum), and lesion-aware data splitting. It runs end to end on a MacBook Air M1; heavier training is designed for free cloud GPUs (Kaggle, Colab, Lightning AI).
+This repository covers Phase 0, Phase 1, and the Phase 2 benchmark infrastructure: a reproducible project skeleton, an exploratory data analysis of HAM10000, a config-driven training pipeline with class imbalance handling (focal loss, class-balanced sampling), gradient-based explanations (Grad-CAM via Captum), lesion-aware data splitting, and a sweep runner plus results aggregation for the RQ1 benchmark. It runs end to end on a MacBook Air M1; heavier training is designed for free cloud GPUs (Kaggle, Colab, Lightning AI).
 
 The full research plan lives in `RESEARCH_PLAN.md` in the parent research folder.
 
@@ -10,17 +10,24 @@ The full research plan lives in `RESEARCH_PLAN.md` in the parent research folder
 
 ```
 melanoma-xai-bias/
-  configs/smoke_test.yaml        single reproducible training config
+  configs/
+    smoke_test.yaml              single reproducible smoke config
+    pilot.yaml                   base config for the RQ1 benchmark
+    sweep_stage1.yaml            18-run imbalance screen
+    sweep_stage2.yaml            18-run architecture comparison
   notebooks/01_eda_ham10000.ipynb  executed EDA with figures
   scripts/
     download_data.py             fetch HAM10000 from Harvard Dataverse
+    train.py                     full training, test evaluation, prediction export
+    run_sweep.py                 expand and execute a config sweep
+    collect_results.py           aggregate seeds into the benchmark table
     smoke_test.py                tiny training run (subset, few epochs)
     demo_gradcam.py              Grad-CAM heatmaps for sample lesions
     build_eda_notebook.py        regenerate the EDA notebook
     run_tests.sh                 full test suite
   src/melanoma/
-    config.py utils.py
-    data/       download, metadata, splits, dataset, transforms
+    config.py utils.py tracking.py
+    data/       download, metadata, splits, subsets, dataset, transforms
     models/     backbone factory (timm)
     training/   losses (focal), sampler, metrics, trainer
     xai/        Grad-CAM (Captum), heatmap overlays
@@ -64,7 +71,7 @@ The script is resumable, skips already-complete files, normalizes the metadata t
 scripts/run_tests.sh          # or: .venv/bin/python -m pytest tests -v
 ```
 
-The suite covers config loading, metadata validation, grouped splits, transforms, dataset edge cases (missing, corrupt, grayscale images), model factory, focal loss numerics, class-balanced sampling, metrics with degenerate splits, the trainer (checkpoints, early stopping), Grad-CAM (CNN and ViT), the download logic with mocked network sessions (resume, checksum mismatch, zip path traversal), and end-to-end runs of both scripts on synthetic data.
+The suite covers config loading, metadata validation, grouped splits, lesion-safe subsetting, transforms, dataset edge cases (missing, corrupt, grayscale images), model factory, focal loss numerics, class-balanced sampling, metrics with degenerate splits and bootstrap intervals, the trainer (checkpoints, early stopping, best-checkpoint restore), experiment tracking, Grad-CAM (CNN and ViT), the download logic with mocked network sessions (resume, checksum mismatch, zip path traversal), and end-to-end runs of the training, sweep, and aggregation scripts on synthetic data.
 
 ## Smoke test (runs on the M1)
 
@@ -76,6 +83,54 @@ Trains ResNet-18 on a stratified subset with focal loss and class-balanced sampl
 ```
 
 Outputs: `checkpoints/smoke_test.pt`, `outputs/smoke_test/metrics.json`, `outputs/smoke_test/training_curves.png`. The script auto-selects the MPS device on Apple Silicon and prints sensitivity, specificity, and AUC.
+
+## RQ1 pilot benchmark
+
+`configs/pilot.yaml` defines one run: EfficientNet-B0 at 160 px, focal loss, class-balanced sampling, 15 epochs, and a validation-selected threshold at 95% specificity. `scripts/train.py` trains one run, restores the best validation checkpoint, evaluates the untouched test split once, and exports per-sample predictions.
+
+Stage 1 is an 18-run imbalance screen (6 configurations x 3 seeds):
+
+```bash
+# Generate the run configs without training
+.venv/bin/python scripts/run_sweep.py --config configs/sweep_stage1.yaml --dry-run
+
+# Run the grid on a GPU machine; --skip-existing resumes safely
+.venv/bin/python scripts/run_sweep.py --config configs/sweep_stage1.yaml --skip-existing
+
+# Build the benchmark table
+.venv/bin/python scripts/collect_results.py \
+  --runs-dir outputs/runs --run-prefix stage1 \
+  --out-dir results --prefix rq1_stage1
+```
+
+Outputs per run:
+
+- `outputs/runs/<run_name>/metrics.json`: validation and test metrics, bootstrap CIs, threshold, split summary, history.
+- `outputs/runs/<run_name>/run.json`: config snapshot, git commit, seed, device, package versions.
+- `outputs/runs/<run_name>/predictions_{val,test}.csv`: one row per image, the bridge to the fairness and XAI phases.
+- `results/rq1_stage1.csv` and `results/rq1_stage1.md`: mean and standard deviation across seeds.
+
+The test split is evaluated once per run. The operating threshold is chosen on validation at 95% specificity and then applied unchanged to test. Every run reuses the same lesion-aware split cached at `outputs/splits/ham10000_lesion_seed42.csv`.
+
+For a fast local pipeline check on a subset, use a separate split file so the cached full-data split is not overwritten:
+
+```bash
+.venv/bin/python scripts/train.py \
+  --config configs/pilot.yaml --device mps \
+  --subset-size 500 --epochs 1 --max-batches 5 \
+  --split-file outputs/splits/debug_subset500.csv \
+  --output-dir outputs/debug/train_smoke \
+  --checkpoint checkpoints/debug_train_smoke.pt
+```
+
+After Stage 1, update the `best_imbalance` variants in `configs/sweep_stage2.yaml` if a different loss or sampler wins, then run the architecture comparison:
+
+```bash
+.venv/bin/python scripts/run_sweep.py --config configs/sweep_stage2.yaml --skip-existing
+.venv/bin/python scripts/collect_results.py \
+  --runs-dir outputs/runs --run-prefix stage2 \
+  --out-dir results --prefix rq1_stage2
+```
 
 ## Grad-CAM demo
 

@@ -45,3 +45,9 @@ def test_feature_extractor_output():
     model = as_feature_extractor(build_model("resnet18", num_classes=2, pretrained=False))
     features = model(torch.randn(2, 3, 64, 64))
     assert features.shape == (2, 512)
+
+
+def test_vit_accepts_160_input_when_img_size_given():
+    model = build_model("vit_small_patch16_224", num_classes=2, pretrained=False, img_size=160)
+    output = model(torch.randn(1, 3, 160, 160))
+    assert output.shape == (1, 2)

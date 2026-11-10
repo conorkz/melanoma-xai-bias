@@ -7,7 +7,6 @@ import sys
 import time
 from pathlib import Path
 
-import pandas as pd
 import torch
 import torch.nn as nn
 
@@ -19,6 +18,7 @@ from melanoma.config import load_config
 from melanoma.data.dataset import HAM10000Dataset
 from melanoma.data.metadata import load_metadata
 from melanoma.data.splits import make_splits
+from melanoma.data.subsets import stratified_subset
 from melanoma.data.transforms import build_transforms
 from melanoma.models.factory import build_model
 from melanoma.training.losses import FocalLoss
@@ -42,25 +42,6 @@ def parse_args(argv=None):
     parser.add_argument("--checkpoint", default=None, help="Checkpoint path")
     parser.add_argument("--output-dir", default=None, help="Directory for metrics and plots")
     return parser.parse_args(argv)
-
-
-def stratified_subset(frame, size, seed=42):
-    """Sample a class-stratified subset while keeping lesions intact."""
-    if size is None or size >= len(frame):
-        return frame.copy()
-    if size < frame["dx"].nunique():
-        raise ValueError(f"subset_size must be at least the number of classes, got {size}")
-    fraction = size / len(frame)
-    pieces = []
-    for class_name, group in frame.groupby("dx"):
-        take = max(1, int(round(len(group) * fraction)))
-        lesion_ids = group["lesion_id"].drop_duplicates()
-        n_lesions = min(max(1, int(round(len(lesion_ids) * fraction))), len(lesion_ids))
-        chosen = lesion_ids.sample(n=n_lesions, random_state=seed)
-        chosen_rows = group[group["lesion_id"].isin(chosen)]
-        pieces.append(chosen_rows if len(chosen_rows) <= take else chosen_rows.sample(take, random_state=seed))
-    subset = pd.concat(pieces)
-    return subset.sample(frac=1.0, random_state=seed).reset_index(drop=True)
 
 
 def main(argv=None):

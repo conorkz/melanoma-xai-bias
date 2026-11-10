@@ -51,3 +51,21 @@ def make_splits(
     frame.loc[rest.index[val_idx], "split"] = "val"
     frame.loc[test_idx, "split"] = "test"
     return frame
+
+
+def split_summary(frame: pd.DataFrame, class_col: str = "dx") -> pd.DataFrame:
+    """Count images per split and class.
+
+    Returns a frame indexed by train/val/test with one column per class plus a
+    total column. Missing splits or classes are filled with zeros so the
+    summary is safe to serialize to JSON.
+    """
+    if "split" not in frame.columns:
+        raise ValueError("Frame has no 'split' column; run make_splits first")
+    if class_col not in frame.columns:
+        raise ValueError(f"Class column '{class_col}' not found in metadata")
+    counts = frame.groupby(["split", class_col]).size().unstack(fill_value=0)
+    counts = counts.reindex(index=["train", "val", "test"], fill_value=0)
+    counts = counts.reindex(columns=sorted(frame[class_col].unique()), fill_value=0)
+    counts["total"] = counts.sum(axis=1)
+    return counts.astype(int)

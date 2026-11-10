@@ -12,11 +12,19 @@ SUPPORTED_BACKBONES = [
 ]
 
 
-def build_model(backbone: str, num_classes: int = 2, pretrained: bool = True, drop_rate: float = 0.0):
+def build_model(
+    backbone: str,
+    num_classes: int = 2,
+    pretrained: bool = True,
+    drop_rate: float = 0.0,
+    img_size: int | None = None,
+):
     """Create a timm model configured as a classifier.
 
     Raises ValueError for invalid num_classes, negative drop_rate, or an
-    unknown backbone name.
+    unknown backbone name. When img_size is given for a ViT backbone, dynamic
+    image sizing is enabled so the model accepts resolutions other than the
+    pretraining resolution (for example 160 px pilots).
     """
     if num_classes < 2:
         raise ValueError(f"num_classes must be at least 2, got {num_classes}")
@@ -24,9 +32,19 @@ def build_model(backbone: str, num_classes: int = 2, pretrained: bool = True, dr
         raise ValueError(f"drop_rate must be in [0, 1], got {drop_rate}")
     if not isinstance(backbone, str) or not backbone:
         raise ValueError(f"backbone must be a non-empty string, got {backbone!r}")
+    if img_size is not None and (not isinstance(img_size, int) or img_size <= 0):
+        raise ValueError(f"img_size must be a positive integer, got {img_size!r}")
+
+    extra = {}
+    if img_size is not None and backbone.startswith("vit_"):
+        extra["dynamic_img_size"] = True
     try:
         return timm.create_model(
-            backbone, pretrained=pretrained, num_classes=num_classes, drop_rate=drop_rate
+            backbone,
+            pretrained=pretrained,
+            num_classes=num_classes,
+            drop_rate=drop_rate,
+            **extra,
         )
     except RuntimeError as exc:
         raise ValueError(f"Unknown or unsupported backbone '{backbone}': {exc}") from exc

@@ -1,3 +1,5 @@
+> This script covers the Phase 0 and Phase 1 meeting. For the next supervisor update, use `RESULTS_MEMO_TEMPLATE.md` with the RQ1 benchmark output.
+
 Goal: present the beginner phase of the thesis (Phase 0 and Phase 1) as working, reproducible software with real data evidence, and align on next steps. Target length 12 to 15 minutes plus questions.
 
 ## Pre-meeting checklist (10 minutes before)
