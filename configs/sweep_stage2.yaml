@@ -1,6 +1,7 @@
 # Stage 2: architecture comparison, CE baseline versus the best imbalance configuration.
-# 6 variants x 3 seeds = 18 runs. Update the best_imbalance variants after Stage 1
-# if a different loss or sampler wins.
+# 6 variants x 3 seeds = 18 runs. All backbones use 224 px so the comparison is not
+# confounded by resolution. Update the best_imbalance variants after Stage 1 if a
+# different loss, sampler, or augmentation regime wins.
 #
 # Generate configs:  python scripts/run_sweep.py --config configs/sweep_stage2.yaml --dry-run
 # Run the grid:      python scripts/run_sweep.py --config configs/sweep_stage2.yaml --skip-existing
@@ -13,12 +14,14 @@ variants:
   - name: resnet50_ce_random
     overrides:
       model.backbone: resnet50
+      training.img_size: 224
       training.loss: ce
       training.sampler: random
 
   - name: resnet50_best_imbalance
     overrides:
       model.backbone: resnet50
+      training.img_size: 224
       training.loss: focal
       training.focal_gamma: 2.0
       training.sampler: class_balanced
@@ -26,12 +29,14 @@ variants:
   - name: efficientnet_b0_ce_random
     overrides:
       model.backbone: efficientnet_b0
+      training.img_size: 224
       training.loss: ce
       training.sampler: random
 
   - name: efficientnet_b0_best_imbalance
     overrides:
       model.backbone: efficientnet_b0
+      training.img_size: 224
       training.loss: focal
       training.focal_gamma: 2.0
       training.sampler: class_balanced

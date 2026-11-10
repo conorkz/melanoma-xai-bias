@@ -17,8 +17,8 @@ This update reports the first controlled benchmark for RQ1. It is the in-domain 
 
 - **Data:** HAM10000, 10,015 dermoscopic images, binary endpoint (melanoma versus all other diagnoses).
 - **Split:** lesion-aware train/validation/test split, shared by every run and cached at `outputs/splits/ham10000_lesion_seed42.csv`.
-- **Stage 1:** EfficientNet-B0 at 160 px, 15 epochs, six imbalance configurations, three seeds each (18 runs).
-- **Stage 2:** ResNet-50, EfficientNet-B0, and ViT-S/16 at CE baseline versus the best Stage 1 configuration, three seeds each (18 runs).
+- **Stage 1:** EfficientNet-B0 at 160 px, 15 epochs, eight loss, sampling, and augmentation configurations, three seeds each (24 runs).
+- **Stage 2:** ResNet-50, EfficientNet-B0, and ViT-S/16 at 224 px, CE baseline versus the best Stage 1 configuration, three seeds each (18 runs).
 - **Metrics:** sensitivity, specificity, balanced accuracy, AUC, and sensitivity at 95% specificity.
 - **Threshold:** selected on validation at 95% specificity, frozen, then applied once to the untouched test split.
 - **Uncertainty:** mean and standard deviation across seeds, plus 1,000-sample bootstrap 95% confidence intervals on test.
@@ -26,7 +26,13 @@ This update reports the first controlled benchmark for RQ1. It is the in-domain 
 
 ## 3. Results
 
-[Paste the generated table from `results/rq1_stage1.md` or `results/rq1_stage2.md`.]
+### Stage 1: loss, sampling, and augmentation screen
+
+[Paste the table from `results/rq1_stage1.md`.]
+
+### Stage 2: architecture comparison
+
+[Paste the table from `results/rq1_stage2.md`.]
 
 Headline numbers:
 
@@ -48,7 +54,8 @@ Headline numbers:
 
 1. Does H1 hold? Where does the gain appear, and where does it disappear?
 2. Is there a sensitivity-specificity trade-off, and is it acceptable for a screening tool?
-3. Does the architecture ranking change between the CE baseline and the imbalance-corrected configuration?
+3. Does aggressive augmentation help, hurt, or interact with the loss and sampler?
+4. Does the architecture ranking change between the CE baseline and the imbalance-corrected configuration?
 
 ## 6. Limitations
 

@@ -1,5 +1,5 @@
-# Stage 1: EfficientNet-B0 imbalance screen on HAM10000.
-# 6 variants x 3 seeds = 18 runs, about 2 to 3 Kaggle GPU-hours.
+# Stage 1: EfficientNet-B0 imbalance and augmentation screen on HAM10000.
+# 8 variants x 3 seeds = 24 runs, about 3 to 4 Kaggle GPU-hours.
 #
 # Generate configs:  python scripts/run_sweep.py --config configs/sweep_stage1.yaml --dry-run
 # Run the grid:      python scripts/run_sweep.py --config configs/sweep_stage1.yaml --skip-existing
@@ -47,3 +47,16 @@ variants:
       training.focal_gamma: 3.0
       training.sampler: class_balanced
       training.augmentation: standard
+
+  - name: ce_random_strong
+    overrides:
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: strong
+
+  - name: focal2_cb_strong
+    overrides:
+      training.loss: focal
+      training.focal_gamma: 2.0
+      training.sampler: class_balanced
+      training.augmentation: strong

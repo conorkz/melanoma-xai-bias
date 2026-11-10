@@ -13,7 +13,7 @@ melanoma-xai-bias/
   configs/
     smoke_test.yaml              single reproducible smoke config
     pilot.yaml                   base config for the RQ1 benchmark
-    sweep_stage1.yaml            18-run imbalance screen
+    sweep_stage1.yaml            24-run imbalance and augmentation screen
     sweep_stage2.yaml            18-run architecture comparison
   notebooks/01_eda_ham10000.ipynb  executed EDA with figures
   scripts/
@@ -88,7 +88,7 @@ Outputs: `checkpoints/smoke_test.pt`, `outputs/smoke_test/metrics.json`, `output
 
 `configs/pilot.yaml` defines one run: EfficientNet-B0 at 160 px, focal loss, class-balanced sampling, 15 epochs, and a validation-selected threshold at 95% specificity. `scripts/train.py` trains one run, restores the best validation checkpoint, evaluates the untouched test split once, and exports per-sample predictions.
 
-Stage 1 is an 18-run imbalance screen (6 configurations x 3 seeds):
+Stage 1 is a 24-run pilot (8 configurations x 3 seeds) covering loss, sampling, and augmentation. The two `strong` variants test the aggressive augmentation regime from the research plan:
 
 ```bash
 # Generate the run configs without training
@@ -123,7 +123,7 @@ For a fast local pipeline check on a subset, use a separate split file so the ca
   --checkpoint checkpoints/debug_train_smoke.pt
 ```
 
-After Stage 1, update the `best_imbalance` variants in `configs/sweep_stage2.yaml` if a different loss or sampler wins, then run the architecture comparison:
+After Stage 1, update the `best_imbalance` variants in `configs/sweep_stage2.yaml` if a different loss, sampler, or augmentation regime wins. All Stage 2 runs use 224 px so the architecture comparison is not confounded by resolution. Then run the architecture comparison:
 
 ```bash
 .venv/bin/python scripts/run_sweep.py --config configs/sweep_stage2.yaml --skip-existing
