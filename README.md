@@ -103,6 +103,8 @@ Stage 1 is a 24-run pilot (8 configurations x 3 seeds) covering loss, sampling, 
   --out-dir results --prefix rq1_stage1
 ```
 
+Choose the winning Stage 1 configuration from the `val_*` columns in `results/rq1_stage1.csv`, not the test columns. Test metrics are reported once for the selected configuration and must not drive selection.
+
 Outputs per run:
 
 - `outputs/runs/<run_name>/metrics.json`: validation and test metrics, bootstrap CIs, threshold, split summary, history.
@@ -123,7 +125,7 @@ For a fast local pipeline check on a subset, use a separate split file so the ca
   --checkpoint checkpoints/debug_train_smoke.pt
 ```
 
-After Stage 1, update the `best_imbalance` variants in `configs/sweep_stage2.yaml` if a different loss, sampler, or augmentation regime wins. All Stage 2 runs use 224 px so the architecture comparison is not confounded by resolution. Then run the architecture comparison:
+After Stage 1, update the `best_imbalance` variants in `configs/sweep_stage2.yaml` if a different loss, sampler, or augmentation regime wins on the validation columns. All Stage 2 runs use 224 px so the architecture comparison is not confounded by resolution. Then run the architecture comparison:
 
 ```bash
 .venv/bin/python scripts/run_sweep.py --config configs/sweep_stage2.yaml --skip-existing

@@ -27,7 +27,10 @@ def write_run(
     specificity=0.9,
     balanced_accuracy=0.85,
     auc=0.8,
+    val_sensitivity=None,
 ):
+    if val_sensitivity is None:
+        val_sensitivity = sensitivity
     run_dir = root / run_id
     run_dir.mkdir(parents=True)
     payload = {
@@ -41,6 +44,14 @@ def write_run(
         "augmentation": "standard",
         "img_size": 160,
         "best_epoch": 5,
+        "val": {
+            "at_target": {
+                "sensitivity": val_sensitivity,
+                "specificity": specificity,
+                "balanced_accuracy": balanced_accuracy,
+                "auc": auc,
+            }
+        },
         "test": {
             "at_target": {
                 "sensitivity": sensitivity,
@@ -63,9 +74,9 @@ def write_run(
 
 def test_collect_results_aggregates_seeds(tmp_path):
     runs_dir = tmp_path / "runs"
-    write_run(runs_dir, "a1", "config_a", 1, 0.8)
-    write_run(runs_dir, "a2", "config_a", 2, 0.9)
-    write_run(runs_dir, "b1", "config_b", 1, 0.7)
+    write_run(runs_dir, "a1", "config_a", 1, 0.8, val_sensitivity=0.78)
+    write_run(runs_dir, "a2", "config_a", 2, 0.9, val_sensitivity=0.88)
+    write_run(runs_dir, "b1", "config_b", 1, 0.7, val_sensitivity=0.68)
 
     collect = load_script("collect_results")
     out_dir = tmp_path / "reports"
@@ -79,6 +90,8 @@ def test_collect_results_aggregates_seeds(tmp_path):
     assert row_a["n_runs"] == 2
     assert row_a["sensitivity_mean"] == pytest.approx(0.85)
     assert row_a["sensitivity_std"] == pytest.approx(0.0707106781)
+    assert row_a["val_sensitivity_mean"] == pytest.approx(0.83)
+    assert row_a["val_sensitivity_std"] == pytest.approx(0.0707106781)
 
     row_b = aggregate[aggregate["config_id"] == "config_b"].iloc[0]
     assert row_b["n_seeds"] == 1
@@ -89,6 +102,7 @@ def test_collect_results_aggregates_seeds(tmp_path):
     text = (out_dir / "rq1_benchmark.md").read_text(encoding="utf-8")
     assert "config_a" in text
     assert "config_b" in text
+    assert "val_sensitivity_mean" in text
 
 
 def test_collect_results_skips_runs_without_test(tmp_path):

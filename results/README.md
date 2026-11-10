@@ -10,6 +10,10 @@ are gitignored.
 - `rq1_stage1.csv`: mean and standard deviation across seeds, one row per configuration.
 - `rq1_stage1.md`: markdown version of the benchmark table.
 
+The CSV contains both `val_*` and test columns. Choose the winning configuration
+from the `val_*` columns. The test columns are reported once for the selected
+configuration and must not be used for selection.
+
 Command:
 
 ```bash

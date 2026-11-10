@@ -2,8 +2,6 @@
 
 **Student:** Nursultan Zhanat
 **Supervisor:** Prof. Sun Baoshan
-**Date:** [fill in]
-**Commit:** [fill in the short git commit hash]
 
 ## 1. Question and hypothesis
 
@@ -21,6 +19,7 @@ This update reports the first controlled benchmark for RQ1. It is the in-domain 
 - **Stage 2:** ResNet-50, EfficientNet-B0, and ViT-S/16 at 224 px, CE baseline versus the best Stage 1 configuration, three seeds each (18 runs).
 - **Metrics:** sensitivity, specificity, balanced accuracy, AUC, and sensitivity at 95% specificity.
 - **Threshold:** selected on validation at 95% specificity, frozen, then applied once to the untouched test split.
+- **Selection:** the Stage 1 winner is chosen on validation sensitivity at 95% specificity. Test metrics are reported once for the selected configuration and are never used for selection.
 - **Uncertainty:** mean and standard deviation across seeds, plus 1,000-sample bootstrap 95% confidence intervals on test.
 - **Reproducibility:** every run writes its config snapshot, git commit, seed, device, package versions, and per-sample predictions.
 
@@ -28,11 +27,11 @@ This update reports the first controlled benchmark for RQ1. It is the in-domain 
 
 ### Stage 1: loss, sampling, and augmentation screen
 
-[Paste the table from `results/rq1_stage1.md`.]
+[Paste the table from `results/rq1_stage1.md`. Choose the winner from the `val_*` columns. The test columns are descriptive only.]
 
 ### Stage 2: architecture comparison
 
-[Paste the table from `results/rq1_stage2.md`.]
+[Paste the table from `results/rq1_stage2.md`. The test columns are the headline results for the selected configuration.]
 
 Headline numbers:
 
@@ -49,8 +48,6 @@ Headline numbers:
 - `results/rq1_stage1.md`: mean and standard deviation table across seeds.
 
 ## 5. Interpretation
-
-[Answer in three short paragraphs.]
 
 1. Does H1 hold? Where does the gain appear, and where does it disappear?
 2. Is there a sensitivity-specificity trade-off, and is it acceptable for a screening tool?

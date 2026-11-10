@@ -48,6 +48,10 @@ def load_runs(runs_dir, run_prefix=None):
         at_target = test.get("at_target")
         if not isinstance(at_target, dict):
             continue
+        validation = data.get("val") or {}
+        validation_at_target = validation.get("at_target") if isinstance(validation, dict) else {}
+        if not isinstance(validation_at_target, dict):
+            validation_at_target = {}
         bootstrap = test.get("bootstrap", {}) or {}
         sensitivity_ci = bootstrap.get("sensitivity", {}) or {}
         row = {
@@ -62,11 +66,13 @@ def load_runs(runs_dir, run_prefix=None):
             "best_epoch": data.get("best_epoch"),
             "n_test": at_target.get("n"),
             "n_positive": at_target.get("n_positive"),
-            "sensitivity_ci_low": sensitivity_ci.get("low"),
-            "sensitivity_ci_high": sensitivity_ci.get("high"),
         }
         for metric in METRICS:
+            row[f"val_{metric}"] = validation_at_target.get(metric)
+        for metric in METRICS:
             row[metric] = at_target.get(metric)
+        row["sensitivity_ci_low"] = sensitivity_ci.get("low")
+        row["sensitivity_ci_high"] = sensitivity_ci.get("high")
         rows.append(row)
     return pd.DataFrame(rows)
 
@@ -84,12 +90,15 @@ def aggregate_runs(runs):
         "n_runs": ("run_id", "count"),
         "n_test": ("n_test", "first"),
         "n_positive": ("n_positive", "first"),
-        "sensitivity_ci_low": ("sensitivity_ci_low", "mean"),
-        "sensitivity_ci_high": ("sensitivity_ci_high", "mean"),
     }
+    for metric in METRICS:
+        aggregations[f"val_{metric}_mean"] = (f"val_{metric}", "mean")
+        aggregations[f"val_{metric}_std"] = (f"val_{metric}", "std")
     for metric in METRICS:
         aggregations[f"{metric}_mean"] = (metric, "mean")
         aggregations[f"{metric}_std"] = (metric, "std")
+    aggregations["sensitivity_ci_low"] = ("sensitivity_ci_low", "mean")
+    aggregations["sensitivity_ci_high"] = ("sensitivity_ci_high", "mean")
 
     grouped = runs.groupby(GROUP_COLUMNS, dropna=False)
     aggregate = grouped.agg(**aggregations).reset_index()
@@ -112,7 +121,9 @@ def to_markdown(aggregate, title="RQ1 benchmark"):
     lines = [
         f"# {title}",
         "",
-        "Test split. The operating threshold was selected on validation at the target specificity.",
+        "The operating threshold was selected on validation at the target specificity.",
+        "Choose configurations using the `val_*` columns. The test columns are reported once",
+        "for the selected configuration and must not be used for model selection.",
         "",
         "| " + " | ".join(columns) + " |",
         "|" + "|".join(["---"] * len(columns)) + "|",
