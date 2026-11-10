@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 import torch
+import torch.nn as nn
 
 from melanoma.models.factory import build_model
 from melanoma.xai.gradcam import (
@@ -73,6 +74,28 @@ def test_compute_gradcam_shape_and_range(resnet):
     assert heatmap.dtype == np.float32
     assert heatmap.min() >= 0.0
     assert heatmap.max() <= 1.0
+
+
+def test_compute_gradcam_nonzero_for_positive_attribution():
+    class TinyCAM(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv = nn.Conv2d(3, 1, kernel_size=3, padding=1)
+            self.fc = nn.Linear(1, 2)
+            with torch.no_grad():
+                self.conv.weight.fill_(1.0)
+                self.conv.bias.zero_()
+                self.fc.weight.copy_(torch.tensor([[1.0], [-1.0]]))
+                self.fc.bias.zero_()
+
+        def forward(self, x):
+            features = self.conv(x)
+            pooled = features.mean(dim=(2, 3))
+            return self.fc(pooled)
+
+    model = TinyCAM()
+    heatmap = compute_gradcam(model, torch.ones(1, 3, 8, 8), model.conv, target_class=0)
+    assert heatmap.shape == (8, 8)
     assert heatmap.max() > 0.0
 
 
