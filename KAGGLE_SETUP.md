@@ -62,7 +62,7 @@ Run the next cells:
 3. On your Mac:
 
 ```bash
-cd "/Users/nursultanzhanat/codes/research project/melanoma-xai-bias"
+cd /path/to/melanoma-xai-bias
 unzip ~/Downloads/teacher_update.zip -d .
 cp RESULTS_MEMO_TEMPLATE.md RESULTS_MEMO.md
 open RESULTS_MEMO.md

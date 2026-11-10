@@ -12,6 +12,7 @@ from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_benchmark.ipynb"
+DEFAULT_STAGE1_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_stage1.ipynb"
 
 INTRO = """# RQ1 benchmark on Kaggle
 
@@ -387,6 +388,55 @@ NEXT_STEPS = """## Next steps
 Do not show the 500-image debug run. The full 15-epoch results are the teacher update.
 """
 
+STAGE1_INTRO = """# RQ1 Stage 1 on Kaggle
+
+This notebook runs only Stage 1: the 24-run loss, sampling, and augmentation screen.
+
+## Before you run
+
+1. Open **Settings**.
+2. Set **Accelerator** to **GPU P100** or **GPU T4 x2**.
+3. Set **Internet** to **On**.
+4. Attach the dataset `kmader/skin-cancer-mnist-ham10000` if it is not already attached.
+
+Stage 1 takes about 3 to 4 GPU hours. The notebook writes `stage1_results.zip` at the end.
+"""
+
+PACKAGE_STAGE1 = """import os
+import subprocess
+from pathlib import Path
+
+os.chdir(REPO_DIR)
+subprocess.run(
+    ["zip", "-r", "-q", "stage1_results.zip", "results", "outputs/runs"],
+    check=True,
+)
+print("Download this file from the Kaggle Output pane:")
+print(Path("stage1_results.zip").resolve())
+"""
+
+NEXT_STEPS_STAGE1 = """## Next steps
+
+1. Download `stage1_results.zip`.
+2. Open `results/rq1_stage1.csv` and choose the winner by `val_sensitivity_mean`. Use `val_balanced_accuracy_mean` as the tie-breaker and check `val_sensitivity_std`.
+3. Run the Stage 2 notebook with the winning settings.
+
+Do not choose the winner by the test columns.
+"""
+
+STAGE1_CELLS = [
+    new_markdown_cell(STAGE1_INTRO),
+    new_code_cell(ENVIRONMENT),
+    new_code_cell(CLONE),
+    new_markdown_cell(DATA_MARKDOWN),
+    new_code_cell(DATA),
+    new_markdown_cell(STAGE1_MARKDOWN),
+    new_code_cell(STAGE1),
+    new_code_cell(COLLECT1),
+    new_code_cell(PACKAGE_STAGE1),
+    new_markdown_cell(NEXT_STEPS_STAGE1),
+]
+
 CELLS = [
     new_markdown_cell(INTRO),
     new_code_cell(ENVIRONMENT),
@@ -408,17 +458,19 @@ CELLS = [
 ]
 
 
-def build(path=DEFAULT_OUTPUT):
-    """Write the Kaggle notebook and return its path."""
-    notebook = new_notebook(cells=CELLS)
-    notebook["metadata"] = {
-        "kernelspec": {
-            "display_name": "Python 3",
-            "language": "python",
-            "name": "python3",
-        },
-        "language_info": {"name": "python", "version": "3.12"},
-    }
+NOTEBOOK_METADATA = {
+    "kernelspec": {
+        "display_name": "Python 3",
+        "language": "python",
+        "name": "python3",
+    },
+    "language_info": {"name": "python", "version": "3.12"},
+}
+
+
+def _write(cells, path):
+    notebook = new_notebook(cells=cells)
+    notebook["metadata"] = NOTEBOOK_METADATA
     nbformat.validate(notebook)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -426,5 +478,16 @@ def build(path=DEFAULT_OUTPUT):
     return path
 
 
+def build(path=DEFAULT_OUTPUT):
+    """Write the full Stage 1 plus Stage 2 Kaggle notebook and return its path."""
+    return _write(CELLS, path)
+
+
+def build_stage1(path=DEFAULT_STAGE1_OUTPUT):
+    """Write the Stage 1-only Kaggle notebook used for the CLI batch run."""
+    return _write(STAGE1_CELLS, path)
+
+
 if __name__ == "__main__":
     print(build())
+    print(build_stage1())
