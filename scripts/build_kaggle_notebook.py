@@ -470,6 +470,8 @@ NOTEBOOK_METADATA = {
 
 def _write(cells, path):
     notebook = new_notebook(cells=cells)
+    for index, cell in enumerate(notebook.cells):
+        cell["id"] = f"cell-{index:02d}"
     notebook["metadata"] = NOTEBOOK_METADATA
     nbformat.validate(notebook)
     path = Path(path)
