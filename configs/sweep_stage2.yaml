@@ -1,7 +1,10 @@
-# Stage 2: architecture comparison, CE baseline versus the best imbalance configuration.
-# 6 variants x 3 seeds = 18 runs. All backbones use 224 px so the comparison is not
-# confounded by resolution. Update the best_imbalance variants after Stage 1 if a
-# different loss, sampler, or augmentation regime wins.
+# Stage 2: architecture comparison at three pre-declared conditions.
+# 9 variants x 3 seeds = 27 runs, all at 224 px.
+#
+# Conditions:
+#   ce_random:        CE baseline, random sampler, standard augmentation
+#   focal2_cb:        planned imbalance correction, focal gamma 2, class-balanced
+#   ce_random_strong: Stage 1 winner, CE, random sampler, strong augmentation
 #
 # Generate configs:  python scripts/run_sweep.py --config configs/sweep_stage2.yaml --dry-run
 # Run the grid:      python scripts/run_sweep.py --config configs/sweep_stage2.yaml --skip-existing
@@ -11,47 +14,80 @@ base: configs/pilot.yaml
 seeds: [1, 2, 3]
 
 variants:
+  # ResNet-50
   - name: resnet50_ce_random
     overrides:
       model.backbone: resnet50
       training.img_size: 224
       training.loss: ce
       training.sampler: random
+      training.augmentation: standard
 
-  - name: resnet50_best_imbalance
+  - name: resnet50_focal2_cb
     overrides:
       model.backbone: resnet50
       training.img_size: 224
       training.loss: focal
       training.focal_gamma: 2.0
       training.sampler: class_balanced
+      training.augmentation: standard
 
+  - name: resnet50_ce_random_strong
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: strong
+
+  # EfficientNet-B0
   - name: efficientnet_b0_ce_random
     overrides:
       model.backbone: efficientnet_b0
       training.img_size: 224
       training.loss: ce
       training.sampler: random
+      training.augmentation: standard
 
-  - name: efficientnet_b0_best_imbalance
+  - name: efficientnet_b0_focal2_cb
     overrides:
       model.backbone: efficientnet_b0
       training.img_size: 224
       training.loss: focal
       training.focal_gamma: 2.0
       training.sampler: class_balanced
+      training.augmentation: standard
 
+  - name: efficientnet_b0_ce_random_strong
+    overrides:
+      model.backbone: efficientnet_b0
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: strong
+
+  # ViT-S/16
   - name: vit_s_ce_random
     overrides:
       model.backbone: vit_small_patch16_224
       training.img_size: 224
       training.loss: ce
       training.sampler: random
+      training.augmentation: standard
 
-  - name: vit_s_best_imbalance
+  - name: vit_s_focal2_cb
     overrides:
       model.backbone: vit_small_patch16_224
       training.img_size: 224
       training.loss: focal
       training.focal_gamma: 2.0
       training.sampler: class_balanced
+      training.augmentation: standard
+
+  - name: vit_s_ce_random_strong
+    overrides:
+      model.backbone: vit_small_patch16_224
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: strong

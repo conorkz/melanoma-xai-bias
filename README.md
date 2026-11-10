@@ -14,7 +14,7 @@ melanoma-xai-bias/
     smoke_test.yaml              single reproducible smoke config
     pilot.yaml                   base config for the RQ1 benchmark
     sweep_stage1.yaml            24-run imbalance and augmentation screen
-    sweep_stage2.yaml            18-run architecture comparison
+    sweep_stage2.yaml            27-run architecture comparison
   notebooks/01_eda_ham10000.ipynb  executed EDA with figures
   notebooks/kaggle_benchmark.ipynb  ready-to-import Kaggle run notebook
   KAGGLE_SETUP.md                step-by-step Kaggle setup
@@ -128,7 +128,7 @@ For a fast local pipeline check on a subset, use a separate split file so the ca
   --checkpoint checkpoints/debug_train_smoke.pt
 ```
 
-After Stage 1, update the `best_imbalance` variants in `configs/sweep_stage2.yaml` if a different loss, sampler, or augmentation regime wins on the validation columns. All Stage 2 runs use 224 px so the architecture comparison is not confounded by resolution. Then run the architecture comparison:
+Stage 2 compares three pre-declared conditions across ResNet-50, EfficientNet-B0, and ViT-S/16 at 224 px: CE baseline, focal2 + class-balanced, and CE + strong augmentation. It does not depend on the Stage 1 winner. Then run the architecture comparison:
 
 ```bash
 .venv/bin/python scripts/run_sweep.py --config configs/sweep_stage2.yaml --skip-existing
@@ -144,7 +144,7 @@ See `KAGGLE_SETUP.md` for the full walkthrough. The short version:
 1. Import `notebooks/kaggle_benchmark.ipynb` into Kaggle.
 2. Select GPU P100 or T4 x2 and enable internet. Phone verification is required for both.
 3. Optional: attach the `kmader/skin-cancer-mnist-ham10000` dataset to avoid the 2.8 GB download.
-4. Run the cells. The notebook clones the repository, prepares HAM10000, runs Stage 1, helps you select the winner, runs Stage 2, and writes `teacher_update.zip`.
+4. Run the cells. The notebook clones the repository, prepares HAM10000, runs Stage 1 and Stage 2, and writes `teacher_update.zip`.
 
 The notebook uses about 6 to 9 GPU hours in total. The free tier provides about 30 GPU hours per week.
 

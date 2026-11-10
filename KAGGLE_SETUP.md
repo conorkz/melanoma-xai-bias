@@ -31,26 +31,18 @@ If the session resets, rerun the clone, data, and Stage 1 cells. `--skip-existin
 
 If you already ran Stage 1 in another Kaggle session and saved the output, download that `outputs/runs` folder into this repo before the Stage 1 cell. The completed runs are reused and only missing configurations are trained.
 
-## 4. Choose the Stage 1 winner
+## 4. Review the Stage 1 screen
 
-In the displayed table, use `val_sensitivity_mean` first. This is validation sensitivity at 95% specificity. Use `val_balanced_accuracy_mean` as the tie-breaker and check `val_sensitivity_std`.
+The Stage 1 table is descriptive. In this pilot, the planned focal loss plus class-balanced sampling did not beat the CE baseline on validation. The strongest validation configuration was CE with strong augmentation. Stage 2 is pre-declared and does not need a winner selection.
 
-Do not choose by the test columns.
-
-Set the `WINNER` dictionary in the next cell to match the winning `config_id`. The mapping is in the markdown cell above it.
-
-Example: if `stage1_focal3_cb_strong` wins:
-
-```python
-WINNER = {"loss": "focal", "focal_gamma": 3.0, "sampler": "class_balanced", "augmentation": "strong"}
-```
+Use `val_sensitivity_mean` to describe the screen. Do not use the test columns for selection.
 
 ## 5. Run Stage 2
 
 Run the next cells:
 
-- The winner cell updates the three `best_imbalance` variants in `configs/sweep_stage2.yaml` and prints the updated config.
-- The Stage 2 cell runs 18 configurations. It takes about 3 to 5 GPU hours.
+- The Stage 2 cell runs 27 configurations: 3 architectures x 3 conditions x 3 seeds at 224 px. It takes about 5 to 7 GPU hours.
+- The conditions are CE baseline, focal2 + class-balanced, and CE + strong augmentation.
 - The collect cell writes `results/rq1_stage2.md` and `.csv`.
 - The figures cell picks the median seed of the best Stage 2 configuration and displays the training curves and ROC curve.
 - The package cell writes `teacher_update.zip` with `results/` and `outputs/runs/`.

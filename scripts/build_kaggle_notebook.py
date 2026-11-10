@@ -13,6 +13,7 @@ from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_benchmark.ipynb"
 DEFAULT_STAGE1_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_stage1.ipynb"
+DEFAULT_STAGE2_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_stage2.ipynb"
 
 INTRO = """# RQ1 benchmark on Kaggle
 
@@ -32,7 +33,7 @@ This notebook runs the Stage 1 imbalance screen and the Stage 2 architecture com
 - 30 GPU hours per week.
 - 20 GB of auto-saved disk in `/kaggle/working`.
 
-Stage 1 is 24 runs (about 3 to 4 GPU hours). Stage 2 is 18 runs (about 3 to 5 GPU hours). Run both in one session if possible, then download `teacher_update.zip`.
+Stage 1 is 24 runs (about 2.5 GPU hours). Stage 2 is 27 runs (about 5 to 7 GPU hours). Run both in one session if possible, then download `teacher_update.zip`.
 """
 
 ENVIRONMENT = """import os
@@ -260,9 +261,12 @@ else:
 
 STAGE2_MARKDOWN = """## Stage 2: architecture comparison
 
-18 runs: 3 architectures x 2 configurations x 3 seeds, all at 224 px.
+27 runs: 3 architectures x 3 conditions x 3 seeds, all at 224 px.
 
-Verify the printed Stage 2 config above before running this cell.
+Conditions:
+- CE baseline: CE, random sampler, standard augmentation
+- Planned imbalance correction: focal gamma 2, class-balanced sampling, standard augmentation
+- Stage 1 winner: CE, random sampler, strong augmentation
 """
 
 STAGE2 = """import os
@@ -382,7 +386,7 @@ NEXT_STEPS = """## Next steps
 2. On your Mac, unzip it into the repo.
 3. Run `cp RESULTS_MEMO_TEMPLATE.md RESULTS_MEMO.md`.
 4. Paste `results/rq1_stage1.md` and `results/rq1_stage2.md` into the memo.
-5. Use the validation columns to explain the Stage 1 selection and the test columns for the headline Stage 2 result.
+5. Use the validation columns to describe the Stage 1 screen and the test columns for the three Stage 2 conditions.
 6. Prepare the slides using the outline in `RESULTS_MEMO_TEMPLATE.md`.
 
 Do not show the 500-image debug run. The full 15-epoch results are the teacher update.
@@ -417,11 +421,11 @@ print(Path("stage1_results.zip").resolve())
 
 NEXT_STEPS_STAGE1 = """## Next steps
 
-1. Download `stage1_results.zip`.
-2. Open `results/rq1_stage1.csv` and choose the winner by `val_sensitivity_mean`. Use `val_balanced_accuracy_mean` as the tie-breaker and check `val_sensitivity_std`.
-3. Run the Stage 2 notebook with the winning settings.
+1. Download `stage1_results.zip` and review `results/rq1_stage1.md`.
+2. Run the Stage 2 notebook. Stage 2 compares three conditions across three architectures: CE baseline, focal2 + class-balanced, and CE + strong augmentation.
+3. Report the Stage 1 validation columns and the Stage 2 test columns.
 
-Do not choose the winner by the test columns.
+Do not use the Stage 1 test columns to choose a configuration. Stage 2 is pre-declared.
 """
 
 STAGE1_CELLS = [
@@ -437,6 +441,35 @@ STAGE1_CELLS = [
     new_markdown_cell(NEXT_STEPS_STAGE1),
 ]
 
+STAGE2_INTRO = """# RQ1 Stage 2 on Kaggle
+
+This notebook runs only Stage 2: 27 runs, 3 architectures x 3 conditions x 3 seeds, all at 224 px.
+
+## Before you run
+
+1. Open **Settings**.
+2. Set **Accelerator** to **GPU P100** or **GPU T4 x2**.
+3. Set **Internet** to **On**.
+4. Attach the dataset `kmader/skin-cancer-mnist-ham10000` if it is not already attached.
+
+Stage 2 takes about 5 to 7 GPU hours. The notebook writes `teacher_update.zip` at the end.
+"""
+
+STAGE2_CELLS = [
+    new_markdown_cell(STAGE2_INTRO),
+    new_code_cell(ENVIRONMENT),
+    new_code_cell(CLONE),
+    new_markdown_cell(DATA_MARKDOWN),
+    new_code_cell(DATA),
+    new_markdown_cell(STAGE2_MARKDOWN),
+    new_code_cell(STAGE2),
+    new_code_cell(COLLECT2),
+    new_markdown_cell(FIGURES_MARKDOWN),
+    new_code_cell(FIGURES),
+    new_code_cell(PACKAGE),
+    new_markdown_cell(NEXT_STEPS),
+]
+
 CELLS = [
     new_markdown_cell(INTRO),
     new_code_cell(ENVIRONMENT),
@@ -446,8 +479,6 @@ CELLS = [
     new_markdown_cell(STAGE1_MARKDOWN),
     new_code_cell(STAGE1),
     new_code_cell(COLLECT1),
-    new_markdown_cell(WINNER_MARKDOWN),
-    new_code_cell(WINNER),
     new_markdown_cell(STAGE2_MARKDOWN),
     new_code_cell(STAGE2),
     new_code_cell(COLLECT2),
@@ -490,6 +521,12 @@ def build_stage1(path=DEFAULT_STAGE1_OUTPUT):
     return _write(STAGE1_CELLS, path)
 
 
+def build_stage2(path=DEFAULT_STAGE2_OUTPUT):
+    """Write the Stage 2-only Kaggle notebook used for the CLI batch run."""
+    return _write(STAGE2_CELLS, path)
+
+
 if __name__ == "__main__":
     print(build())
     print(build_stage1())
+    print(build_stage2())

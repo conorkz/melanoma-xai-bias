@@ -16,10 +16,10 @@ This update reports the first controlled benchmark for RQ1. It is the in-domain 
 - **Data:** HAM10000, 10,015 dermoscopic images, binary endpoint (melanoma versus all other diagnoses).
 - **Split:** lesion-aware train/validation/test split, shared by every run and cached at `outputs/splits/ham10000_lesion_seed42.csv`.
 - **Stage 1:** EfficientNet-B0 at 160 px, 15 epochs, eight loss, sampling, and augmentation configurations, three seeds each (24 runs).
-- **Stage 2:** ResNet-50, EfficientNet-B0, and ViT-S/16 at 224 px, CE baseline versus the best Stage 1 configuration, three seeds each (18 runs).
+- **Stage 2:** ResNet-50, EfficientNet-B0, and ViT-S/16 at 224 px, three conditions (CE baseline, focal2 + class-balanced, CE + strong augmentation), three seeds each (27 runs).
 - **Metrics:** sensitivity, specificity, balanced accuracy, AUC, and sensitivity at 95% specificity.
 - **Threshold:** selected on validation at 95% specificity, frozen, then applied once to the untouched test split.
-- **Selection:** the Stage 1 winner is chosen on validation sensitivity at 95% specificity. Test metrics are reported once for the selected configuration and are never used for selection.
+- **Selection:** Stage 1 is a descriptive screen. The Stage 2 conditions are pre-declared. Test metrics are reported for the three conditions and are never used for selection.
 - **Uncertainty:** mean and standard deviation across seeds, plus 1,000-sample bootstrap 95% confidence intervals on test.
 - **Reproducibility:** every run writes its config snapshot, git commit, seed, device, package versions, and per-sample predictions.
 
@@ -27,11 +27,11 @@ This update reports the first controlled benchmark for RQ1. It is the in-domain 
 
 ### Stage 1: loss, sampling, and augmentation screen
 
-[Paste the table from `results/rq1_stage1.md`. Choose the winner from the `val_*` columns. The test columns are descriptive only.]
+[Paste the table from `results/rq1_stage1.md`. The `val_*` columns describe the screen; the test columns are descriptive only.]
 
 ### Stage 2: architecture comparison
 
-[Paste the table from `results/rq1_stage2.md`. The test columns are the headline results for the selected configuration.]
+[Paste the table from `results/rq1_stage2.md`. The table has three conditions per architecture. The test columns are the headline results for the pre-declared conditions.]
 
 Headline numbers:
 
@@ -52,7 +52,7 @@ Headline numbers:
 1. Does H1 hold? Where does the gain appear, and where does it disappear?
 2. Is there a sensitivity-specificity trade-off, and is it acceptable for a screening tool?
 3. Does aggressive augmentation help, hurt, or interact with the loss and sampler?
-4. Does the architecture ranking change between the CE baseline and the imbalance-corrected configuration?
+4. Does the architecture ranking change between the three conditions?
 
 ## 6. Limitations
 
@@ -69,13 +69,13 @@ Phase 3: evaluate the frozen best model on tone-annotated data, report per-Fitzp
 ## 8. Reproduce
 
 ```bash
-# Stage 1: 18 runs
+# Stage 1: 24 runs
 .venv/bin/python scripts/run_sweep.py --config configs/sweep_stage1.yaml --skip-existing
 .venv/bin/python scripts/collect_results.py \
   --runs-dir outputs/runs --run-prefix stage1 \
   --out-dir results --prefix rq1_stage1
 
-# Stage 2: 18 runs
+# Stage 2: 27 runs
 .venv/bin/python scripts/run_sweep.py --config configs/sweep_stage2.yaml --skip-existing
 .venv/bin/python scripts/collect_results.py \
   --runs-dir outputs/runs --run-prefix stage2 \
