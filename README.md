@@ -16,6 +16,8 @@ melanoma-xai-bias/
     sweep_stage1.yaml            24-run imbalance and augmentation screen
     sweep_stage2.yaml            18-run architecture comparison
   notebooks/01_eda_ham10000.ipynb  executed EDA with figures
+  notebooks/kaggle_benchmark.ipynb  ready-to-import Kaggle run notebook
+  KAGGLE_SETUP.md                step-by-step Kaggle setup
   scripts/
     download_data.py             fetch HAM10000 from Harvard Dataverse
     train.py                     full training, test evaluation, prediction export
@@ -24,6 +26,7 @@ melanoma-xai-bias/
     smoke_test.py                tiny training run (subset, few epochs)
     demo_gradcam.py              Grad-CAM heatmaps for sample lesions
     build_eda_notebook.py        regenerate the EDA notebook
+    build_kaggle_notebook.py     regenerate the Kaggle notebook
     run_tests.sh                 full test suite
   src/melanoma/
     config.py utils.py tracking.py
@@ -133,6 +136,17 @@ After Stage 1, update the `best_imbalance` variants in `configs/sweep_stage2.yam
   --runs-dir outputs/runs --run-prefix stage2 \
   --out-dir results --prefix rq1_stage2
 ```
+
+## Kaggle cloud runs
+
+See `KAGGLE_SETUP.md` for the full walkthrough. The short version:
+
+1. Import `notebooks/kaggle_benchmark.ipynb` into Kaggle.
+2. Select GPU P100 or T4 x2 and enable internet. Phone verification is required for both.
+3. Optional: attach the `kmader/skin-cancer-mnist-ham10000` dataset to avoid the 2.8 GB download.
+4. Run the cells. The notebook clones the repository, prepares HAM10000, runs Stage 1, helps you select the winner, runs Stage 2, and writes `teacher_update.zip`.
+
+The notebook uses about 6 to 9 GPU hours in total. The free tier provides about 30 GPU hours per week.
 
 ## Grad-CAM demo
 
