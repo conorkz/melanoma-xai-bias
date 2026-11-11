@@ -1,0 +1,78 @@
+\section{Results}
+
+\subsection{Stage 1: loss, sampling, and augmentation screen}
+
+Table~\ref{tab:stage1} reports the Stage 1 screen on EfficientNet-B0 at 160 pixels. The validation winner is CE with strong augmentation, with a validation sensitivity of $0.556\pm0.027$ at 95\% specificity. The CE baseline reaches $0.536\pm0.016$. The planned focal loss with class-balanced sampling reaches $0.502\pm0.039$, and focal loss with $\gamma=3$ and class-balanced sampling reaches $0.449\pm0.051$.
+
+The planned imbalance correction did not beat the CE baseline on validation. The difference between the CE baseline and the strong-augmentation variant is small relative to the seed standard deviation. The test columns in Table~\ref{tab:stage1} are descriptive; the model selection used validation only.
+
+\input{tables/stage1}
+
+\subsection{Stage 2: architecture comparison}
+
+Table~\ref{tab:stage2} reports the Stage 2 comparison at 224 pixels. The three conditions are the CE baseline, focal loss with class-balanced sampling, and CE with strong augmentation.
+
+At the CE baseline, ResNet-50 reaches a test sensitivity of $0.570$ (95\% CI $0.497$ to $0.639$), EfficientNet-B0 reaches $0.556$ ($0.480$ to $0.624$), and ViT-S/16 reaches $0.400$ ($0.329$ to $0.471$). The two CNNs lead the transformer by a wide margin.
+
+Under focal loss with class-balanced sampling, ResNet-50 falls to $0.453$ ($0.379$ to $0.523$), EfficientNet-B0 falls to $0.477$ ($0.405$ to $0.548$), and ViT-S/16 rises to $0.482$ ($0.408$ to $0.556$). The correction helps the transformer by 8.2 points and hurts the CNNs by 11.7 and 7.9 points.
+
+The architecture ranking therefore reverses. At the CE baseline the order is ResNet-50, EfficientNet-B0, ViT-S/16. Under focal loss with class-balanced sampling the order is ViT-S/16, EfficientNet-B0, ResNet-50.
+
+Strong augmentation is close to neutral. ResNet-50 reaches $0.568$ ($0.498$ to $0.637$), EfficientNet-B0 reaches $0.563$ ($0.489$ to $0.636$), and ViT-S/16 reaches $0.435$ ($0.366$ to $0.503$). The intervals overlap with the CE baseline for the two CNNs.
+
+\input{tables/stage2}
+
+\subsection{AUC is stable while sensitivity ranking flips}
+
+The AUC ranking does not follow the sensitivity ranking. At the CE baseline, the AUC is 0.914 for EfficientNet-B0, 0.897 for ResNet-50, and 0.854 for ViT-S/16. Under focal loss with class-balanced sampling, the AUC is 0.891 for EfficientNet-B0, 0.884 for ResNet-50, and 0.872 for ViT-S/16. EfficientNet-B0 remains first and ViT-S/16 remains last in both conditions.
+
+The stability of the AUC ranking suggests that the sensitivity reversal is specific to the thresholded operating point. Calibration and threshold placement are plausible mechanisms. Both metrics matter: a clinical screening claim depends on the thresholded sensitivity, and the AUC describes the ranking quality of the scores.
+
+\subsection{Fairness across lightness strata}
+
+The test set contains 644 light images with 81 melanomas, 840 medium images with 99 melanomas, and 43 dark images with 6 melanomas. The dark stratum is 2.8\% of the test set and 3.2\% of the melanoma cases.
+
+Table~\ref{tab:fairness} reports the per-group sensitivity and the dark-stratum AUC and false positive rate for the nine Stage 2 configurations.
+
+The dark stratum has the lowest AUC in all nine configurations. The dark AUC ranges from 0.71 to 0.87, against 0.83 to 0.90 for the light stratum and 0.88 to 0.93 for the medium stratum.
+
+It also has the highest false positive rate. The dark false positive rate ranges from 0.08 to 0.19, against 0.04 to 0.07 for the light and medium strata.
+
+The dark-stratum sensitivity is too uncertain to support a strong claim. With six melanoma cases, the estimates range from 0.22 to 0.72 and the bootstrap intervals span 0 to 1.
+
+The medium stratum has the highest sensitivity in most configurations. The light stratum is often lower, which is consistent with a contrast effect: pale lesions on pale skin are harder to separate. Lesion contrast, not only skin tone, appears to drive difficulty.
+
+\input{tables/fairness}
+
+\subsection{Quantitative XAI}
+\label{sec:xai}
+
+The analysis measures attribution mass inside the lesion, pointing game accuracy, attribution IoU, and deletion and insertion AUC for the selected Stage 2 runs. The protocol is defined in Section~3.9.
+
+In the EfficientNet-B0 pilot (three seeds, 1,027 test images), the dark stratum had lower attribution mass inside the lesion, lower pointing-game accuracy, and lower attribution IoU than the light and medium strata (Table~\ref{tab:xai}). The Spearman correlation between attribution mass and tone group was $-0.170$ ($p<10^{-7}$), so darker images received less attribution inside the lesion. The correlation between attribution mass and error was small and not significant ($\rho=-0.023$, $p=0.46$). The ResNet-50 and ViT-S/16 analyses are in progress.
+
+\input{tables/xai}
+
+\subsection{External tone-labeled validation}
+\label{sec:external}
+
+% TODO: insert the HIBA and PROVe-AI results for Fitzpatrick I-IV, and the clinical dark-skin results for Fitzpatrick V-VI.
+The external validation compares HIBA and PROVe-AI for Fitzpatrick I-IV and a clinical dark-skin dataset for Fitzpatrick V-VI. HIBA and PROVe-AI contain no Fitzpatrick V-VI images. The clinical comparison uses DDI or PASSION, with the imaging modality difference reported as a limitation.
+
+\subsection{Figures}
+
+Figure~\ref{fig:training} shows the training curves for the median seed of the best Stage 2 configuration by mean test sensitivity, ResNet-50 with the CE baseline. Figure~\ref{fig:roc} shows the corresponding test ROC curve.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{stage2_best_sensitivity_training_curves.png}
+  \caption{Training loss and validation balanced accuracy for the median seed of ResNet-50 with the CE baseline. The model trains for 15 epochs and restores the best validation checkpoint.}
+  \label{fig:training}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.72\linewidth]{stage2_best_sensitivity_roc_test.png}
+  \caption{Test ROC curve for the median seed of ResNet-50 with the CE baseline. The operating threshold is selected on validation at 95\% specificity.}
+  \label{fig:roc}
+\end{figure}

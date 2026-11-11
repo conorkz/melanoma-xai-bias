@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\small
+\caption{EfficientNet-B0 XAI pilot on the HAM10000 test split. Values are means across three seeds. The dark stratum contains 129 images and 18 melanoma cases in this sample.}
+\label{tab:xai}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+Tone group & $n$ & $n$ positive & Attribution mass & Pointing game & Attribution IoU & Error rate \\
+\midrule
+light & 450 & 36 & 0.456 & 0.718 & 0.333 & 0.076 \\
+medium & 450 & 54 & 0.374 & 0.613 & 0.284 & 0.091 \\
+dark & 129 & 18 & 0.342 & 0.449 & 0.208 & 0.140 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

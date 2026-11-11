@@ -1,0 +1,11 @@
+\section{Ethics and reproducibility}
+
+All data are public, de-identified research datasets. HAM10000 and the ISIC archive are released for research use, and the external datasets are used under their respective licenses. The study involves no patient contact and no new data collection.
+
+The system is a research prototype, not a diagnostic device. The results do not establish clinical utility.
+
+The Fitzpatrick scale has known limitations: it is a coarse phototype scale, it does not capture the full range of skin tones, and it conflates pigmentation with UV response. We use it because the datasets and the fairness literature use it. The lightness strata are image-based measurements, not clinical labels.
+
+The representation gap is a finding with an ethical consequence: the data needed to measure dark-skin performance are scarce. We report the small number of dark-skin dermoscopic images. Synthetic dark-skin images are not used to claim fairness improvements.
+
+The code, configs, splits, per-sample predictions, and table generation scripts are released with the paper. The repository records the git commit, seed, device, and package versions for every run.

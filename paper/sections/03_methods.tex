@@ -1,0 +1,70 @@
+\section{Methods}
+
+\subsection{Data and splits}
+
+We use HAM10000, which contains 10,015 dermoscopic images from 7,470 lesions across seven diagnostic classes \citep{tschandl2018ham10000}. The task is binary: melanoma versus all other diagnoses. The dataset contains 1,113 melanoma images, 11.1\% of the total.
+
+We use a lesion-aware split so that images of the same lesion never appear in more than one split. The split is 70\% training, 15\% validation, and 15\% test. The test set contains 1,527 images and 186 melanomas. The split is generated once and reused by every run.
+
+\subsection{Preprocessing and augmentation}
+
+Images are resized to 160 pixels for the Stage 1 screen and 224 pixels for the Stage 2 comparison, and normalized with ImageNet statistics. The standard augmentation pipeline applies horizontal and vertical flips, random 90-degree rotations, and mild color jitter. The strong pipeline increases the color jitter and adds affine transformations with scale, translation, and rotation. The strong regime is designed to simulate domain shift.
+
+\subsection{Architectures}
+
+We compare ResNet-50, EfficientNet-B0, and ViT-S/16. All models use ImageNet pretrained weights and a two-class output. The ViT uses dynamic image sizing so that it accepts the 224-pixel input. The three models cover a standard CNN, an efficient CNN, and a transformer.
+
+\subsection{Training}
+
+All models use AdamW with a learning rate of $3\times10^{-4}$, weight decay $1\times10^{-4}$, and a cosine schedule. The batch size is 64, the maximum number of epochs is 15, and early stopping uses a patience of 5 on validation balanced accuracy. Gradients are clipped to a norm of 1.0. Training uses mixed precision when a GPU is available.
+
+\subsection{Conditions}
+
+Stage 1 is a screen on EfficientNet-B0 at 160 pixels. It contains eight configurations: CE with a random sampler, CE with class-balanced sampling, weighted CE with a random sampler, focal loss with $\gamma=2$ and a random sampler, focal loss with $\gamma=2$ and class-balanced sampling, focal loss with $\gamma=3$ and class-balanced sampling, and two strong-augmentation variants. Each configuration uses three seeds, for 24 runs.
+
+Stage 2 compares three pre-declared conditions across the three architectures at 224 pixels:
+
+\begin{enumerate}
+  \item CE baseline: cross-entropy loss, random sampler, standard augmentation.
+  \item Planned imbalance correction: focal loss with $\gamma=2$, class-balanced sampling, standard augmentation.
+  \item Stage 1 winner: cross-entropy loss, random sampler, strong augmentation.
+\end{enumerate}
+
+Each condition uses three seeds, for 27 runs. The Stage 2 conditions are fixed before the test results are seen.
+
+\subsection{Metrics and threshold}
+
+We report sensitivity, specificity, balanced accuracy, AUC, and sensitivity at 95\% specificity. The operating threshold is selected on the validation split at 95\% specificity, frozen, and applied once to the test split. Each run writes per-sample test predictions so that the same scores can be reused for fairness and XAI analysis.
+
+\subsection{Statistical analysis}
+
+We report the mean and standard deviation across three seeds. We add 1,000-sample bootstrap confidence intervals on test for sensitivity, specificity, and AUC. The bootstrap resamples images within a run and skips degenerate samples. The intervals describe test-set uncertainty. The seed standard deviation describes run-to-run variation.
+
+\subsection{Fairness analysis}
+
+HAM10000 has no Fitzpatrick labels. We therefore compute an image-based lightness proxy from non-lesional skin. The image is converted to CIELAB, the lesion mask is dilated by 11 pixels and excluded, and very dark pixels ($L^*<10$) and very bright pixels ($L^*>95$) are removed. The median $L^*$ of the remaining skin pixels is the proxy.
+
+We group images into light ($L^*>70$), medium ($55<L^*\leq70$), and dark ($L^*\leq55$). These thresholds are specific to the HAM10000 lightness distribution. They are image-based strata, not clinical Fitzpatrick labels.
+
+We also computed the Individual Typology Angle (ITA), $\mathrm{ITA}=\arctan((L^*-50)/b^*)\times180/\pi$. The ITA was unstable on 37\% of images because the $b^*$ channel was near zero or negative after dermatoscope color casts. The $L^*$ proxy is therefore the primary analysis, and the ITA is treated as a sensitivity check.
+
+For each Stage 2 run, we compute per-group sensitivity, specificity, false positive rate, false negative rate, AUC, and bootstrap intervals. We report the maximum group gap and the light-to-dark sensitivity ratio.
+
+External validation uses HIBA \citep{hiba2023} and PROVe-AI \citep{proveai2023}, which are dermoscopic datasets with Fitzpatrick labels. Both contain Fitzpatrick I-IV only. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is used for the Fitzpatrick V-VI comparison, with the imaging modality difference stated as a limitation.
+
+\subsection{XAI analysis}
+
+For each selected run we compute Grad-CAM heatmaps for the test images. We measure:
+
+\begin{itemize}
+  \item Attribution mass inside the lesion: $M=\sum_{i\in\mathrm{lesion}}h_i/\sum_i h_i$, where $h_i$ is the normalized heatmap value at pixel $i$.
+  \item Pointing game accuracy: the fraction of images where the maximum heatmap value falls inside the lesion mask.
+  \item Attribution IoU: the intersection over union between the thresholded heatmap and the lesion mask.
+  \item Deletion and insertion AUC: the area under the target-class probability curve when pixels are removed or added in descending heatmap order.
+\end{itemize}
+
+We then compute the Spearman correlation between attribution mass and error status, and between attribution mass and lightness group. The XAI analysis uses the same test split and the same per-sample predictions as the classification and fairness analyses.
+
+\subsection{Reproducibility}
+
+Every run writes its configuration, git commit, seed, device, package versions, metrics, and per-sample predictions. The split is cached and reused. The code, configs, and table generation scripts are available in the project repository.

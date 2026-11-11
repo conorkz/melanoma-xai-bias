@@ -1,0 +1,13 @@
+\section{Limitations}
+
+\begin{itemize}
+  \item We use HAM10000 only. Cross-dataset generalization to PH2, BCN20000, or ISIC 2020 is not yet measured.
+  \item The endpoint is binary melanoma versus all other diagnoses. Seven-class classification is a secondary experiment.
+  \item Each condition uses three seeds. The seed standard deviation is reported, but more seeds would tighten the estimates.
+  \item Stage 1 uses 160-pixel images and Stage 2 uses 224-pixel images. The two stages are not directly comparable.
+  \item The fairness analysis uses an image-based lightness proxy, not clinical Fitzpatrick labels. The proxy is sensitive to illumination, color calibration, and lesion contrast.
+  \item The dark stratum contains 43 test images and six melanomas. The sensitivity estimate is underpowered, and the dark-stratum results are a signal rather than a precise effect size.
+  \item HIBA and PROVe-AI contain Fitzpatrick I-IV only. The clinical datasets with Fitzpatrick V-VI differ in imaging modality, so the dark-skin comparison is confounded.
+  \item No clinician reader study was conducted, so the clinical relevance of the attribution maps is not yet validated with dermatologists.
+  \item No deployed system, prospective validation, or regulatory analysis is included.
+\end{itemize}

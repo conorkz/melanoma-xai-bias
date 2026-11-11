@@ -1,0 +1,43 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[numbers]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+\graphicspath{{figures/}}
+
+\title{Imbalance correction reverses CNN-transformer rankings in melanoma classification: a controlled benchmark and fairness analysis}
+
+\author{
+  Nursultan Zhanat\\
+  Supervisor: Prof. Sun Baoshan
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Deep learning models for melanoma detection are trained on imbalanced, predominantly light-skinned data. We ask whether modern imbalance correction changes the ranking of CNN and transformer architectures, and whether the resulting models perform fairly across skin tone strata. We benchmark ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under three pre-declared conditions: cross-entropy with standard augmentation, focal loss with class-balanced sampling, and cross-entropy with strong augmentation. Each condition uses three seeds, a lesion-aware split, and a validation-selected threshold at 95\% specificity. Focal loss with class-balanced sampling improves ViT-S/16 by 8.2 sensitivity points but reduces ResNet-50 by 11.7 and EfficientNet-B0 by 7.9, which reverses the architecture ranking. The AUC ranking is stable. A lightness-stratified analysis shows that the darkest stratum has the lowest AUC and the highest false positive rate in all nine configurations, but only 43 test images and six melanomas fall in that stratum, so the sensitivity estimate is underpowered. In an EfficientNet-B0 pilot, attribution mass inside the lesion decreased with darker lightness group ($\rho=-0.17$, $p<10^{-7}$), which is consistent with more attribution leakage on darker images. The results show that imbalance correction is not neutral across architectures and that dark-skin dermoscopic data remain the main bottleneck for a reliable fairness claim.
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_methods}
+\input{sections/04_results}
+\input{sections/05_discussion}
+\input{sections/06_limitations}
+\input{sections/07_ethics}
+\input{sections/08_conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

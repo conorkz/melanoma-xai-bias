@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Stage 1 screen on EfficientNet-B0 at 160 pixels. Validation sensitivity is used for model selection. Test sensitivity is reported at the validation-selected 95\% specificity threshold. Values are mean and standard deviation across three seeds.}
+\label{tab:stage1}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Configuration & Val sens & Test sens (95\% CI) & Specificity & Balanced acc & AUC \\
+\midrule
+stage1\_ce\_random\_strong & 0.556 $\pm$ 0.027 & 0.513 (0.438 to 0.582) & 0.943 & 0.728 & 0.901 \\
+stage1\_ce\_random & 0.536 $\pm$ 0.016 & 0.530 (0.456 to 0.600) & 0.948 & 0.739 & 0.897 \\
+stage1\_ce\_cb & 0.521 $\pm$ 0.086 & 0.484 (0.411 to 0.554) & 0.938 & 0.711 & 0.890 \\
+stage1\_focal2\_random & 0.509 $\pm$ 0.041 & 0.487 (0.412 to 0.560) & 0.946 & 0.717 & 0.894 \\
+stage1\_focal2\_cb & 0.502 $\pm$ 0.039 & 0.480 (0.408 to 0.551) & 0.943 & 0.712 & 0.897 \\
+stage1\_wce\_random & 0.502 $\pm$ 0.043 & 0.493 (0.421 to 0.564) & 0.937 & 0.715 & 0.896 \\
+stage1\_focal2\_cb\_strong & 0.483 $\pm$ 0.013 & 0.491 (0.421 to 0.558) & 0.943 & 0.717 & 0.896 \\
+stage1\_focal3\_cb & 0.449 $\pm$ 0.051 & 0.478 (0.405 to 0.553) & 0.946 & 0.712 & 0.899 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

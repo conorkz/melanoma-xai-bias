@@ -1,0 +1,23 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Lightness-stratified test sensitivity at 95\% specificity. Values are mean and standard deviation across three seeds. The dark stratum contains 43 test images and six melanoma cases. These are image-based lightness groups, not clinical Fitzpatrick labels.}
+\label{tab:fairness}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+Configuration & Light sens & Medium sens & Dark sens & Dark AUC & Dark FPR & Dark $n$ / pos. \\
+\midrule
+EfficientNet-B0 / CE & 0.477 $\pm$ 0.031 & 0.609 $\pm$ 0.050 & 0.722 $\pm$ 0.096 & 0.871 & 0.117 & 43 / 6 \\
+EfficientNet-B0 / CE+strong & 0.519 $\pm$ 0.054 & 0.599 $\pm$ 0.086 & 0.556 $\pm$ 0.096 & 0.833 & 0.090 & 43 / 6 \\
+EfficientNet-B0 / Focal+CB & 0.420 $\pm$ 0.064 & 0.522 $\pm$ 0.076 & 0.500 $\pm$ 0.167 & 0.806 & 0.081 & 43 / 6 \\
+ResNet-50 / CE & 0.502 $\pm$ 0.036 & 0.633 $\pm$ 0.050 & 0.444 $\pm$ 0.096 & 0.803 & 0.117 & 43 / 6 \\
+ResNet-50 / CE+strong & 0.527 $\pm$ 0.026 & 0.603 $\pm$ 0.038 & 0.556 $\pm$ 0.096 & 0.854 & 0.135 & 43 / 6 \\
+ResNet-50 / Focal+CB & 0.399 $\pm$ 0.093 & 0.481 $\pm$ 0.066 & 0.722 $\pm$ 0.192 & 0.848 & 0.162 & 43 / 6 \\
+ViT-S/16 / CE & 0.342 $\pm$ 0.091 & 0.451 $\pm$ 0.065 & 0.333 $\pm$ 0.167 & 0.740 & 0.144 & 43 / 6 \\
+ViT-S/16 / CE+strong & 0.407 $\pm$ 0.054 & 0.471 $\pm$ 0.132 & 0.222 $\pm$ 0.096 & 0.763 & 0.126 & 43 / 6 \\
+ViT-S/16 / Focal+CB & 0.362 $\pm$ 0.062 & 0.586 $\pm$ 0.010 & 0.389 $\pm$ 0.096 & 0.712 & 0.189 & 43 / 6 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

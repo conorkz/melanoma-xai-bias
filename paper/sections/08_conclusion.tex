@@ -1,0 +1,7 @@
+\section{Conclusion}
+
+We benchmarked ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under three pre-declared conditions. Focal loss with class-balanced sampling improved the transformer but reduced the sensitivity of both CNNs, which reversed the architecture ranking on sensitivity at 95\% specificity. The AUC ranking stayed stable, which points to calibration and threshold effects rather than a change in ranking quality.
+
+The fairness analysis showed that the darkest lightness stratum had the lowest AUC and the highest false positive rate in all nine configurations. The stratum contains only 43 test images and six melanomas, so the sensitivity estimate is underpowered. The external dermoscopic datasets with Fitzpatrick labels contain no Fitzpatrick V-VI images, which is the main obstacle to a precise dark-skin claim.
+
+The next steps are the quantitative XAI analysis, the HIBA and PROVe-AI external validation, and a clinical dark-skin evaluation with DDI or PASSION. The combined results will test whether attribution leakage can detect the group-level problem before it appears in aggregate sensitivity.
