@@ -18,3 +18,6 @@ outputs/
 
 # OS
 .DS_Store
+
+# External datasets
+data/external/
