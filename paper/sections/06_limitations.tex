@@ -8,6 +8,7 @@
   \item The fairness analysis uses an image-based lightness proxy, not clinical Fitzpatrick labels. The proxy is sensitive to illumination, color calibration, and lesion contrast.
   \item The dark stratum contains 43 test images and six melanomas. The sensitivity estimate is underpowered, and the dark-stratum results are a signal rather than a precise effect size.
   \item HIBA and PROVe-AI contain Fitzpatrick I-IV only. The clinical datasets with Fitzpatrick V-VI differ in imaging modality, so the dark-skin comparison is confounded.
-  \item No clinician reader study was conducted, so the clinical relevance of the attribution maps is not yet validated with dermatologists.
+  \item Deletion and insertion curves saturated at a target probability near $1.0$, so they could not separate heatmaps. Faithfulness is therefore not measured, and the XAI results cover localization only.
+  \item No clinician reader study was conducted, so the clinical relevance of the attribution maps is not validated with dermatologists.
   \item No deployed system, prospective validation, or regulatory analysis is included.
 \end{itemize}

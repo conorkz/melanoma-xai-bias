@@ -1,6 +1,7 @@
 """Tests for the paper table generator."""
 
 import importlib.util
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -50,22 +51,72 @@ def test_short_name_for_each_backbone():
 
 def test_xai_table_contains_three_groups():
     generator = load_script("build_paper_tables")
-    frame = pd.DataFrame(
-        {
-            "tone_group": ["dark", "light", "medium"],
-            "n": [129, 450, 450],
-            "n_positive": [18, 36, 54],
-            "attribution_mass_mean": [0.342, 0.456, 0.374],
-            "pointing_game_mean": [0.449, 0.718, 0.613],
-            "attribution_iou_mean": [0.208, 0.333, 0.284],
-            "error_rate": [0.140, 0.076, 0.091],
-        }
-    )
-    output = generator.xai_table(frame, "Caption", "tab:xai")
+    rows = []
+    for backbone in ("efficientnet_b0", "resnet50"):
+        for group, mass, pointing, iou, error, positive in (
+            ("light", 0.456, 0.718, 0.333, 0.076, 36),
+            ("medium", 0.374, 0.613, 0.284, 0.091, 54),
+            ("dark", 0.342, 0.449, 0.208, 0.140, 18),
+        ):
+            rows.append(
+                {
+                    "backbone": backbone,
+                    "tone_group": group,
+                    "n": 450 if group != "dark" else 129,
+                    "n_positive": positive,
+                    "attribution_mass_mean": mass,
+                    "pointing_game_mean": pointing,
+                    "attribution_iou_mean": iou,
+                    "error_rate": error,
+                }
+            )
+    output = generator.xai_table(pd.DataFrame(rows), "Caption", "tab:xai")
     assert r"\toprule" in output
+    assert r"\multirow{3}{*}{EfficientNet-B0}" in output
+    assert "ResNet-50" in output
     assert "light" in output
     assert "dark" in output
     assert r"\label{tab:xai}" in output
+
+
+def test_xai_correlation_table_formats_small_p():
+    generator = load_script("build_paper_tables")
+    frame = pd.DataFrame(
+        {
+            "backbone": ["efficientnet_b0"],
+            "n": [1027],
+            "attribution_vs_tone_rho": [-0.169567],
+            "attribution_vs_tone_p": [4.57e-08],
+            "attribution_vs_error_rho": [-0.023207],
+            "attribution_vs_error_p": [0.4575],
+        }
+    )
+    output = generator.xai_correlation_table(frame, "Caption", "tab:xaicorr")
+    assert "EfficientNet-B0" in output
+    assert r"4.6\times10^{-8}" in output
+    assert "0.458" in output
+    assert r"\label{tab:xaicorr}" in output
+
+
+def test_external_table_handles_undefined_sensitivity():
+    generator = load_script("build_paper_tables")
+    frame = pd.DataFrame(
+        {
+            "backbone": ["resnet50", "resnet50"],
+            "tone_group": ["II", "IV"],
+            "n_mean": [804, 25],
+            "n_positive_mean": [144, 0],
+            "sensitivity_mean": [0.354, math.nan],
+            "specificity_mean": [0.891, 1.0],
+            "auc_mean": [0.739, math.nan],
+        }
+    )
+    output = generator.external_table(frame, "Caption", "tab:external")
+    assert "ResNet-50" in output
+    assert "804" in output
+    assert "144" in output
+    assert "--" in output
+    assert r"\label{tab:external}" in output
 
 
 def test_fairness_table_contains_three_groups():

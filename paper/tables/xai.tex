@@ -1,16 +1,24 @@
 \begin{table}[t]
 \centering
 \small
-\caption{EfficientNet-B0 XAI pilot on the HAM10000 test split. Values are means across three seeds. The dark stratum contains 129 images and 18 melanoma cases in this sample.}
+\caption{Quantitative XAI at the CE baseline on the HAM10000 test split. Each architecture uses three seeds and a tone-stratified sample of 343 test images per seed. Attribution mass is the fraction of the Grad-CAM heatmap inside the lesion mask. Values are means across seeds.}
 \label{tab:xai}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{lcccccc}
+\begin{tabular}{llcccccc}
 \toprule
-Tone group & $n$ & $n$ positive & Attribution mass & Pointing game & Attribution IoU & Error rate \\
+Architecture & Tone group & $n$ & $n$ positive & Attribution mass & Pointing game & Attribution IoU & Error rate \\
 \midrule
-light & 450 & 36 & 0.456 & 0.718 & 0.333 & 0.076 \\
-medium & 450 & 54 & 0.374 & 0.613 & 0.284 & 0.091 \\
-dark & 129 & 18 & 0.342 & 0.449 & 0.208 & 0.140 \\
+\multirow{3}{*}{ResNet-50} & light & 450 & 36 & 0.593 & 0.882 & 0.404 & 0.076 \\
+ & medium & 450 & 54 & 0.501 & 0.809 & 0.362 & 0.078 \\
+ & dark & 129 & 18 & 0.504 & 0.674 & 0.330 & 0.178 \\
+\midrule
+\multirow{3}{*}{EfficientNet-B0} & light & 450 & 36 & 0.456 & 0.718 & 0.333 & 0.076 \\
+ & medium & 450 & 54 & 0.374 & 0.613 & 0.284 & 0.091 \\
+ & dark & 129 & 18 & 0.342 & 0.449 & 0.208 & 0.140 \\
+\midrule
+\multirow{3}{*}{ViT-S/16} & light & 450 & 36 & 0.341 & 0.604 & 0.277 & 0.109 \\
+ & medium & 450 & 54 & 0.251 & 0.367 & 0.173 & 0.116 \\
+ & dark & 129 & 18 & 0.265 & 0.248 & 0.154 & 0.217 \\
 \bottomrule
 \end{tabular}
 }

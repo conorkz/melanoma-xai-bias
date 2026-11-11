@@ -1,0 +1,31 @@
+\begin{table}[t]
+\centering
+\small
+\caption{External validation on the HIBA dermoscopic subset (1,280 images, 196 melanomas). The threshold is the HAM10000 validation threshold at 95\% specificity, frozen before the external evaluation. Values are means across three seeds. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined. The 108 images without a Fitzpatrick label are included in the All row only.}
+\label{tab:external}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+Architecture & Fitzpatrick & $n$ & Melanomas & Sensitivity & Specificity & AUC \\
+\midrule
+\multirow{5}{*}{ResNet-50} & I & 97 & 25 & 0.360 & 0.954 & 0.679 \\
+ & II & 804 & 144 & 0.403 & 0.922 & 0.780 \\
+ & III & 246 & 17 & 0.412 & 0.978 & 0.946 \\
+ & IV & 25 & 0 & -- & 1.000 & -- \\
+ & All & 1280 & 196 & 0.391 & 0.944 & 0.807 \\
+\midrule
+\multirow{5}{*}{EfficientNet-B0} & I & 97 & 25 & 0.427 & 0.940 & 0.741 \\
+ & II & 804 & 144 & 0.389 & 0.890 & 0.745 \\
+ & III & 246 & 17 & 0.353 & 0.974 & 0.860 \\
+ & IV & 25 & 0 & -- & 0.987 & -- \\
+ & All & 1280 & 196 & 0.396 & 0.922 & 0.782 \\
+\midrule
+\multirow{5}{*}{ViT-S/16} & I & 97 & 25 & 0.200 & 0.995 & 0.773 \\
+ & II & 804 & 144 & 0.227 & 0.950 & 0.777 \\
+ & III & 246 & 17 & 0.333 & 0.994 & 0.849 \\
+ & IV & 25 & 0 & -- & 1.000 & -- \\
+ & All & 1280 & 196 & 0.221 & 0.967 & 0.791 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

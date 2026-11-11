@@ -2,6 +2,7 @@
 """Generate the LaTeX tables in paper/tables from the result CSVs."""
 
 import argparse
+import math
 import sys
 from pathlib import Path
 
@@ -17,7 +18,9 @@ BACKBONES = {
     "resnet50": "ResNet-50",
     "efficientnet_b0": "EfficientNet-B0",
     "vit_s": "ViT-S/16",
+    "vit_small_patch16_224": "ViT-S/16",
 }
+FITZPATRICK_ORDER = {"I": 0, "II": 1, "III": 2, "IV": 3, "V": 4, "VI": 5}
 CONDITIONS = {
     "ce_random": "CE",
     "ce_random_strong": "CE+strong",
@@ -35,7 +38,13 @@ def parse_args(argv=None):
     parser.add_argument("--stage1", default="results/rq1_stage1.csv")
     parser.add_argument("--stage2", default="results/rq1_stage2.csv")
     parser.add_argument("--fairness", default="results/fairness/lightness/fairness_summary.csv")
-    parser.add_argument("--xai", default="results/xai/efficientnet_b0/xai_summary.csv")
+    parser.add_argument("--xai", default="results/xai/xai_all_summary.csv")
+    parser.add_argument(
+        "--xai-correlations", default="results/xai/xai_all_correlations.csv"
+    )
+    parser.add_argument(
+        "--external", default="results/external/hiba/external_summary.csv"
+    )
     parser.add_argument("--out-dir", default="paper/tables")
     return parser.parse_args(argv)
 
@@ -121,20 +130,15 @@ def fairness_table(summary, caption, label):
 
 
 def xai_table(summary, caption, label):
-    order = {"light": 0, "medium": 1, "dark": 2}
+    tone_order = {"light": 0, "medium": 1, "dark": 2}
+    backbone_order = {key: index for index, key in enumerate(BACKBONES)}
     frame = summary.copy()
-    frame["_order"] = frame["tone_group"].map(order).fillna(3)
-    frame = frame.sort_values("_order")
-    columns = [
-        "tone_group",
-        "n",
-        "n_positive",
-        "attribution_mass_mean",
-        "pointing_game_mean",
-        "attribution_iou_mean",
-        "error_rate",
-    ]
+    frame["_tone"] = frame["tone_group"].map(tone_order).fillna(3)
+    frame["_backbone"] = frame["backbone"].map(backbone_order).fillna(99)
+    frame = frame.sort_values(["_backbone", "_tone"])
+
     headers = [
+        "Architecture",
         "Tone group",
         "$n$",
         "$n$ positive",
@@ -150,22 +154,138 @@ def xai_table(summary, caption, label):
         r"\caption{" + caption + "}",
         r"\label{" + label + "}",
         r"\resizebox{\textwidth}{!}{%",
-        r"\begin{tabular}{lcccccc}",
+        r"\begin{tabular}{llcccccc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    for block, (backbone, group) in enumerate(frame.groupby("backbone", sort=False)):
+        if block:
+            lines.append(r"\midrule")
+        rows = list(group.iterrows())
+        architecture = BACKBONES.get(backbone, backbone)
+        for index, (_, row) in enumerate(rows):
+            name = (
+                f"\\multirow{{{len(rows)}}}{{*}}{{{architecture}}}"
+                if index == 0
+                else ""
+            )
+            values = [
+                name,
+                str(row["tone_group"]),
+                str(int(row["n"])),
+                str(int(row["n_positive"])),
+                f"{row['attribution_mass_mean']:.3f}",
+                f"{row['pointing_game_mean']:.3f}",
+                f"{row['attribution_iou_mean']:.3f}",
+                f"{row['error_rate']:.3f}",
+            ]
+            lines.append(" & ".join(values) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def format_p(value):
+    if value is None or not math.isfinite(value):
+        return "nan"
+    if value < 1e-4:
+        exponent = int(math.floor(math.log10(value)))
+        mantissa = value / 10**exponent
+        return f"${mantissa:.1f}\\times10^{{{exponent}}}$"
+    return f"{value:.3f}"
+
+
+def xai_correlation_table(frame, caption, label):
+    headers = [
+        "Architecture",
+        "Images",
+        "$\\rho$ (mass, tone)",
+        "$p$",
+        "$\\rho$ (mass, error)",
+        "$p$",
+    ]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\begin{tabular}{lccccc}",
         r"\toprule",
         " & ".join(headers) + r" \\",
         r"\midrule",
     ]
     for _, row in frame.iterrows():
-        values = [
-            str(row["tone_group"]),
-            str(int(row["n"])),
-            str(int(row["n_positive"])),
-            f"{row['attribution_mass_mean']:.3f}",
-            f"{row['pointing_game_mean']:.3f}",
-            f"{row['attribution_iou_mean']:.3f}",
-            f"{row['error_rate']:.3f}",
-        ]
-        lines.append(" & ".join(values) + r" \\")
+        architecture = BACKBONES.get(row["backbone"], row["backbone"])
+        lines.append(
+            f"{architecture} & {int(row['n'])} & "
+            f"{row['attribution_vs_tone_rho']:.3f} & "
+            f"{format_p(row['attribution_vs_tone_p'])} & "
+            f"{row['attribution_vs_error_rho']:.3f} & "
+            f"{format_p(row['attribution_vs_error_p'])} \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def format_metric(value):
+    if value is None or not math.isfinite(value):
+        return "--"
+    return f"{value:.3f}"
+
+
+def external_table(summary, caption, label):
+    backbone_order = {key: index for index, key in enumerate(BACKBONES)}
+    group_order = dict(FITZPATRICK_ORDER)
+    group_order["all"] = 6
+    frame = summary[summary["tone_group"] != "unknown"].copy()
+    frame["_backbone"] = frame["backbone"].map(backbone_order).fillna(99)
+    frame["_group"] = frame["tone_group"].map(group_order).fillna(99)
+    frame = frame.sort_values(["_backbone", "_group"])
+
+    headers = [
+        "Architecture",
+        "Fitzpatrick",
+        "$n$",
+        "Melanomas",
+        "Sensitivity",
+        "Specificity",
+        "AUC",
+    ]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\resizebox{\textwidth}{!}{%",
+        r"\begin{tabular}{llcccccc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    for block, (backbone, group) in enumerate(frame.groupby("backbone", sort=False)):
+        if block:
+            lines.append(r"\midrule")
+        rows = list(group.iterrows())
+        architecture = BACKBONES.get(backbone, backbone)
+        for index, (_, row) in enumerate(rows):
+            name = (
+                f"\\multirow{{{len(rows)}}}{{*}}{{{architecture}}}"
+                if index == 0
+                else ""
+            )
+            group_name = "All" if row["tone_group"] == "all" else row["tone_group"]
+            values = [
+                name,
+                group_name,
+                str(int(row["n_mean"])),
+                str(int(row["n_positive_mean"])),
+                format_metric(row["sensitivity_mean"]),
+                format_metric(row["specificity_mean"]),
+                format_metric(row["auc_mean"]),
+            ]
+            lines.append(" & ".join(values) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
     return "\n".join(lines)
 
@@ -222,14 +342,46 @@ def main(argv=None):
         xai_output.write_text(
             xai_table(
                 xai_summary,
-                "EfficientNet-B0 XAI pilot on the HAM10000 test split. Values are means across three seeds. The dark stratum contains 129 images and 18 melanoma cases in this sample.",
+                "Quantitative XAI at the CE baseline on the HAM10000 test split. Each architecture uses three seeds and a tone-stratified sample of 343 test images per seed. Attribution mass is the fraction of the Grad-CAM heatmap inside the lesion mask. Values are means across seeds.",
                 "tab:xai",
             ),
             encoding="utf-8",
         )
         print(xai_output)
+
+        correlations_path = resolve(args.xai_correlations)
+        if correlations_path.exists():
+            correlations = pd.read_csv(correlations_path)
+            correlation_output = out_dir / "xai_correlations.tex"
+            correlation_output.write_text(
+                xai_correlation_table(
+                    correlations,
+                    "Spearman correlations between attribution mass inside the lesion, lightness group, and error status at the CE baseline. Tone is coded light $=0$, medium $=1$, dark $=2$. A negative mass-tone correlation means less attribution inside the lesion on darker images.",
+                    "tab:xaicorr",
+                ),
+                encoding="utf-8",
+            )
+            print(correlation_output)
+        else:
+            print(f"Skipping XAI correlation table: {correlations_path} not found")
     else:
         print(f"Skipping XAI table: {xai_path} not found")
+
+    external_path = resolve(args.external)
+    if external_path.exists():
+        external_summary = pd.read_csv(external_path)
+        external_output = out_dir / "external.tex"
+        external_output.write_text(
+            external_table(
+                external_summary,
+                "External validation on the HIBA dermoscopic subset (1,280 images, 196 melanomas). The threshold is the HAM10000 validation threshold at 95\\% specificity, frozen before the external evaluation. Values are means across three seeds. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined. The 108 images without a Fitzpatrick label are included in the All row only.",
+                "tab:external",
+            ),
+            encoding="utf-8",
+        )
+        print(external_output)
+    else:
+        print(f"Skipping external table: {external_path} not found")
     return 0
 
 

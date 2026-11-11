@@ -32,7 +32,7 @@ The stability of the AUC ranking suggests that the sensitivity reversal is speci
 
 The test set contains 644 light images with 81 melanomas, 840 medium images with 99 melanomas, and 43 dark images with 6 melanomas. The dark stratum is 2.8\% of the test set and 3.2\% of the melanoma cases.
 
-Table~\ref{tab:fairness} reports the per-group sensitivity and the dark-stratum AUC and false positive rate for the nine Stage 2 configurations.
+Table~\ref{tab:fairness} reports the per-group sensitivity and the dark-stratum AUC and false positive rate for the nine Stage 2 configurations. Figure~\ref{fig:fairness} shows the AUC and false positive rate pattern.
 
 The dark stratum has the lowest AUC in all nine configurations. The dark AUC ranges from 0.71 to 0.87, against 0.83 to 0.90 for the light stratum and 0.88 to 0.93 for the medium stratum.
 
@@ -44,20 +44,50 @@ The medium stratum has the highest sensitivity in most configurations. The light
 
 \input{tables/fairness}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fairness_by_tone.png}
+  \caption{AUC and false positive rate by lightness group for the nine Stage 2 configurations. Columns are training conditions and lines are architectures. Points are means across three seeds; error bars are seed standard deviations. The dark stratum contains 43 test images and six melanoma cases.}
+  \label{fig:fairness}
+\end{figure}
+
 \subsection{Quantitative XAI}
 \label{sec:xai}
 
-The analysis measures attribution mass inside the lesion, pointing game accuracy, attribution IoU, and deletion and insertion AUC for the selected Stage 2 runs. The protocol is defined in Section~3.9.
+Table~\ref{tab:xai} reports attribution mass inside the lesion, pointing-game accuracy, attribution IoU, and error rate for the CE-baseline models. Table~\ref{tab:xaicorr} reports the Spearman correlations. The sample contains 129 dark images and 18 melanomas across the three seeds, and 450 light and 450 medium images.
 
-In the EfficientNet-B0 pilot (three seeds, 1,027 test images), the dark stratum had lower attribution mass inside the lesion, lower pointing-game accuracy, and lower attribution IoU than the light and medium strata (Table~\ref{tab:xai}). The Spearman correlation between attribution mass and tone group was $-0.170$ ($p<10^{-7}$), so darker images received less attribution inside the lesion. The correlation between attribution mass and error was small and not significant ($\rho=-0.023$, $p=0.46$). The ResNet-50 and ViT-S/16 analyses are in progress.
+Attribution mass inside the lesion is highest in the light stratum for all three architectures. EfficientNet-B0 falls from $0.456$ to $0.374$ to $0.342$ across light, medium, and dark. ViT-S/16 falls from $0.341$ to $0.251$ and then rises slightly to $0.265$. ResNet-50 falls from $0.593$ to $0.501$ and then stays near $0.504$. The mass-tone correlation is negative and significant for every architecture: $-0.170$ for EfficientNet-B0, $-0.167$ for ResNet-50, and $-0.184$ for ViT-S/16, all with $p<10^{-7}$.
+
+Pointing-game accuracy is lowest in the dark stratum in every case: $0.449$ for EfficientNet-B0, $0.674$ for ResNet-50, and $0.248$ for ViT-S/16. Attribution IoU follows the same direction for EfficientNet-B0 and ViT-S/16, and is only slightly lower in the dark stratum than the medium stratum for ResNet-50 ($0.330$ vs $0.362$).
+
+The error rate is higher in the dark stratum than in the light stratum for every architecture: $0.140$ vs $0.076$ for EfficientNet-B0, $0.178$ vs $0.076$ for ResNet-50, and $0.217$ vs $0.109$ for ViT-S/16. The direction matches the fairness results, though the dark sample is small.
+
+Attribution mass does not predict individual errors well. The mass-error correlation is $-0.023$ for EfficientNet-B0 ($p=0.46$), $0.047$ for ResNet-50 ($p=0.13$), and $0.089$ for ViT-S/16 ($p=0.004$). Only the ViT correlation is significant, and its effect size is small. The XAI signal is therefore group-level: all three models place less attribution inside the lesion on darker images, and darker images have higher error rates. It does not identify which individual images will fail.
+
+Figure~\ref{fig:xai} shows the group pattern. ResNet-50 localizes best in absolute terms and has the highest dark-stratum attribution mass, but its dark error rate is higher than EfficientNet-B0's. Localization quality and error rate move together across tone groups, but they do not rank architectures the same way.
 
 \input{tables/xai}
+\input{tables/xai_correlations}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{xai_by_tone.png}
+  \caption{Attribution mass inside the lesion and pointing-game accuracy by lightness group for the three CE-baseline architectures. Bars are means across three seeds; error bars are seed standard deviations. The sample contains all 43 dark test images per seed and 150 randomly drawn light and medium images per seed.}
+  \label{fig:xai}
+\end{figure}
 
 \subsection{External tone-labeled validation}
 \label{sec:external}
 
-% TODO: insert the HIBA and PROVe-AI results for Fitzpatrick I-IV, and the clinical dark-skin results for Fitzpatrick V-VI.
-The external validation compares HIBA and PROVe-AI for Fitzpatrick I-IV and a clinical dark-skin dataset for Fitzpatrick V-VI. HIBA and PROVe-AI contain no Fitzpatrick V-VI images. The clinical comparison uses DDI or PASSION, with the imaging modality difference reported as a limitation.
+Table~\ref{tab:external} reports the HIBA dermoscopic subset: 1,280 images and 196 melanomas. We applied the HAM10000 validation threshold at 95\% specificity without refitting. HIBA contains Fitzpatrick I-IV only, and 108 images have no Fitzpatrick label.
+
+Sensitivity drops on the external set. ResNet-50 reaches $0.391$ at $0.944$ specificity, EfficientNet-B0 reaches $0.396$ at $0.922$, and ViT-S/16 reaches $0.221$ at $0.967$. The AUCs are $0.807$, $0.782$, and $0.791$. On the HAM10000 test set the same models reached $0.57$, $0.56$, and $0.40$ sensitivity at 95\% specificity, with AUCs of $0.90$, $0.91$, and $0.85$. Both CNNs outperform the transformer on external sensitivity, which matches the HAM10000 baseline, but the two CNNs are within half a point of each other. The absolute drop is consistent with domain shift between the Argentine HIBA collection and HAM10000.
+
+The per-type estimates do not show a monotonic skin-tone gradient. For Fitzpatrick I, II, and III, CNN sensitivity ranges from $0.35$ to $0.43$, and the ViT is lower at $0.20$ to $0.33$. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined and only specificity can be estimated. The group sizes are unbalanced: 804 of the 1,280 images are type II. HIBA cannot test the dark-skin claim, because it has almost no type IV melanoma cases and no type V-VI images at all.
+
+The CNN-transformer gap transfers, so the transformer deficit is not specific to HAM10000. The absolute performance does not transfer: the frozen HAM10000 threshold yields much lower sensitivity on HIBA, which means the operating point needs recalibration for a new source. The tone-specific claim remains limited to the image-based lightness strata in HAM10000 and to the consistent dark-stratum AUC and false positive rate signal.
+
+\input{tables/external}
 
 \subsection{Figures}
 

@@ -22,13 +22,17 @@ The light stratum is often harder than the medium stratum. This is consistent wi
 
 \subsection{The data bottleneck}
 
-The external dermoscopic datasets with Fitzpatrick labels, HIBA and PROVe-AI, contain Fitzpatrick I-IV only. Pipsqueak, the only dermoscopic dark-skin set, has 16 core images. The clinical datasets with Fitzpatrick V-VI, such as DDI, SCIN, and PASSION, differ from HAM10000 in imaging modality.
+The external dermoscopic datasets with Fitzpatrick labels, HIBA and PROVe-AI, contain Fitzpatrick I-IV only. The HIBA evaluation makes the constraint concrete. In 1,280 dermoscopic images, Fitzpatrick IV accounts for 25 images and not a single melanoma. Sensitivity is estimable only for types I-III, and those estimates show no monotonic skin-tone gradient. The 16 to 18 point sensitivity drop between HAM10000 and HIBA also shows that the available external set is a different imaging domain, not a clean replication.
 
-This is the main obstacle to a strong dark-skin claim. This study can quantify the representation gap, report the consistent dark-stratum AUC and false-positive signal, and show the limitation of the available dermoscopic data. A precise dark-skin sensitivity estimate requires new dermoscopic data collection or a carefully controlled cross-modality study.
+The clinical datasets with Fitzpatrick V-VI, such as DDI, SCIN, and PASSION, differ from HAM10000 in imaging modality. This is the main obstacle to a strong dark-skin claim. This study can quantify the representation gap, report the consistent dark-stratum AUC and false-positive signal, and show the limitation of the available dermoscopic data. A precise dark-skin sensitivity estimate requires new dermoscopic data collection or a carefully controlled cross-modality study.
 
 \subsection{What XAI adds}
 
-The classification and fairness results describe what the model does. The XAI analysis tests whether it attends to the lesion or to the surrounding skin. If attribution mass outside the lesion is higher in the dark stratum and correlates with errors, attribution leakage becomes an early warning signal that can be measured before group-level sensitivity collapses. The protocol is defined in Section~3.9.
+The XAI results show a group-level pattern that the aggregate metrics do not capture. All three architectures place less attribution inside the lesion on darker images, and the dark stratum has the highest error rate in every architecture. The direction is consistent across a standard CNN, an efficient CNN, and a transformer, so it is not a quirk of one inductive bias.
+
+The same analysis sets a limit on what attribution can claim. Attribution mass does not predict individual errors well: the correlation is near zero for both CNNs and small for the ViT. A deployment system should not use this heatmap score as a per-image triage signal without further work. It can use the group-level pattern as a monitoring signal: when a cohort shows lower attribution mass inside the lesion, the model is likely to make more errors on that cohort.
+
+ResNet-50 is the counterexample to a simple assumption that more attribution inside the lesion means fewer errors. It has the highest attribution mass and pointing-game accuracy in the dark stratum, but its dark error rate is higher than EfficientNet-B0's. Heatmaps are a partial view of model behaviour, not a substitute for group-level performance measurement.
 
 \subsection{Implications for model selection}
 

@@ -50,20 +50,21 @@ We also computed the Individual Typology Angle (ITA), $\mathrm{ITA}=\arctan((L^*
 
 For each Stage 2 run, we compute per-group sensitivity, specificity, false positive rate, false negative rate, AUC, and bootstrap intervals. We report the maximum group gap and the light-to-dark sensitivity ratio.
 
-External validation uses HIBA \citep{hiba2023} and PROVe-AI \citep{proveai2023}, which are dermoscopic datasets with Fitzpatrick labels. Both contain Fitzpatrick I-IV only. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is used for the Fitzpatrick V-VI comparison, with the imaging modality difference stated as a limitation.
+External validation uses HIBA \citep{hiba2023}, a dermoscopic dataset from Argentina with Fitzpatrick labels. We apply the frozen HAM10000 validation threshold and do not refit on HIBA. PROVe-AI \citep{proveai2023} is a possible extension but was not evaluated here. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is left for future work, with the imaging modality difference stated as a limitation.
 
 \subsection{XAI analysis}
 
-For each selected run we compute Grad-CAM heatmaps for the test images. We measure:
+For the CE-baseline run of each architecture, we compute Grad-CAM heatmaps on a tone-stratified test sample: all 43 dark images plus 150 randomly drawn light and 150 medium images per seed. We measure:
 
 \begin{itemize}
   \item Attribution mass inside the lesion: $M=\sum_{i\in\mathrm{lesion}}h_i/\sum_i h_i$, where $h_i$ is the normalized heatmap value at pixel $i$.
   \item Pointing game accuracy: the fraction of images where the maximum heatmap value falls inside the lesion mask.
   \item Attribution IoU: the intersection over union between the thresholded heatmap and the lesion mask.
-  \item Deletion and insertion AUC: the area under the target-class probability curve when pixels are removed or added in descending heatmap order.
 \end{itemize}
 
-We then compute the Spearman correlation between attribution mass and error status, and between attribution mass and lightness group. The XAI analysis uses the same test split and the same per-sample predictions as the classification and fairness analyses.
+We then compute the Spearman correlation between attribution mass and error status, and between attribution mass and lightness group. The correlations pool the three seeds, so the $p$-values treat repeated images as independent and are descriptive rather than confirmatory. The XAI analysis uses the same test split and the same per-sample predictions as the classification and fairness analyses.
+
+We also implemented deletion and insertion curves, but the models are highly confident: the target-class probability stays near $1.0$ for both the original and the perturbed images, so the curves do not separate heatmaps on this benchmark. We therefore report localization metrics and treat faithfulness curves as future work.
 
 \subsection{Reproducibility}
 
