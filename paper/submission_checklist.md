@@ -9,13 +9,15 @@
 
 ## Manuscript metadata
 
-- [ ] Full author list with affiliations.
-- [ ] ORCID for each author.
-- [ ] Corresponding author and email.
-- [ ] Author contributions.
-- [ ] Funding statement.
-- [ ] Competing interests statement.
-- [ ] Ethics statement.
+- [x] Full author list with affiliations.
+- [x] ORCID for Sun Baoshan: 0000-0003-2193-3232.
+- [ ] ORCID for Nursultan Zhanat.
+- [x] Corresponding author and email.
+- [ ] Personal email for Nursultan Zhanat, if the journal requires it.
+- [x] Author contributions.
+- [x] Funding statement.
+- [x] Competing interests statement.
+- [x] Ethics statement.
 - [ ] Acknowledgments.
 
 ## Scientific checks

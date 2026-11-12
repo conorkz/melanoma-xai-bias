@@ -23,5 +23,10 @@ This manuscript is original, has not been published elsewhere, and is not under 
 Sincerely,
 
 Nursultan Zhanat
-[Affiliation]
-[Email]
+School of Computer Science and Technology, Tiangong University, Tianjin 300387, China
+Tianjin Key Laboratory of Autonomous Intelligence Technology and Systems, Tiangong University, Tianjin 300387, China
+
+On behalf of the authors, including the corresponding author:
+Sun Baoshan
+sunbaoshan@tiangong.edu.cn
+Tiangong University, Tianjin 300387, China
