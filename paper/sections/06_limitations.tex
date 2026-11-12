@@ -2,6 +2,7 @@
 
 \begin{itemize}
   \item The training data are HAM10000 only. HIBA adds one external dermoscopic source, but cross-dataset generalization to PH2, BCN20000, or ISIC 2020 is not measured.
+  \item The external validation covers the CE-baseline models. The focal and strong-augmentation models are not yet evaluated on HIBA, so the external condition comparison is incomplete.
   \item The endpoint is binary melanoma versus all other diagnoses. Seven-class classification is a secondary experiment.
   \item Each condition uses three seeds. The paired within-architecture intervals include zero, so the paper supports an architecture-dependent interaction rather than a precise ranking.
   \item Stage 1 uses 160-pixel images and Stage 2 uses 224-pixel images. The two stages are not directly comparable.

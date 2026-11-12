@@ -52,7 +52,7 @@ Figure~\ref{fig:calibration} shows reliability curves and ECE by lightness group
 
 The test set contains 644 light images with 81 melanomas, 840 medium images with 99 melanomas, and 43 dark images with 6 melanomas. The dark stratum is 2.8\% of the test set and 3.2\% of the melanoma cases.
 
-Table~\ref{tab:fairness} reports the per-group sensitivity at 95\% specificity for the nine Stage 2 configurations at the pre-declared cutoff $L^*\leq55$. At this cutoff the dark stratum has the lowest AUC in all nine configurations, 0.71 to 0.87, against 0.83 to 0.90 for light and 0.88 to 0.93 for medium. It also has the highest false positive rate, 0.08 to 0.19, against 0.04 to 0.07 for the other two groups.
+Table~\ref{tab:fairness} reports the per-group sensitivity at 95\% specificity for the nine Stage 2 configurations at the pre-declared cutoff $L^*\leq55$. Figure~\ref{fig:fairness} shows the same cutoff per configuration. At this cutoff the dark stratum has the lowest AUC in all nine configurations, 0.71 to 0.87, against 0.83 to 0.90 for light and 0.88 to 0.93 for medium. It also has the highest false positive rate, 0.08 to 0.19, against 0.04 to 0.07 for the other two groups.
 
 The cutoff is a choice, so we repeated the analysis at $L^*\leq58$ and $L^*\leq60$ (Table~\ref{tab:darkskin}, Figure~\ref{fig:darkskin}). The dark AUC deficit is not robust to the cutoff. At $L^*\leq58$ the dark AUC is 0.891, against 0.868 for light and 0.908 for medium. At $L^*\leq60$ it is 0.881, against 0.868 and 0.912. The dark false positive rate is elevated at every cutoff: 0.126 at $L^*\leq55$, 0.086 at $L^*\leq58$, and 0.073 at $L^*\leq60$, against 0.047 to 0.050 for light and medium. Dark sensitivity is 0.500 with 6 melanomas, 0.648 with 12, and 0.580 with 23. The intervals are wide, and dark sensitivity is not consistently lower than light sensitivity.
 
@@ -104,7 +104,7 @@ Figure~\ref{fig:xai} shows the group pattern. ResNet-50 localizes best in absolu
 \subsection{External tone-labeled validation}
 \label{sec:external}
 
-Table~\ref{tab:external} reports the HIBA dermoscopic subset: 1,280 images and 196 melanomas. We applied the HAM10000 validation threshold at 95\% specificity without refitting. HIBA contains Fitzpatrick I-IV only, and 108 images have no Fitzpatrick label.
+Table~\ref{tab:external} reports the HIBA dermoscopic subset for the CE-baseline models: 1,280 images and 196 melanomas. We applied the HAM10000 validation threshold at 95\% specificity without refitting. HIBA contains Fitzpatrick I-IV only, and 108 images have no Fitzpatrick label.
 
 Sensitivity drops on the external set. ResNet-50 reaches $0.391$ at $0.944$ specificity, EfficientNet-B0 reaches $0.396$ at $0.922$, and ViT-S/16 reaches $0.221$ at $0.967$. The AUCs are $0.807$, $0.782$, and $0.791$. On the HAM10000 test set the same models reached $0.57$, $0.56$, and $0.40$ sensitivity at 95\% specificity, with AUCs of $0.90$, $0.91$, and $0.85$. Both CNNs outperform the transformer on external sensitivity, which matches the HAM10000 baseline, but the two CNNs are within half a point of each other. The absolute drop is consistent with domain shift between the Argentine HIBA collection and HAM10000.
 

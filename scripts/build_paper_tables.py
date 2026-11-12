@@ -676,7 +676,7 @@ def main(argv=None):
         external_output.write_text(
             external_table(
                 external_summary,
-                "External validation on the HIBA dermoscopic subset (1,280 images, 196 melanomas). The threshold is the HAM10000 validation threshold at 95\\% specificity, frozen before the external evaluation. Values are means across three seeds. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined. The 108 images without a Fitzpatrick label are included in the All row only.",
+                "External validation on the HIBA dermoscopic subset for the CE-baseline models (1,280 images, 196 melanomas). The threshold is the HAM10000 validation threshold at 95\\% specificity, frozen before the external evaluation. Values are means across three seeds. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined. The 108 images without a Fitzpatrick label are included in the All row only.",
                 "tab:external",
             ),
             encoding="utf-8",
