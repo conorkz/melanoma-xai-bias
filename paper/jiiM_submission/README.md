@@ -20,7 +20,7 @@ Journal: Journal of Imaging Informatics in Medicine (JIIM), Springer.
 - Tables: 12. Figures: 4.
 - Corresponding author: Sun Baoshan, sunbaoshan@tiangong.edu.cn, ORCID 0000-0003-2193-3232.
 - First author email: zhanat.nursultan1@gmail.com.
-- First author ORCID: still to be added if the journal requires it. Register at https://orcid.org/register.
+- First author ORCID: 0009-0006-7839-4785.
 
 ## Notes
 

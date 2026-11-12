@@ -11,7 +11,7 @@
 
 - [x] Full author list with affiliations.
 - [x] ORCID for Sun Baoshan: 0000-0003-2193-3232.
-- [ ] ORCID for Nursultan Zhanat. Register at https://orcid.org/register.
+- [x] ORCID for Nursultan Zhanat: 0009-0006-7839-4785.
 - [x] Corresponding author and email.
 - [x] Personal email for Nursultan Zhanat: zhanat.nursultan1@gmail.com.
 - [x] Author contributions.

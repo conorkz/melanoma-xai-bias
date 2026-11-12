@@ -28,6 +28,7 @@ Nursultan Zhanat
 School of Computer Science and Technology, Tiangong University, Tianjin 300387, China
 Tianjin Key Laboratory of Autonomous Intelligence Technology and Systems, Tiangong University, Tianjin 300387, China
 zhanat.nursultan1@gmail.com
+ORCID: 0009-0006-7839-4785
 
 On behalf of the authors, including the corresponding author:
 Sun Baoshan
