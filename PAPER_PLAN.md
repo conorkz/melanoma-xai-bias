@@ -2,7 +2,7 @@
 
 **Working title:** Architecture-dependent effects of imbalance correction in melanoma classification: fairness, calibration, and explanation analysis
 
-**Status:** the RQ1 benchmark, the fairness analysis, the calibration analysis, the paired ranking tests, the three-architecture XAI analysis, and the nine-run HIBA external validation are complete. The 27-run HIBA validation, the clinical dark-skin evaluation, and the PROVe-AI extension are pending. The LaTeX draft in `paper/` contains the current results.
+**Status:** the RQ1 benchmark, the fairness analysis, the calibration analysis, the paired ranking tests, the three-architecture XAI analysis, and the 18-run HIBA external validation (CE baseline and focal loss) are complete. The strong-augmentation external validation, the clinical dark-skin evaluation, and the PROVe-AI extension are pending. The LaTeX draft in `paper/` contains the current results.
 
 ## Contributions
 
