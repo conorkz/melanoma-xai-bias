@@ -1,0 +1,79 @@
+\section{Methods}
+
+\subsection{Data and splits}
+
+We use HAM10000, which contains 10,015 dermoscopic images from 7,470 lesions across seven diagnostic classes \citep{tschandl2018ham10000}. The task is binary: melanoma versus all other diagnoses. The dataset contains 1,113 melanoma images, 11.1\% of the total.
+
+We use a lesion-aware split so that images of the same lesion never appear in more than one split. The split is 70\% training, 15\% validation, and 15\% test. The test set contains 1,527 images and 186 melanomas. The split is generated with seed 42, released as \texttt{results/split\_ham10000\_lesion\_seed42.csv}, and reused by every run.
+
+\subsection{Preprocessing and augmentation}
+
+Images are resized to 160 pixels for the Stage 1 screen and 224 pixels for the Stage 2 comparison, and normalized with ImageNet statistics. The standard augmentation pipeline applies horizontal and vertical flips, random 90-degree rotations, and mild color jitter. The strong pipeline increases the color jitter and adds affine transformations with scale, translation, and rotation. The strong regime is designed to simulate domain shift.
+
+\subsection{Architectures}
+
+We compare ResNet-50, EfficientNet-B0, and ViT-S/16. All models use ImageNet pretrained weights and a two-class output. The ViT uses dynamic image sizing so that it accepts the 224-pixel input. The three models cover a standard CNN, an efficient CNN, and a transformer.
+
+\subsection{Training}
+
+All models use AdamW with a learning rate of $3\times10^{-4}$, weight decay $1\times10^{-4}$, and a cosine schedule. The batch size is 64, the maximum number of epochs is 15, and early stopping uses a patience of 5 on validation balanced accuracy. Gradients are clipped to a norm of 1.0. Training uses mixed precision when a GPU is available.
+
+\subsection{Conditions}
+
+Stage 1 is a screen on EfficientNet-B0 at 160 pixels. It contains eight configurations: CE with a random sampler, CE with class-balanced sampling, weighted CE with a random sampler, focal loss with $\gamma=2$ and a random sampler, focal loss with $\gamma=2$ and class-balanced sampling, focal loss with $\gamma=3$ and class-balanced sampling, and two strong-augmentation variants. Each configuration uses three seeds, for 24 runs.
+
+Stage 2 compares three pre-declared conditions across the three architectures at 224 pixels:
+
+\begin{enumerate}
+  \item CE baseline: cross-entropy loss, random sampler, standard augmentation.
+  \item Planned imbalance correction: focal loss with $\gamma=2$, class-balanced sampling, standard augmentation.
+  \item Stage 1 winner: cross-entropy loss, random sampler, strong augmentation.
+\end{enumerate}
+
+Each condition uses three seeds, for 27 runs. The Stage 2 conditions are fixed before the test results are seen.
+
+\subsection{Metrics and threshold}
+
+We report sensitivity, specificity, balanced accuracy, AUC, and sensitivity at 95\% specificity. The operating threshold is selected on the validation split at 95\% specificity, frozen, and applied once to the test split. Each run writes per-sample test predictions so that the same scores can be reused for fairness and XAI analysis.
+
+\subsection{Statistical analysis}
+
+We report the mean and standard deviation across three seeds. The seed is the experimental unit for a training intervention. We report 95\% t intervals across seeds for the mean and release per-seed values in the result files. The intervals are wide with three seeds, and we treat them as descriptive. Image-level bootstrap intervals are not used as confidence intervals for the seed-level mean. The test set is used for evaluation only.
+
+We test AUC differences between conditions and architectures with paired seed-level t intervals. We also compute sensitivity at a common 95\% test specificity for every configuration. These analyses separate test-set uncertainty from run-to-run variation.
+
+\subsection{Fairness analysis}
+
+HAM10000 has no Fitzpatrick labels. We therefore compute an image-based lightness proxy from non-lesional skin. The image is converted to CIELAB, the lesion mask is dilated by 11 pixels and excluded, and very dark pixels ($L^*<10$) and very bright pixels ($L^*>95$) are removed. The median $L^*$ of the remaining skin pixels is the proxy.
+
+We group images into light ($L^*>70$), medium ($55<L^*\leq70$), and dark ($L^*\leq55$). These thresholds are specific to the HAM10000 lightness distribution. They are image-based strata, not clinical Fitzpatrick labels.
+
+We also computed the Individual Typology Angle (ITA), $\mathrm{ITA}=\arctan((L^*-50)/b^*)\times180/\pi$. The ITA was unstable on 37\% of images because the $b^*$ channel was near zero or negative after dermatoscope color casts. The $L^*$ proxy is therefore the primary analysis, and the ITA is not used for group comparisons.
+
+For each Stage 2 run, we compute per-group sensitivity, specificity, false positive rate, false negative rate, and AUC. Group estimates are reported as mean and standard deviation across seeds.
+
+Lesion contrast is computed from the same masks. The lesion color is the median CIELAB value inside the mask, and the surrounding skin is the median inside an 11-pixel ring after excluding $L^*<10$ and $L^*>95$. We define $\Delta L^*$ as skin minus lesion, so a positive value means the lesion is darker than the surrounding skin, and $\Delta E$ as the CIELAB 76 difference between the two median colors.
+
+The main analysis uses the pre-declared cutoff $L^*\leq55$. We repeat the group analysis at $L^*\leq58$ and $L^*\leq60$ to test whether the results depend on the cutoff. We also fit adjusted logistic models of false positive and false negative on perilesional $L^*$, $\Delta L^*$, log lesion area, age, sex, and anatomical site. Continuous predictors are standardized; one standard deviation is 7.2 $L^*$ units and 10.3 contrast units in the test set. Standard errors come from a cluster bootstrap over lesions with 300 replicates, so repeated images and seeds of the same lesion are not treated as independent. The $p$-values are descriptive and are not corrected for multiplicity across cutoffs and architectures.
+
+We compute expected calibration error with 10 equal-width bins and the Brier score on the test split. Paired sensitivity and AUC comparisons are computed per seed and summarized with 95\% t intervals across three seeds. Difference-in-differences compares the CE-to-focal change of one architecture with that of another. The direction count reports how many seeds agree with the mean sign.
+
+External validation uses HIBA \citep{hiba2023}, a dermoscopic dataset from Argentina with Fitzpatrick labels. We apply the frozen HAM10000 validation threshold and do not refit on HIBA. As a secondary comparison, we also report sensitivity at 95\% specificity with a threshold fitted on HIBA. This oracle threshold is an upper bound, not a deployable result. PROVe-AI \citep{proveai2023} is a possible extension but was not evaluated here. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is left for future work, with the imaging modality difference stated as a limitation.
+
+\subsection{XAI analysis}
+
+For the CE-baseline run of each architecture, we compute Grad-CAM heatmaps on a tone-stratified test sample: all 43 dark images plus 150 randomly drawn light and 150 medium images per seed. Grad-CAM targets the true class for every image, including false negatives, so the heatmap describes evidence for melanoma rather than the predicted class. We measure:
+
+\begin{itemize}
+  \item Attribution mass inside the lesion: $M=\sum_{i\in\mathrm{lesion}}h_i/\sum_i h_i$, where $h_i$ is the normalized heatmap value at pixel $i$.
+  \item Pointing game accuracy: the fraction of images where the maximum heatmap value falls inside the lesion mask.
+  \item Attribution IoU: the intersection over union between the thresholded heatmap and the lesion mask.
+\end{itemize}
+
+We then compute the Spearman correlation between attribution mass and error status, and between attribution mass and lightness group. The correlations pool the three seeds, so the $p$-values treat repeated images as independent and are descriptive rather than confirmatory. The XAI analysis uses the same test split and the same per-sample predictions as the classification and fairness analyses.
+
+We also implemented deletion and insertion curves, but the models are highly confident: the target-class probability stays near $1.0$ for both the original and the perturbed images, so the curves do not separate heatmaps on this benchmark. We therefore report localization metrics and treat faithfulness curves as future work.
+
+\subsection{Reproducibility}
+
+Every run writes its configuration, git commit, seed, device, package versions, metrics, and per-sample predictions. The split is cached and reused. Stage 2 training used Kaggle GPUs. The calibration, XAI, and external evaluations used a local Apple Silicon GPU. The code, configs, and table generation scripts are available in the project repository.

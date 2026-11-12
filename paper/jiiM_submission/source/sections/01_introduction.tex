@@ -1,0 +1,26 @@
+\section{Introduction}
+
+Melanoma is the most lethal form of skin cancer, and survival depends on early detection. Deep learning models have reached dermatologist-level accuracy on public dermoscopic benchmarks such as HAM10000 and the ISIC challenges \citep{tschandl2018ham10000,codella2018isic}. Three problems remain.
+
+Public datasets are imbalanced. Benign lesions outnumber melanomas by roughly ten to one, and a classifier that predicts the majority class can look accurate while missing cancers. Focal loss and class-balanced sampling are common remedies \citep{lin2017focal}, but their effect is often reported for one architecture and one dataset.
+
+The datasets are also skewed toward lighter skin. Fitzpatrick skin types V and VI are rare in public dermoscopic data, and models trained on lighter skin can lose sensitivity on darker skin \citep{groh2021fitzpatrick17k,daneshjou2022ddi,ruga2026pipsqueak}. The data needed to measure the gap are themselves scarce.
+
+Deep models are opaque as well. Gradient-based attribution methods such as Grad-CAM and Integrated Gradients can show which pixels drive a prediction \citep{selvaraju2017gradcam,sundararajan2017ig}, but most dermatology papers use them as illustrations. They are rarely turned into quantitative measurements that can be tested across skin tone groups.
+
+Most studies examine one of these problems at a time. Architecture comparisons often apply a single imbalance correction without checking whether it is neutral across architectures, and fairness studies report group-level performance without connecting it to attribution behaviour. This study connects the three in one benchmark.
+
+We study HAM10000 \citep{tschandl2018ham10000} with a binary melanoma endpoint and three architectures: ResNet-50, EfficientNet-B0, and ViT-S/16. We use a lesion-aware split, three seeds per condition, and a validation-selected threshold at 95\% specificity. The test set is used for evaluation only and is not used for model selection.
+
+Our contributions are:
+
+\begin{enumerate}
+  \item A controlled benchmark of three architectures under three pre-declared conditions: CE baseline, focal loss with class-balanced sampling, and CE with strong augmentation.
+  \item Evidence that focal loss with class-balanced sampling changes the sensitivity of all three architectures in a consistent direction across seeds, while every within-architecture 95\% t interval includes zero. The EfficientNet-B0 versus ViT interaction is significant at the seed level; the ResNet-50 versus ViT interaction is not. The AUC ordering is preserved, but the ViT closes the gap under focal loss.
+  \item A calibration analysis showing that focal loss raises expected calibration error by 3.0x to 4.4x for the CNNs and 1.36x for the ViT. Calibration tracks the CNN loss, not the ViT gain.
+  \item A lightness-stratified fairness analysis at three cutoffs. The dark stratum has a higher false positive rate at every cutoff, but the dark AUC differences are not significant at any cutoff. The false-negative $L^*$ association is significant for all three architectures; the false-positive association is significant only for ResNet-50.
+  \item A quantitative XAI analysis with Grad-CAM targeting the true class. All three architectures place less attribution inside the lesion on darker images, but the mass-error relationship differs by architecture and the false-negative versus false-positive mass values do not separate consistently. The results are reported in Section~\ref{sec:xai}.
+  \item An external validation on HIBA showing a consistent CNN sensitivity loss under focal loss and a seed-dependent ViT gain, with no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
+\end{enumerate}
+
+The training and fairness analysis use one public dataset, HAM10000. The lightness strata are image-based measurements, not clinical Fitzpatrick labels, and the results do not establish clinical utility. External validation on HIBA is reported in Section~\ref{sec:external}.

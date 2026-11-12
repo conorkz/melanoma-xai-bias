@@ -1,0 +1,51 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[numbers]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+\graphicspath{{figures/}}
+\setlength{\emergencystretch}{2em}
+
+\title{Architecture-dependent effects of imbalance correction in melanoma classification: a controlled audit with fairness, calibration, and explanation analysis}
+
+\author{
+  Nursultan Zhanat$^{1,2}$ and Sun Baoshan$^{1,2,*}$\\[8pt]
+  \parbox{0.92\textwidth}{\centering\small
+  $^{1}$ School of Computer Science and Technology, Tiangong University, Tianjin 300387, China; zhanat.nursultan1@gmail.com (N.Z.); sunbaoshan@tiangong.edu.cn (S.B.)\\
+  $^{2}$ Tianjin Key Laboratory of Autonomous Intelligence Technology and Systems, Tiangong University, Tianjin 300387, China\\
+  $^{*}$ Correspondence: sunbaoshan@tiangong.edu.cn; ORCID: 0000-0003-2193-3232
+  }
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Melanoma classifiers are trained on imbalanced, predominantly light-skinned data. We ask whether imbalance correction changes CNN and transformer performance, whether calibration explains it, and how the models behave across skin tone and lesion contrast. We benchmark ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under three pre-declared conditions: standard cross-entropy, focal loss with class-balanced sampling, and cross-entropy with strong augmentation. Each condition uses three seeds, a lesion-aware split, and a validation-selected threshold at 95\% specificity. Focal loss raises ViT-S/16 sensitivity by 8.2 points and lowers ResNet-50 by 11.7 and EfficientNet-B0 by 7.9. The direction is consistent, but every within-architecture interval includes zero. The EfficientNet-B0 versus ViT interaction is significant; the ResNet-50 versus ViT interaction is not. The AUC ordering is preserved, but the ViT closes the gap under focal loss, so the reversal is not purely a threshold effect. Calibration error rises 3.0x to 4.4x for the CNNs and 1.36x for the ViT, so calibration tracks the CNN loss, not the ViT gain. The dark stratum has a higher false positive rate at $L^*$ cutoffs of 55, 58, and 60, but the dark AUC differences are not significant at any cutoff. The false-negative $L^*$ association is significant for all three architectures; the false-positive association is significant only for ResNet-50. Grad-CAM mass is lower on darker images, but its error relationship differs by architecture. HIBA validation shows consistent CNN losses under focal loss, a seed-dependent ViT gain, and the best external performance under strong augmentation. This is a controlled audit.
+\end{abstract}
+
+\noindent\textbf{Keywords:} melanoma classification, class imbalance, fairness, calibration, explainable artificial intelligence, skin tone
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_methods}
+\input{sections/04_results}
+\input{sections/05_discussion}
+\input{sections/06_limitations}
+\input{sections/07_ethics}
+\input{sections/08_conclusion}
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}

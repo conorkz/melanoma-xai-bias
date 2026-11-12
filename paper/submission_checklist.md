@@ -2,23 +2,23 @@
 
 ## Target journal
 
-- [ ] Choose the journal and confirm scope.
-- [ ] Download the journal LaTeX class and reference style.
-- [ ] Check abstract limit, word limit, figure limit, and supplement policy.
-- [ ] Check open-access fee and submission timeline.
+- [x] Choose the journal: Journal of Imaging Informatics in Medicine (JIIM).
+- [x] Use the JIIM LaTeX submission route and citation-order references (`unsrtnat`).
+- [x] Abstract is 247 words, within the JIIM 150 to 250 range. JIIM has no strict manuscript word limit.
+- [x] Subscription route is free; open access is optional.
 
 ## Manuscript metadata
 
 - [x] Full author list with affiliations.
 - [x] ORCID for Sun Baoshan: 0000-0003-2193-3232.
-- [ ] ORCID for Nursultan Zhanat.
+- [ ] ORCID for Nursultan Zhanat. Register at https://orcid.org/register.
 - [x] Corresponding author and email.
 - [x] Personal email for Nursultan Zhanat: zhanat.nursultan1@gmail.com.
 - [x] Author contributions.
 - [x] Funding statement.
 - [x] Competing interests statement.
 - [x] Ethics statement.
-- [ ] Acknowledgments.
+- [x] Acknowledgements added on the title page.
 
 ## Scientific checks
 
@@ -35,7 +35,7 @@
 ## References
 
 - [x] Every reference resolves with a DOI or arXiv identifier.
-- [ ] The reference style matches the journal.
+- [x] References are numbered in citation order. Confirm Index Medicus abbreviations at proof stage.
 - [x] The HIBA, PROVe-AI, SCIN, and PASSION entries have complete author lists.
 - [ ] No preprint is cited where a peer-reviewed version exists.
 
@@ -51,7 +51,7 @@
 
 - [x] Main PDF.
 - [x] LaTeX source and figures.
-- [ ] Supplementary material.
+- [x] Supplementary material prepared as `JIIM_supplement.pdf`.
 - [x] Cover letter.
 - [x] Data availability statement.
 - [x] Code availability statement.
@@ -69,6 +69,6 @@
 - [x] No em dashes or en dashes.
 - [ ] No placeholder text.
 - [x] No unresolved LaTeX warnings.
-- [ ] PDF page count within the journal limit.
+- [x] JIIM has no strict page limit for the manuscript.
 - [ ] Supplementary files uploaded.
 - [ ] Submission confirmation saved.

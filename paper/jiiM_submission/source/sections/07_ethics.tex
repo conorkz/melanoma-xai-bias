@@ -1,0 +1,51 @@
+\section{Ethics and reproducibility}
+
+All data are public, de-identified research datasets. HAM10000 and the ISIC archive are released for research use, and the external datasets are used under their respective licenses. The study involves no patient contact and no new data collection.
+
+The system is a research prototype, not a diagnostic device. The results do not establish clinical utility.
+
+The Fitzpatrick scale has known limitations: it is a coarse phototype scale, it does not capture the full range of skin tones, and it conflates pigmentation with UV response. We use it because the datasets and the fairness literature use it. The lightness strata are image-based measurements, not clinical labels.
+
+The representation gap is a finding with an ethical consequence: the data needed to measure dark-skin performance are scarce. We report the small number of dark-skin dermoscopic images. Synthetic dark-skin images are not used to claim fairness improvements.
+
+The code, configs, splits, per-sample predictions, and table generation scripts are released with the paper. The repository records the git commit, seed, device, and package versions for every run.
+
+\ifdefined\blindmode
+\subsection*{Author contributions}
+
+Removed for double-blind review.
+\else
+\subsection*{Author contributions}
+
+N.Z. designed the study, implemented the code, ran the experiments, and wrote the manuscript. S.B. supervised the project and revised the manuscript. Both authors have read and agreed to the published version of the manuscript.
+\fi
+
+\subsection*{Institutional review board statement}
+
+Not applicable. All data are public, de-identified research datasets, and the study involved no patient contact or new data collection.
+
+\subsection*{Informed consent statement}
+
+Not applicable.
+
+\subsection*{Data availability}
+
+HAM10000 is available from the ISIC archive. HIBA is available from the ISIC archive under a CC-BY license. The per-sample test predictions, the lesion-aware split file, the contrast features, fairness summaries, XAI metrics, and external-validation results are released with the code repository.
+
+\ifdefined\blindmode
+\subsection*{Code availability}
+
+The code, split, per-sample predictions, and result files are available from the corresponding author upon reasonable request. The repository link is withheld for double-blind review.
+\else
+\subsection*{Code availability}
+
+The code is at \url{https://github.com/conorkz/melanoma-xai-bias}. The repository contains the training configs, split construction, evaluation scripts, table generators, and tests. The results in this paper were generated from the committed version of that repository. The submission version is tagged \texttt{v1.0-submission}.
+\fi
+
+\subsection*{Funding}
+
+This work received no specific funding.
+
+\subsection*{Conflicts of interest}
+
+The authors declare no conflicts of interest.

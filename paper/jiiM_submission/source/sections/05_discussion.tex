@@ -1,0 +1,51 @@
+\section{Discussion}
+
+\subsection{Imbalance correction is architecture-dependent}
+
+Focal loss with class-balanced sampling is not a neutral intervention. It raises the transformer and lowers both CNNs in the point estimates. A benchmark that applied the correction to one architecture and generalized the result would have reached the wrong conclusion about the others.
+
+The seed-level tests sharpen this claim and limit it. Every ResNet-50 and EfficientNet-B0 seed falls under focal loss, and every ViT-S/16 seed rises, but the within-architecture 95\% t intervals all include zero. The difference-in-differences is significant for EfficientNet-B0 against ViT-S/16, but not for ResNet-50 against ViT-S/16. The supported finding is therefore an architecture-dependent interaction with limited precision, driven by the EfficientNet-B0 versus ViT contrast. The point estimates reverse, but three seeds do not support a narrow effect size or a definitive ordering.
+
+The effect has a plausible mechanism. Focal loss changes the gradient distribution, and class-balanced sampling changes the effective class prior. A transformer with weaker inductive bias may benefit from the harder examples and the reweighted prior, while a CNN with strong local features may overfit the minority samples or lose calibration. The experiment cannot separate those mechanisms. We report the effect as an empirical interaction, not a causal explanation.
+
+\subsection{Calibration and AUC both move}
+
+The sensitivity ranking reverses, but the AUC ordering does not. EfficientNet-B0 remains first and ViT-S/16 remains last in both conditions. The gaps, however, close: EfficientNet-B0 exceeds ViT-S/16 by 0.060 at the CE baseline and by only 0.018 under focal loss, and the focal AUC differences are not significant.
+
+The calibration results explain part of the pattern. Focal loss raises expected calibration error by 4.4x for ResNet-50 and 3.0x for EfficientNet-B0, but only 1.36x for ViT-S/16. Calibration degradation therefore tracks the CNN loss. It does not explain the ViT gain, which comes with a small AUC improvement. The ViT gain is a ranking improvement with a modest calibration change, while the CNN loss is a mixture of ranking loss and calibration degradation.
+
+This matters for how model comparisons are reported. A single threshold at 0.5, or a single sensitivity number, can make an architecture look better or worse depending on the correction and the calibration. Reporting sensitivity at a fixed specificity, AUC, calibration, and seed-level intervals together gives a more complete picture. The calibration analysis should be part of the model selection record, not an afterthought.
+
+\subsection{The fairness signal is error-type-specific and imprecise}
+
+At the pre-declared cutoff $L^*\leq55$, the dark stratum has the lowest AUC and the highest false positive rate in all nine configurations. The AUC result is not statistically supported: none of the 54 dark-versus-light and dark-versus-medium AUC comparisons across the three cutoffs has an interval that excludes zero. The false positive elevation is more consistent. The dark false positive rate is 0.126 at $L^*\leq55$, 0.086 at $L^*\leq58$, and 0.073 at $L^*\leq60$, against 0.047 to 0.050 for light and medium at every cutoff. The dark sensitivity estimate is not consistently lower than light sensitivity, and it is too uncertain to interpret.
+
+The adjusted models give the clearest result. Lighter skin is associated with more false negatives: the $L^*$ odds ratio is 1.74, 1.66, and 1.75 for the three architectures, and all intervals exclude 1. Darker skin is associated with more false positives in the point estimates, but the interval excludes 1 only for ResNet-50. Lesion contrast is associated with more false positives for all three architectures and with fewer false negatives for ViT-S/16.
+
+This is a more precise fairness claim than a global sensitivity gap, but it is also a weaker one than a confirmed dark-skin AUC deficit. The model does not simply perform worse on darker skin. The error profile shifts: lighter images produce more missed melanomas, and darker images produce more false alarms. The false-negative association is the robust part. The false-positive association and the contrast effects are directionally consistent but imprecise.
+
+The lesion-contrast result also changes the interpretation of the light stratum. Pale lesions on pale skin have low contrast, and the model is more likely to miss them. Dark lesions on lighter skin have high contrast, and the model is more likely to call them malignant even when they are benign. Skin tone and lesion contrast are correlated, but the adjusted models show that the error-type shift is better described by the lesion-skin contrast than by absolute lightness alone.
+
+\subsection{The data bottleneck}
+
+The external dermoscopic datasets with Fitzpatrick labels, HIBA and PROVe-AI, contain Fitzpatrick I-IV only. The HIBA evaluation makes the constraint concrete. In 1,280 dermoscopic images, Fitzpatrick IV accounts for 25 images and not a single melanoma. Sensitivity is estimable only for types I-III, and those estimates show no monotonic skin-tone gradient.
+
+The external condition comparison is directionally consistent for the CNNs and suggestive for the ViT. Focal loss lowers EfficientNet-B0 sensitivity in every seed and ResNet-50 in two of three seeds. The ViT changes are +0.219, +0.127, and -0.067, so the mean gain hides a negative seed. The external evidence is therefore not a clean replication of the in-domain interaction. Strong augmentation is the best external condition for all three architectures, which supports its use as a domain-shift simulation even though it was neutral in-domain.
+
+The clinical datasets with Fitzpatrick V-VI, such as DDI, SCIN, and PASSION, differ from HAM10000 in imaging modality. This is the main obstacle to a strong dark-skin claim. This study can quantify the representation gap, report the persistent false-positive elevation and the false-negative lightness association, and show the limitation of the available dermoscopic data. A precise dark-skin sensitivity estimate requires new dermoscopic data collection or a carefully controlled cross-modality study.
+
+\subsection{What XAI adds}
+
+The XAI results show a group-level pattern that the aggregate metrics do not capture. All three architectures place less attribution inside the lesion on darker images, with mass-tone correlations of -0.17 to -0.18. The direction is consistent across a standard CNN, an efficient CNN, and a transformer, so it is not a quirk of one inductive bias.
+
+The mass-error relationship is architecture-dependent. Higher attribution mass inside the lesion is associated with fewer errors for ResNet-50 and EfficientNet-B0, and with more errors for ViT-S/16. The false-negative and false-positive mass values do not separate consistently. With the true class as the Grad-CAM target, the earlier apparent separation disappears. Attribution mass is a descriptive group-level signal, not a consistent per-image error marker.
+
+This sets a limit on what attribution can claim. A deployment system should not use this heatmap score as a per-image triage signal without further work. It can use the group-level pattern as a monitoring signal: when a cohort shows lower attribution mass inside the lesion, the model may be attending less to the lesion in that cohort. The direction of the change matters more than the absolute value.
+
+ResNet-50 is the counterexample to a simple assumption that more attribution inside the lesion means fewer errors. It has the highest attribution mass and pointing-game accuracy in the dark stratum, but its dark false positive rate is not the lowest. Heatmaps are a partial view of model behaviour, not a substitute for group-level performance measurement.
+
+\subsection{Implications for model selection}
+
+The choice of architecture depends on the correction, but the seed-level intervals are wide. At the CE baseline, ResNet-50 has the highest point-estimate sensitivity at 95\% specificity. Under focal loss with class-balanced sampling, ViT-S/16 has the highest point estimate. A deployment decision that ignores the training condition can pick a different model, but the current evidence supports an architecture-dependent effect rather than a precise ranking.
+
+For the fairness analysis, the evaluation should include the architecture-condition combinations, the calibration, and the two error types. The best model on aggregate sensitivity may not have the lowest false positive rate in the dark stratum, and a model with a high AUC may still shift its errors in a way that matters clinically. The external validation adds a second source, but the available Fitzpatrick labels do not reach the darkest groups.

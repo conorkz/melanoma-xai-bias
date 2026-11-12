@@ -1,0 +1,31 @@
+\begin{table}[t]
+\centering
+\small
+\caption{External validation on the HIBA dermoscopic subset for the CE-baseline models (1,280 images, 196 melanomas). The threshold is the HAM10000 validation threshold at 95\% specificity, frozen before the external evaluation. Values are mean and standard deviation across three seeds. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined. The 108 images without a Fitzpatrick label are included in the All row only.}
+\label{tab:external}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+Architecture & Fitzpatrick & $n$ & Melanomas & Sensitivity & Specificity & AUC \\
+\midrule
+\multirow{5}{*}{ResNet-50} & I & 97 & 25 & 0.360 $\pm$ 0.069 & 0.954 $\pm$ 0.021 & 0.679 $\pm$ 0.031 \\
+ & II & 804 & 144 & 0.403 $\pm$ 0.066 & 0.922 $\pm$ 0.011 & 0.780 $\pm$ 0.020 \\
+ & III & 246 & 17 & 0.412 $\pm$ 0.000 & 0.978 $\pm$ 0.004 & 0.946 $\pm$ 0.011 \\
+ & IV & 25 & 0 & -- & 1.000 $\pm$ 0.000 & -- \\
+ & All & 1280 & 196 & 0.391 $\pm$ 0.056 & 0.944 $\pm$ 0.006 & 0.807 $\pm$ 0.018 \\
+\midrule
+\multirow{5}{*}{EfficientNet-B0} & I & 97 & 25 & 0.427 $\pm$ 0.061 & 0.940 $\pm$ 0.021 & 0.741 $\pm$ 0.068 \\
+ & II & 804 & 144 & 0.389 $\pm$ 0.039 & 0.890 $\pm$ 0.010 & 0.745 $\pm$ 0.028 \\
+ & III & 246 & 17 & 0.353 $\pm$ 0.059 & 0.974 $\pm$ 0.004 & 0.860 $\pm$ 0.044 \\
+ & IV & 25 & 0 & -- & 0.987 $\pm$ 0.023 & -- \\
+ & All & 1280 & 196 & 0.396 $\pm$ 0.036 & 0.922 $\pm$ 0.008 & 0.782 $\pm$ 0.024 \\
+\midrule
+\multirow{5}{*}{ViT-S/16} & I & 97 & 25 & 0.200 $\pm$ 0.144 & 0.995 $\pm$ 0.008 & 0.773 $\pm$ 0.061 \\
+ & II & 804 & 144 & 0.227 $\pm$ 0.131 & 0.950 $\pm$ 0.033 & 0.777 $\pm$ 0.018 \\
+ & III & 246 & 17 & 0.333 $\pm$ 0.189 & 0.994 $\pm$ 0.007 & 0.849 $\pm$ 0.053 \\
+ & IV & 25 & 0 & -- & 1.000 $\pm$ 0.000 & -- \\
+ & All & 1280 & 196 & 0.221 $\pm$ 0.129 & 0.967 $\pm$ 0.022 & 0.791 $\pm$ 0.027 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

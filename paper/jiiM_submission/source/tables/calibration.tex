@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Test-set calibration. ECE uses 10 equal-width bins and is independent of the operating threshold. Values are mean and standard deviation across three seeds.}
+\label{tab:calibration}
+\begin{tabular}{lcc}
+\toprule
+Configuration & ECE & Brier \\
+\midrule
+ResNet-50 / CE & 0.046 $\pm$ 0.013 & 0.074 $\pm$ 0.004 \\
+ResNet-50 / CE+strong & 0.046 $\pm$ 0.004 & 0.076 $\pm$ 0.004 \\
+ResNet-50 / Focal+CB & 0.203 $\pm$ 0.041 & 0.133 $\pm$ 0.016 \\
+EfficientNet-B0 / CE & 0.060 $\pm$ 0.009 & 0.076 $\pm$ 0.001 \\
+EfficientNet-B0 / CE+strong & 0.052 $\pm$ 0.015 & 0.076 $\pm$ 0.003 \\
+EfficientNet-B0 / Focal+CB & 0.178 $\pm$ 0.049 & 0.134 $\pm$ 0.022 \\
+ViT-S/16 / CE & 0.146 $\pm$ 0.109 & 0.126 $\pm$ 0.041 \\
+ViT-S/16 / CE+strong & 0.058 $\pm$ 0.037 & 0.089 $\pm$ 0.012 \\
+ViT-S/16 / Focal+CB & 0.199 $\pm$ 0.039 & 0.141 $\pm$ 0.011 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,39 @@
+\begin{table}[h]
+\centering
+\small
+\caption{Per-seed Stage 2 test metrics at the validation-selected 95\% specificity threshold.}
+\label{tab:suppstage2}
+\begin{tabular}{llcccc}
+\toprule
+Architecture & Condition & Seed & Sensitivity & Specificity & AUC \\
+\midrule
+ResNet-50 & CE & 1 & 0.608 & 0.944 & 0.896 \\
+ResNet-50 & CE & 2 & 0.527 & 0.961 & 0.901 \\
+ResNet-50 & CE & 3 & 0.575 & 0.949 & 0.895 \\
+ResNet-50 & CE+strong & 1 & 0.602 & 0.936 & 0.910 \\
+ResNet-50 & CE+strong & 2 & 0.554 & 0.943 & 0.890 \\
+ResNet-50 & CE+strong & 3 & 0.548 & 0.948 & 0.897 \\
+ResNet-50 & Focal+CB & 1 & 0.435 & 0.943 & 0.881 \\
+ResNet-50 & Focal+CB & 2 & 0.398 & 0.955 & 0.885 \\
+ResNet-50 & Focal+CB & 3 & 0.527 & 0.942 & 0.887 \\
+EfficientNet-B0 & CE & 1 & 0.543 & 0.956 & 0.917 \\
+EfficientNet-B0 & CE & 2 & 0.527 & 0.949 & 0.905 \\
+EfficientNet-B0 & CE & 3 & 0.597 & 0.955 & 0.920 \\
+EfficientNet-B0 & CE+strong & 1 & 0.570 & 0.952 & 0.909 \\
+EfficientNet-B0 & CE+strong & 2 & 0.624 & 0.946 & 0.922 \\
+EfficientNet-B0 & CE+strong & 3 & 0.495 & 0.957 & 0.905 \\
+EfficientNet-B0 & Focal+CB & 1 & 0.522 & 0.947 & 0.884 \\
+EfficientNet-B0 & Focal+CB & 2 & 0.392 & 0.946 & 0.882 \\
+EfficientNet-B0 & Focal+CB & 3 & 0.516 & 0.955 & 0.907 \\
+ViT-S/16 & CE & 1 & 0.349 & 0.949 & 0.850 \\
+ViT-S/16 & CE & 2 & 0.430 & 0.937 & 0.842 \\
+ViT-S/16 & CE & 3 & 0.419 & 0.938 & 0.870 \\
+ViT-S/16 & CE+strong & 1 & 0.349 & 0.942 & 0.853 \\
+ViT-S/16 & CE+strong & 2 & 0.516 & 0.942 & 0.877 \\
+ViT-S/16 & CE+strong & 3 & 0.441 & 0.938 & 0.868 \\
+ViT-S/16 & Focal+CB & 1 & 0.505 & 0.944 & 0.878 \\
+ViT-S/16 & Focal+CB & 2 & 0.462 & 0.928 & 0.860 \\
+ViT-S/16 & Focal+CB & 3 & 0.478 & 0.948 & 0.880 \\
+\bottomrule
+\end{tabular}
+\end{table}

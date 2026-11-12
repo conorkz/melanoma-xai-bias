@@ -1,0 +1,52 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{figures/}}
+
+\title{Supplementary Information\\[0.3em]
+\large Architecture-dependent effects of imbalance correction in melanoma classification: a controlled audit with fairness, calibration, and explanation analysis}
+\author{Nursultan Zhanat and Sun Baoshan}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{S1 Per-seed Stage 2 metrics}
+
+Table~\ref{tab:suppstage2} reports every Stage 2 run. The main text reports seed-level means and 95\% t intervals.
+
+\input{tables/supp_stage2_per_seed}
+
+\section*{S2 XAI error-type mass}
+
+Table~\ref{tab:suppxai} reports attribution mass for false negatives and false positives with Grad-CAM targeting the true class. The values do not separate consistently across architectures.
+
+\input{tables/supp_xai_error_type}
+
+\section*{S3 Training and ROC figures}
+
+Figures~\ref{fig:supptraining} and~\ref{fig:supproc} show the training curves and test ROC curve for the median seed of ResNet-50 with the CE baseline. These figures were moved out of the main text because they are illustrative and were generated at 150 dpi.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{stage2_best_sensitivity_training_curves.png}
+  \caption{Training loss and validation balanced accuracy for the median seed of ResNet-50 with the CE baseline.}
+  \label{fig:supptraining}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.72\linewidth]{stage2_best_sensitivity_roc_test.png}
+  \caption{Test ROC curve for the median seed of ResNet-50 with the CE baseline. The operating threshold is selected on validation at 95\% specificity.}
+  \label{fig:supproc}
+\end{figure}
+
+\section*{S4 Data, code, and additional results}
+
+The lesion-aware split is released as \texttt{results/split\_ham10000\_lesion\_seed42.csv}. Per-sample test predictions for all 27 runs are in \texttt{results/predictions/}. The full adjusted-model coefficients, dark-skin AUC comparisons, calibration summaries, and XAI metrics are in the code repository at \url{https://github.com/conorkz/melanoma-xai-bias}, tagged \texttt{v1.0-submission}.
+
+\end{document}

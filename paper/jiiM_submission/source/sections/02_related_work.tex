@@ -1,0 +1,43 @@
+\section{Related work}
+
+\subsection{Melanoma classification and public datasets}
+
+Deep learning for skin lesion classification moved from dermatologist-level comparisons on single datasets \citep{esteva2017dermatologist} to multi-source benchmarks. HAM10000 contributed 10,015 dermoscopic images across seven diagnostic classes \citep{tschandl2018ham10000}, and the ISIC challenges expanded the scale and the number of sources \citep{codella2018isic}. BCN20000 added 18,946 dermoscopic images with eight diagnostic classes \citep{combalia2019bcn20000}, and the ISIC 2020 collection added patient-level context and a clinical endpoint \citep{rotemberg2021isic}. Cassidy et al.\ analysed the ISIC datasets and showed that duplicate lesions, class imbalance, and inconsistent metadata affect benchmark comparisons \citep{cassidy2022isic}. Human-reader studies and reporting guidelines now set a higher bar for evaluation \citep{tschandl2019human,daneshjou2022clear}. Clinical translation also requires prospective validation and reporting standards that go beyond a single benchmark \citep{rajpurkar2022ai}.
+
+Architecture comparisons usually cover a ResNet-style CNN \citep{he2016resnet}, an efficient CNN \citep{tan2019efficientnet}, and a vision transformer \citep{dosovitskiy2021vit}. The comparisons differ in preprocessing, split protocol, and threshold choice, which makes cross-paper rankings difficult to interpret. This paper fixes the split, the seeds, and the operating point so that the architecture and the training condition are the only variables.
+
+\subsection{Class imbalance}
+
+Focal loss down-weights easy examples and is the most common loss-level remedy for class imbalance \citep{lin2017focal}. Class-balanced loss reweights classes by their effective number of samples \citep{cui2019classbalanced}, and class-balanced sampling changes the effective class prior directly. Johnson and Khoshgoftaar survey the broader set of resampling, reweighting, and augmentation methods \citep{johnson2019imbalance}. Controlled studies in convolutional networks show that the best correction depends on the architecture and the dataset size \citep{buda2018systematic}. Strong photometric and geometric augmentation is often added at the same time.
+
+The three interventions are usually evaluated together, so their separate effects and their interactions with architecture are rarely reported. This matters because a correction that is neutral on average may help one architecture and hurt another. The present benchmark treats the correction as a pre-declared condition and tests the interaction directly.
+
+\subsection{Fairness in dermatology}
+
+Fitzpatrick17k provided the first large clinical image set with Fitzpatrick labels and showed performance gaps across skin types \citep{groh2021fitzpatrick17k}. The Diverse Dermatology Images dataset added biopsy-proven clinical images with balanced skin tone representation \citep{daneshjou2022ddi}. SCIN added crowdsourced clinical images with self-reported and estimated Fitzpatrick labels \citep{scin2024}. Pipsqueak collected dermoscopic melanocytic lesions in darker skin and reported a large sensitivity drop on Fitzpatrick V-VI \citep{ruga2026pipsqueak}. A recent review identifies fairness, generalizability, and replicability as the main unresolved problems in melanoma AI \citep{fairnessreview2024}.
+
+The dermoscopic datasets with Fitzpatrick labels remain small. HIBA contains 1,616 images from Argentina with Fitzpatrick labels \citep{hiba2023}, and PROVe-AI contains 603 biopsy-confirmed lesions \citep{proveai2023}. Neither includes Fitzpatrick V-VI. PASSION provides clinical images from Sub-Saharan Africa with Fitzpatrick III-VI \citep{passion2024}, but the imaging modality differs from dermoscopy. The available data therefore support an image-based lightness analysis on dermoscopy and a separate cross-modality analysis on clinical images, not a single clean Fitzpatrick comparison.
+
+Group fairness also depends on which error is counted. Equal opportunity compares true positive rates across groups \citep{hardt2016equality}, while a false positive rate comparison captures the harm of unnecessary biopsies. A model can improve one and worsen the other. This paper reports both and models them separately.
+
+Shortcut learning complicates the interpretation of group gaps. Surgical skin markings can change melanoma predictions \citep{winkler2019markings}, and Bissoto et al.\ showed that several visual artifacts are exploitable and that current debiasing methods do not remove them \citep{bissoto2020debiasing}. Lesion-skin contrast is one such visual factor: it correlates with skin tone but also with lesion pigmentation. A fairness analysis that does not adjust for it can attribute a contrast effect to skin tone. This paper measures contrast from the lesion masks and includes it in the adjusted models.
+
+\subsection{Calibration}
+
+Thresholded metrics such as sensitivity at a fixed specificity depend on the score distribution, not only on the ranking quality. Modern neural networks are often miscalibrated \citep{guo2017calibration}, and calibration is central to clinical prediction models \citep{vancalster2019calibration}. A correction that changes calibration can therefore change the sensitivity ranking while leaving the AUC ranking stable. This is the mechanism we test, rather than assume.
+
+\subsection{Explainable AI in dermatology}
+
+Class activation maps and Grad-CAM are the most used attribution methods in dermatology \citep{zhou2016cam,selvaraju2017gradcam}. Integrated Gradients and other axiomatic methods provide an alternative \citep{sundararajan2017ig}, and model-agnostic methods such as LIME and SHAP are used when gradients are unavailable \citep{ribeiro2016lime,lundberg2017shap}. Clinician-facing studies show that explanations can improve trust and diagnostic accuracy \citep{chanda2024xai}, but the explanations are usually evaluated qualitatively.
+
+Qualitative evaluation is not enough for a fairness claim. A heatmap that looks plausible can be insensitive to the model parameters \citep{adebayo2018sanity}, and explainable AI in health care has been criticized for promising more than it delivers \citep{ghassemi2021falsehope}. This paper treats attribution as a measurement with a stated error type, not as evidence of clinical reasoning.
+
+\subsection{Quantitative XAI metrics}
+
+Attribution localization can be measured against lesion segmentation masks: the fraction of attribution mass inside the lesion, the pointing game, and the attribution IoU. Faithfulness can be measured with deletion and insertion curves \citep{petsiuk2018rise}, sensitivity-n \citep{samek2017evaluating}, and the ROAD benchmark \citep{hooker2019benchmark}. These metrics make it possible to test whether an explanation is clinically meaningful rather than visually plausible.
+
+Dermatology studies rarely combine these metrics with skin tone stratification. The XAI analysis in this paper uses localization metrics across tone groups and error types, and it reports why faithfulness curves were not informative for these highly confident models.
+
+\subsection{Gap}
+
+Three questions remain open: whether imbalance correction changes the ranking of architecture families, whether calibration explains the change, and whether attribution metrics can detect a group-level problem before it appears in aggregate sensitivity. This paper addresses the first two with paired tests and calibration, and it addresses the third with tone-stratified localization metrics and a false-positive/false-negative split.
