@@ -66,6 +66,12 @@ def parse_args(argv=None):
         help="Maximum images per tone group (debug)",
     )
     parser.add_argument("--device", default="cpu")
+    parser.add_argument(
+        "--target-class",
+        choices=("pred", "true"),
+        default="pred",
+        help="Class explained by Grad-CAM: model prediction or true label",
+    )
     return parser.parse_args(argv)
 
 
@@ -241,12 +247,17 @@ def main(argv=None):
                     continue
                 image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
                 tensor = transform(image=image_rgb)["image"].unsqueeze(0)
-                target_class = int(row["y_pred"])
+                pred_class = int(row["y_pred"])
+                cam_target = (
+                    int(row["y_true"])
+                    if args.target_class == "true"
+                    else pred_class
+                )
                 heatmap = compute_gradcam(
                     model,
                     tensor,
                     target_layer,
-                    target_class=target_class,
+                    target_class=cam_target,
                     reshape_transform=reshape,
                 )
                 mask_path = masks_dir / f"{row['image_id']}_segmentation.png"
@@ -266,8 +277,9 @@ def main(argv=None):
                         "tone_group": row["tone_group"],
                         "y_true": int(row["y_true"]),
                         "y_prob": float(row["y_prob"]),
-                        "y_pred": target_class,
-                        "correct": int(target_class == int(row["y_true"])),
+                        "y_pred": pred_class,
+                        "correct": int(pred_class == int(row["y_true"])),
+                        "cam_target": cam_target,
                         "attribution_mass": mass,
                         "pointing_game": float(pointing) if np.isfinite(pointing) else np.nan,
                         "attribution_iou": iou,

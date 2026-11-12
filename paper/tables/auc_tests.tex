@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\small
+\caption{AUC differences at the CE baseline and under focal loss. Intervals are 95\% t intervals across three seeds. Positive values mean the first architecture has the higher AUC. The AUC ordering is preserved at the point-estimate level, but the gaps are not significant under focal loss.}
+\label{tab:auctests}
+\begin{tabular}{llcc}
+\toprule
+Condition & Comparison & $\Delta$ AUC & 95\% t CI \\
+\midrule
+CE & EfficientNet-B0 minus ViT-S/16 & +0.060 & +0.040 to +0.081 \\
+CE & ResNet-50 minus EfficientNet-B0 & -0.017 & -0.044 to +0.010 \\
+CE & ResNet-50 minus ViT-S/16 & +0.043 & +0.002 to +0.084 \\
+\midrule
+Focal+CB & EfficientNet-B0 minus ViT-S/16 & +0.018 & -0.008 to +0.045 \\
+Focal+CB & ResNet-50 minus EfficientNet-B0 & -0.007 & -0.036 to +0.022 \\
+Focal+CB & ResNet-50 minus ViT-S/16 & +0.012 & -0.017 to +0.040 \\
+\bottomrule
+\end{tabular}
+\end{table}

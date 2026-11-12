@@ -10,17 +10,17 @@ Deep models are opaque as well. Gradient-based attribution methods such as Grad-
 
 Most studies examine one of these problems at a time. Architecture comparisons often apply a single imbalance correction without checking whether it is neutral across architectures, and fairness studies report group-level performance without connecting it to attribution behaviour. This study connects the three in one benchmark.
 
-We study HAM10000 \citep{tschandl2018ham10000} with a binary melanoma endpoint and three architectures: ResNet-50, EfficientNet-B0, and ViT-S/16. We use a lesion-aware split, three seeds per condition, and a validation-selected threshold at 95\% specificity. The test set is touched once per run.
+We study HAM10000 \citep{tschandl2018ham10000} with a binary melanoma endpoint and three architectures: ResNet-50, EfficientNet-B0, and ViT-S/16. We use a lesion-aware split, three seeds per condition, and a validation-selected threshold at 95\% specificity. The test set is used for evaluation only and is not used for model selection.
 
 Our contributions are:
 
 \begin{enumerate}
   \item A controlled benchmark of three architectures under three pre-declared conditions: CE baseline, focal loss with class-balanced sampling, and CE with strong augmentation.
-  \item Evidence that focal loss with class-balanced sampling improves ViT-S/16 but reduces the sensitivity of both CNNs, which reverses the point-estimate ranking at 95\% specificity. The paired within-architecture intervals include zero, while the difference-in-differences between each CNN and the ViT excludes zero. The AUC ranking is stable.
-  \item A calibration analysis that shows focal loss with class-balanced sampling roughly triples expected calibration error, which identifies calibration as a mechanism behind the sensitivity reversal.
-  \item A lightness-stratified fairness analysis at three cutoffs. The dark stratum has a higher false positive rate at every cutoff, while the dark AUC deficit is present only at the strictest cutoff. Adjusted models show that darker skin is associated with more false positives and lighter skin with more false negatives, with lesion contrast moving both error types in opposite directions.
-  \item A quantitative XAI analysis showing that all three architectures place less attribution inside the lesion on darker images, and that false negatives have lower attribution mass than false positives, which explains the weak pooled mass-error correlation. The results are reported in Section~\ref{sec:xai}.
-  \item An external validation on HIBA that reproduces the CNN-transformer gap, shows a 16 to 18 point sensitivity drop, and confirms that HIBA contains no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
+  \item Evidence that focal loss with class-balanced sampling changes the sensitivity of all three architectures in a consistent direction across seeds, while every within-architecture 95\% t interval includes zero. The EfficientNet-B0 versus ViT interaction is significant at the seed level; the ResNet-50 versus ViT interaction is not. The AUC ordering is preserved, but the ViT closes the gap under focal loss.
+  \item A calibration analysis showing that focal loss raises expected calibration error by 3.0x to 4.4x for the CNNs and 1.36x for the ViT. Calibration tracks the CNN loss, not the ViT gain.
+  \item A lightness-stratified fairness analysis at three cutoffs. The dark stratum has a higher false positive rate at every cutoff, but the dark AUC differences are not significant at any cutoff. The false-negative $L^*$ association is significant for all three architectures; the false-positive association is significant only for ResNet-50.
+  \item A quantitative XAI analysis with Grad-CAM targeting the true class. All three architectures place less attribution inside the lesion on darker images, but the mass-error relationship differs by architecture and the false-negative versus false-positive mass values do not separate consistently. The results are reported in Section~\ref{sec:xai}.
+  \item An external validation on HIBA showing a consistent CNN sensitivity loss under focal loss and a seed-dependent ViT gain, with no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
 \end{enumerate}
 
 The training and fairness analysis use one public dataset, HAM10000. The lightness strata are image-based measurements, not clinical Fitzpatrick labels, and the results do not establish clinical utility. External validation on HIBA is reported in Section~\ref{sec:external}.

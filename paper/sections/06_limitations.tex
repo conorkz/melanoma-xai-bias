@@ -2,15 +2,16 @@
 
 \begin{itemize}
   \item The training data are HAM10000 only. HIBA adds one external dermoscopic source, but cross-dataset generalization to PH2, BCN20000 \citep{combalia2019bcn20000}, or ISIC 2020 is not measured.
-  \item The external validation covers the CE baseline and focal loss. The strong-augmentation models are not evaluated on HIBA.
-  \item The endpoint is binary melanoma versus all other diagnoses. Seven-class classification is a secondary experiment.
-  \item Each condition uses three seeds. The paired within-architecture intervals include zero, so the paper supports an architecture-dependent interaction rather than a precise ranking.
+  \item The endpoint is binary melanoma versus all other diagnoses. Seven-class classification was not evaluated.
+  \item Each condition uses three seeds. Every within-architecture 95\% t interval includes zero, and the seed-level intervals are wide. The paper supports an architecture-dependent interaction with limited precision, not a precise ranking.
+  \item The AUC ordering is preserved in the point estimates, but the focal AUC differences are not significant and the ViT closes the gap. The sensitivity reversal is therefore not purely a threshold effect.
+  \item The external focal validation shows a consistent CNN loss and a seed-dependent ViT gain. The ViT external change is +0.219, +0.127, and -0.067 across seeds.
   \item Stage 1 uses 160-pixel images and Stage 2 uses 224-pixel images. The two stages are not directly comparable.
   \item The fairness analysis uses an image-based lightness proxy, not clinical Fitzpatrick labels. The proxy is sensitive to illumination, color calibration, and lesion contrast.
   \item The pre-declared dark stratum contains 43 test images and six melanomas. The cutoff sensitivity analysis adds groups with 12 and 23 melanomas, but all dark-stratum estimates remain wide.
   \item The adjusted false-positive and false-negative models are observational. They identify associations, not causal effects, and the false-negative model has only 186 melanoma images across three seeds.
   \item HIBA and PROVe-AI contain Fitzpatrick I-IV only. HIBA has no Fitzpatrick IV melanomas, and the clinical datasets with Fitzpatrick V-VI differ in imaging modality, so the dark-skin comparison is confounded.
-  \item Deletion and insertion curves saturated at a target probability near $1.0$, so they could not separate heatmaps. Faithfulness is therefore not measured, and the XAI results cover localization only. A second attribution method is not included.
+  \item Deletion and insertion curves saturated at a target probability near $1.0$, so they could not separate heatmaps. Faithfulness is therefore not measured, and the XAI results cover localization only. Grad-CAM targets the true class, but the false-negative and false-positive mass values do not separate consistently. A second attribution method is not included.
   \item No clinician reader study was conducted, so the clinical relevance of the attribution maps is not validated with dermatologists.
   \item No deployed system, prospective validation, or regulatory analysis is included.
 \end{itemize}

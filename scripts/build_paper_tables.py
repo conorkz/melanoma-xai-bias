@@ -38,9 +38,9 @@ def parse_args(argv=None):
     parser.add_argument("--stage1", default="results/rq1_stage1.csv")
     parser.add_argument("--stage2", default="results/rq1_stage2.csv")
     parser.add_argument("--fairness", default="results/fairness/lightness/fairness_summary.csv")
-    parser.add_argument("--xai", default="results/xai/xai_all_summary.csv")
+    parser.add_argument("--xai", default="results/xai_true/xai_summary.csv")
     parser.add_argument(
-        "--xai-correlations", default="results/xai/xai_all_correlations.csv"
+        "--xai-correlations", default="results/xai_true/xai_correlations.csv"
     )
     parser.add_argument(
         "--external", default="results/external/hiba/external_summary.csv"
@@ -57,6 +57,9 @@ def parse_args(argv=None):
     parser.add_argument(
         "--ranking", default="results/ranking/ranking_summary.csv"
     )
+    parser.add_argument(
+        "--seed-intervals", default="results/seed_intervals"
+    )
     parser.add_argument("--out-dir", default="paper/tables")
     return parser.parse_args(argv)
 
@@ -67,6 +70,15 @@ def escape(value):
 
 def plus_minus(mean, std):
     return f"{mean:.3f} $\\pm$ {std:.3f}"
+
+
+def t_interval(mean, std, n=3):
+    """95% t interval for a mean across n seeds."""
+    t_critical = {2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571}.get(n - 1)
+    if t_critical is None:
+        raise ValueError(f"No t critical value for n={n}")
+    half = t_critical * std / math.sqrt(n)
+    return f"{mean:.3f} ({mean - half:.3f} to {mean + half:.3f})"
 
 
 def confidence_interval(mean, low, high):
@@ -83,14 +95,14 @@ def stage_table(frame, caption, label):
         r"\resizebox{\textwidth}{!}{%",
         r"\begin{tabular}{lccccc}",
         r"\toprule",
-        r"Configuration & Val sens & Test sens (95\% CI) & Specificity & Balanced acc & AUC \\",
+        r"Configuration & Val sens & Test sens (95\% t CI) & Specificity & Balanced acc & AUC \\",
         r"\midrule",
     ]
     for _, row in frame.iterrows():
         lines.append(
             f"{escape(row['config_id'])} & "
             f"{plus_minus(row['val_sensitivity_mean'], row['val_sensitivity_std'])} & "
-            f"{confidence_interval(row['sensitivity_mean'], row['sensitivity_ci_low'], row['sensitivity_ci_high'])} & "
+            f"{t_interval(row['sensitivity_mean'], row['sensitivity_std'], 3)} & "
             f"{row['specificity_mean']:.3f} & "
             f"{row['balanced_accuracy_mean']:.3f} & "
             f"{row['auc_mean']:.3f} \\\\"
@@ -246,6 +258,14 @@ def format_metric(value):
     return f"{value:.3f}"
 
 
+def format_mean_sd(mean, std):
+    if mean is None or not math.isfinite(mean):
+        return "--"
+    if std is None or not math.isfinite(std):
+        return f"{mean:.3f}"
+    return f"{mean:.3f} $\\pm$ {std:.3f}"
+
+
 def external_table(summary, caption, label):
     backbone_order = {key: index for index, key in enumerate(BACKBONES)}
     group_order = dict(FITZPATRICK_ORDER)
@@ -296,9 +316,9 @@ def external_table(summary, caption, label):
                 group_name,
                 str(int(row["n_mean"])),
                 str(int(row["n_positive_mean"])),
-                format_metric(row["sensitivity_mean"]),
-                format_metric(row["specificity_mean"]),
-                format_metric(row["auc_mean"]),
+                format_mean_sd(row["sensitivity_mean"], row["sensitivity_std"]),
+                format_mean_sd(row["specificity_mean"], row["specificity_std"]),
+                format_mean_sd(row["auc_mean"], row["auc_std"]),
             ]
             lines.append(" & ".join(values) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
@@ -533,12 +553,105 @@ def external_condition_table(summary, caption, label):
         lines.append(
             f"{BACKBONES.get(row['backbone'], row['backbone'])} & "
             f"{CONDITIONS.get(row['condition'], row['condition'])} & "
-            f"{format_metric(row['sensitivity_mean'])} & "
-            f"{format_metric(row['specificity_mean'])} & "
-            f"{format_metric(row['auc_mean'])} & "
-            f"{format_metric(row['sensitivity_at_95_spec_mean'])} \\\\"
+            f"{format_mean_sd(row['sensitivity_mean'], row['sensitivity_std'])} & "
+            f"{format_mean_sd(row['specificity_mean'], row['specificity_std'])} & "
+            f"{format_mean_sd(row['auc_mean'], row['auc_std'])} & "
+            f"{format_mean_sd(row['sensitivity_at_95_spec_mean'], row['sensitivity_at_95_spec_std'])} \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def seed_ranking_table(
+    paired_summary, did_summary, paired_per_seed, did_per_seed, caption, label
+):
+    headers = [
+        "Test",
+        "Architecture",
+        "$\\Delta$ sensitivity",
+        "95\\% t CI",
+        "Direction",
+    ]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\resizebox{\textwidth}{!}{%",
+        r"\begin{tabular}{llccc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    labels = {
+        "focal2_cb": "Focal+CB vs CE",
+        "ce_random_strong": "CE+strong vs CE",
+    }
+    paired = paired_summary[paired_summary["metric"] == "delta_sensitivity"]
+    for condition in ("focal2_cb", "ce_random_strong"):
+        subset = paired[paired["condition"] == condition]
+        for _, row in subset.sort_values("backbone").iterrows():
+            seeds = paired_per_seed[
+                (paired_per_seed["backbone"] == row["backbone"])
+                & (paired_per_seed["condition"] == condition)
+            ]["delta_sensitivity"]
+            negative = int((seeds < 0).sum())
+            positive = int((seeds > 0).sum())
+            direction = (
+                f"{negative}/3 negative" if negative >= positive else f"{positive}/3 positive"
+            )
+            lines.append(
+                f"{labels[condition]} & {BACKBONES.get(row['backbone'], row['backbone'])} & "
+                f"{row['mean']:+.3f} & {row['t_low']:+.3f} to {row['t_high']:+.3f} & "
+                f"{direction} \\\\"
+            )
+    lines.append(r"\midrule")
+    did = did_summary[did_summary["metric"] == "delta_sensitivity"]
+    for _, row in did.iterrows():
+        seeds = did_per_seed[
+            (did_per_seed["architecture_a"] == row["architecture_a"])
+            & (did_per_seed["architecture_b"] == row["architecture_b"])
+        ]["delta_sensitivity"]
+        negative = int((seeds < 0).sum())
+        direction = f"{negative}/3 negative"
+        lines.append(
+            f"Difference in differences & "
+            f"{BACKBONES.get(row['architecture_a'], row['architecture_a'])} minus "
+            f"{BACKBONES.get(row['architecture_b'], row['architecture_b'])} & "
+            f"{row['mean']:+.3f} & {row['t_low']:+.3f} to {row['t_high']:+.3f} & "
+            f"{direction} \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def auc_tests_table(summary, caption, label):
+    labels = {"ce_random": "CE", "focal2_cb": "Focal+CB"}
+    headers = ["Condition", "Comparison", "$\\Delta$ AUC", "95\\% t CI"]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\begin{tabular}{llcc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    for condition in ("ce_random", "focal2_cb"):
+        subset = summary[summary["condition"] == condition]
+        for _, row in subset.iterrows():
+            lines.append(
+                f"{labels[condition]} & "
+                f"{BACKBONES.get(row['architecture_a'], row['architecture_a'])} minus "
+                f"{BACKBONES.get(row['architecture_b'], row['architecture_b'])} & "
+                f"{row['mean']:+.3f} & {row['t_low']:+.3f} to {row['t_high']:+.3f} \\\\"
+            )
+        lines.append(r"\midrule")
+    lines = lines[:-1]
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
     return "\n".join(lines)
 
 
@@ -561,7 +674,7 @@ def main(argv=None):
     stage1_path.write_text(
         stage_table(
             stage1,
-            "Stage 1 screen on EfficientNet-B0 at 160 pixels. Validation sensitivity is used for model selection. Test sensitivity is reported at the validation-selected 95\\% specificity threshold. Values are mean and standard deviation across three seeds.",
+            "Stage 1 screen on EfficientNet-B0 at 160 pixels. Validation sensitivity is used for model selection. Validation values are mean and standard deviation across three seeds. Test sensitivity is the mean with a 95\\% t interval across three seeds at the validation-selected 95\\% specificity threshold.",
             "tab:stage1",
         ),
         encoding="utf-8",
@@ -569,7 +682,7 @@ def main(argv=None):
     stage2_path.write_text(
         stage_table(
             stage2,
-            "Stage 2 comparison at 224 pixels. Test sensitivity is reported at the validation-selected 95\\% specificity threshold. Values are mean and standard deviation across three seeds.",
+            "Stage 2 comparison at 224 pixels. Validation values are mean and standard deviation across three seeds. Test sensitivity is the mean with a 95\\% t interval across three seeds at the validation-selected 95\\% specificity threshold.",
             "tab:stage2",
         ),
         encoding="utf-8",
@@ -594,7 +707,7 @@ def main(argv=None):
         xai_output.write_text(
             xai_table(
                 xai_summary,
-                "Quantitative XAI at the CE baseline on the HAM10000 test split. Each architecture uses three seeds and a tone-stratified sample of 343 test images per seed. Attribution mass is the fraction of the Grad-CAM heatmap inside the lesion mask. Values are means across seeds.",
+                "Quantitative XAI at the CE baseline on the HAM10000 test split. Grad-CAM targets the true class. Each architecture uses three seeds and a tone-stratified sample of 343 test images per seed. Attribution mass is the fraction of the heatmap inside the lesion mask. Values are means across seeds.",
                 "tab:xai",
             ),
             encoding="utf-8",
@@ -655,7 +768,7 @@ def main(argv=None):
         calibration_output.write_text(
             calibration_table(
                 pd.read_csv(calibration_path),
-                "Test-set calibration at the validation-selected threshold. ECE uses 10 equal-width bins. Values are mean and standard deviation across three seeds.",
+                "Test-set calibration. ECE uses 10 equal-width bins and is independent of the operating threshold. Values are mean and standard deviation across three seeds.",
                 "tab:calibration",
             ),
             encoding="utf-8",
@@ -664,20 +777,48 @@ def main(argv=None):
     else:
         print(f"Skipping calibration table: {calibration_path} not found")
 
-    ranking_path = resolve(args.ranking)
-    if ranking_path.exists():
+    seed_dir = resolve(args.seed_intervals)
+    paired_summary_path = seed_dir / "paired_summary.csv"
+    did_summary_path = seed_dir / "did_summary.csv"
+    paired_per_seed_path = seed_dir / "paired_per_seed.csv"
+    did_per_seed_path = seed_dir / "did_per_seed.csv"
+    auc_summary_path = seed_dir / "auc_summary.csv"
+    if all(
+        path.exists()
+        for path in (
+            paired_summary_path,
+            did_summary_path,
+            paired_per_seed_path,
+            did_per_seed_path,
+        )
+    ):
         ranking_output = out_dir / "ranking.tex"
         ranking_output.write_text(
-            ranking_table(
-                pd.read_csv(ranking_path),
-                "Paired sensitivity comparisons. Differences are paired by test image; intervals are 95\\% bootstrap intervals over images. The within-architecture focal effects have intervals that include zero, the strong-augmentation changes are close to zero, and the difference-in-differences between each CNN and the ViT excludes zero.",
+            seed_ranking_table(
+                pd.read_csv(paired_summary_path),
+                pd.read_csv(did_summary_path),
+                pd.read_csv(paired_per_seed_path),
+                pd.read_csv(did_per_seed_path),
+                "Seed-level paired sensitivity comparisons. Intervals are 95\\% t intervals across three seeds. The direction column counts the seeds with the stated sign. The EfficientNet-B0 versus ViT interaction is the only mean difference whose interval excludes zero; the other intervals include zero, so the study is underpowered for a precise ranking.",
                 "tab:ranking",
             ),
             encoding="utf-8",
         )
         print(ranking_output)
     else:
-        print(f"Skipping ranking table: {ranking_path} not found")
+        print(f"Skipping seed ranking table: {seed_dir} incomplete")
+
+    if auc_summary_path.exists():
+        auc_output = out_dir / "auc_tests.tex"
+        auc_output.write_text(
+            auc_tests_table(
+                pd.read_csv(auc_summary_path),
+                "AUC differences at the CE baseline and under focal loss. Intervals are 95\\% t intervals across three seeds. Positive values mean the first architecture has the higher AUC. The AUC ordering is preserved at the point-estimate level, but the gaps are not significant under focal loss.",
+                "tab:auctests",
+            ),
+            encoding="utf-8",
+        )
+        print(auc_output)
 
     external_path = resolve(args.external)
     if external_path.exists():
@@ -686,7 +827,7 @@ def main(argv=None):
         external_output.write_text(
             external_table(
                 external_summary,
-                "External validation on the HIBA dermoscopic subset for the CE-baseline models (1,280 images, 196 melanomas). The threshold is the HAM10000 validation threshold at 95\\% specificity, frozen before the external evaluation. Values are means across three seeds. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined. The 108 images without a Fitzpatrick label are included in the All row only.",
+                "External validation on the HIBA dermoscopic subset for the CE-baseline models (1,280 images, 196 melanomas). The threshold is the HAM10000 validation threshold at 95\\% specificity, frozen before the external evaluation. Values are mean and standard deviation across three seeds. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined. The 108 images without a Fitzpatrick label are included in the All row only.",
                 "tab:external",
             ),
             encoding="utf-8",
@@ -698,7 +839,7 @@ def main(argv=None):
             condition_output.write_text(
                 external_condition_table(
                     external_summary,
-                    "External validation on HIBA for the CE-baseline and focal-loss models. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.",
+                    "External validation on HIBA for all three training conditions. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are mean and standard deviation across three seeds.",
                     "tab:externalcond",
                 ),
                 encoding="utf-8",

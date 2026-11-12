@@ -1,0 +1,7 @@
+backbone,error_type,n_images,attribution_mass_mean
+efficientnet_b0,FN,23,0.37432353561213133
+efficientnet_b0,FP,31,0.25987858066172514
+resnet50,FN,22,0.34583838520034493
+resnet50,FP,25,0.34886789371082005
+vit_s,FN,30,0.4201762886556431
+vit_s,FP,31,0.34396013597912856

@@ -27,6 +27,7 @@ METRIC_COLUMNS = (
     "y_prob",
     "y_pred",
     "correct",
+    "cam_target",
     "attribution_mass",
     "pointing_game",
     "attribution_iou",

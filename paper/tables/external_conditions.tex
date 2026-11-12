@@ -1,19 +1,22 @@
 \begin{table}[t]
 \centering
 \small
-\caption{External validation on HIBA for the CE-baseline and focal-loss models. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.}
+\caption{External validation on HIBA for all three training conditions. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are mean and standard deviation across three seeds.}
 \label{tab:externalcond}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llcccc}
 \toprule
 Architecture & Condition & Sensitivity & Specificity & AUC & Sens. at 95\% spec. \\
 \midrule
-ResNet-50 & CE & 0.391 & 0.944 & 0.807 & 0.366 \\
-ResNet-50 & Focal+CB & 0.315 & 0.925 & 0.774 & 0.245 \\
-EfficientNet-B0 & CE & 0.396 & 0.922 & 0.782 & 0.311 \\
-EfficientNet-B0 & Focal+CB & 0.253 & 0.945 & 0.722 & 0.240 \\
-ViT-S/16 & CE & 0.221 & 0.967 & 0.791 & 0.310 \\
-ViT-S/16 & Focal+CB & 0.315 & 0.954 & 0.794 & 0.335 \\
+ResNet-50 & CE & 0.391 $\pm$ 0.056 & 0.944 $\pm$ 0.006 & 0.807 $\pm$ 0.018 & 0.366 $\pm$ 0.036 \\
+ResNet-50 & CE+strong & 0.480 $\pm$ 0.032 & 0.935 $\pm$ 0.011 & 0.835 $\pm$ 0.010 & 0.408 $\pm$ 0.044 \\
+ResNet-50 & Focal+CB & 0.315 $\pm$ 0.070 & 0.925 $\pm$ 0.005 & 0.774 $\pm$ 0.017 & 0.245 $\pm$ 0.057 \\
+EfficientNet-B0 & CE & 0.396 $\pm$ 0.036 & 0.922 $\pm$ 0.008 & 0.782 $\pm$ 0.024 & 0.311 $\pm$ 0.035 \\
+EfficientNet-B0 & CE+strong & 0.406 $\pm$ 0.069 & 0.955 $\pm$ 0.014 & 0.847 $\pm$ 0.003 & 0.427 $\pm$ 0.024 \\
+EfficientNet-B0 & Focal+CB & 0.253 $\pm$ 0.071 & 0.945 $\pm$ 0.018 & 0.722 $\pm$ 0.045 & 0.240 $\pm$ 0.040 \\
+ViT-S/16 & CE & 0.221 $\pm$ 0.129 & 0.967 $\pm$ 0.022 & 0.791 $\pm$ 0.027 & 0.310 $\pm$ 0.084 \\
+ViT-S/16 & CE+strong & 0.391 $\pm$ 0.108 & 0.940 $\pm$ 0.023 & 0.824 $\pm$ 0.018 & 0.389 $\pm$ 0.023 \\
+ViT-S/16 & Focal+CB & 0.315 $\pm$ 0.052 & 0.954 $\pm$ 0.011 & 0.794 $\pm$ 0.011 & 0.335 $\pm$ 0.016 \\
 \bottomrule
 \end{tabular}
 }

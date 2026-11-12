@@ -1,17 +1,17 @@
 # Paper plan
 
-**Working title:** Architecture-dependent effects of imbalance correction in melanoma classification: fairness, calibration, and explanation analysis
+**Working title:** Architecture-dependent effects of imbalance correction in melanoma classification: a controlled audit with fairness, calibration, and explanation analysis
 
-**Status:** the RQ1 benchmark, the fairness analysis, the calibration analysis, the paired ranking tests, the three-architecture XAI analysis, and the 18-run HIBA external validation (CE baseline and focal loss) are complete. The strong-augmentation external validation, the clinical dark-skin evaluation, and the PROVe-AI extension are pending. The LaTeX draft in `paper/` contains the current results.
+**Status:** the RQ1 benchmark, the fairness analysis, the calibration analysis, the seed-level ranking and AUC tests, the three-architecture XAI analysis, and the 27-run HIBA external validation (all three conditions) are complete. The clinical dark-skin evaluation and the PROVe-AI extension are pending. The LaTeX draft in `paper/` contains the current results.
 
 ## Contributions
 
 1. A controlled benchmark of ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under three pre-declared conditions: CE baseline, focal loss with class-balanced sampling, and CE with strong augmentation. Each condition uses three seeds, a lesion-aware split, and a validation-selected threshold at 95% specificity.
-2. Evidence that focal loss with class-balanced sampling helps ViT-S/16 but hurts the two CNNs. The paired within-architecture intervals include zero, but the difference-in-differences between each CNN and the ViT excludes zero. The AUC ranking is stable.
-3. A calibration analysis showing that focal loss with class-balanced sampling roughly triples expected calibration error, which identifies calibration and threshold placement as the mechanism behind the sensitivity reversal.
-4. A lightness-stratified fairness analysis at three cutoffs. The dark stratum has a higher false positive rate at every cutoff, while the dark AUC deficit is present only at the strictest cutoff. Adjusted models show that darker skin is associated with more false positives and lighter skin with more false negatives, with lesion contrast moving both error types in opposite directions.
-5. A quantitative XAI analysis across all three architectures showing that attribution mass inside the lesion is lower in the dark stratum, and that false negatives have lower mass than false positives.
-6. An external validation on HIBA that reproduces the CNN-transformer gap but shows a 16 to 18 point sensitivity drop, with no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
+2. Evidence that focal loss with class-balanced sampling changes the sensitivity of all three architectures in a consistent direction across seeds, but every within-architecture 95% t interval includes zero. The EfficientNet-B0 versus ViT interaction is significant at the seed level; the ResNet-50 versus ViT interaction is not. The AUC ordering is preserved, but the ViT closes the gap under focal loss.
+3. A calibration analysis showing that focal loss raises expected calibration error by 3.0x to 4.4x for the CNNs and 1.36x for the ViT. Calibration tracks the CNN loss, not the ViT gain.
+4. A lightness-stratified fairness analysis at three cutoffs. The dark stratum has a higher false positive rate at every cutoff, but the dark AUC differences are not significant at any cutoff. The false-negative L* association is significant for all three architectures; the false-positive association is significant only for ResNet-50.
+5. A quantitative XAI analysis with Grad-CAM targeting the true class. Attribution mass inside the lesion is lower in the dark stratum, but the mass-error relationship differs by architecture and the false-negative versus false-positive mass values do not separate consistently.
+6. An external validation on HIBA showing a consistent CNN sensitivity loss under focal loss and a seed-dependent ViT gain, with no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
 
 ## Section outline
 
@@ -55,7 +55,7 @@
 | Test-set calibration | Done, 27 runs | `results/calibration/` |
 | HAM10000 L* fairness pilot | Done | `results/fairness/lightness/` |
 | Dark-skin cutoff and adjusted models | Done | `results/dark_skin/` |
-| HIBA external dermoscopic validation | Done, 18 runs (CE + focal) | `results/external/hiba/` |
+| HIBA external dermoscopic validation | Done, 27 runs (all three conditions) | `results/external/hiba/` |
 | Clinical dark-skin validation | Dataset not selected | DDI or PASSION |
 | Quantitative XAI on HAM10000 | Done, 3 architectures x 3 seeds | `results/xai/` |
 

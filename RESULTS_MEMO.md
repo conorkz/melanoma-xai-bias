@@ -84,10 +84,10 @@ This update reports the controlled benchmark for RQ1, the lightness-stratified f
 ### Calibration and paired ranking tests
 
 - CE-baseline ECE: ResNet-50 0.046, EfficientNet-B0 0.060, ViT-S/16 0.146.
-- Focal2 + class-balanced ECE: 0.203, 0.178, and 0.199. The correction roughly triples calibration error.
+- Focal2 + class-balanced ECE: 0.203, 0.178, and 0.199. The ratios are 4.4x for ResNet-50, 3.0x for EfficientNet-B0, and 1.36x for ViT-S/16.
 - CE + strong ECE: 0.046, 0.052, and 0.058. Strong augmentation preserves calibration.
 - Paired within-architecture sensitivity change from CE to focal: -0.079 for EfficientNet-B0, -0.116 for ResNet-50, and +0.082 for ViT-S/16. All intervals include zero.
-- Difference-in-differences for the focal effect: EfficientNet-B0 minus ViT-S/16 is -0.161 (95% CI -0.289 to -0.049, p = 0.008); ResNet-50 minus ViT-S/16 is -0.199 (-0.437 to -0.011, p = 0.032).
+- Difference-in-differences for the focal effect: EfficientNet-B0 minus ViT-S/16 is -0.161 (95% t interval -0.209 to -0.113); ResNet-50 minus ViT-S/16 is -0.199 (-0.484 to 0.087). The EfficientNet-B0 interaction is significant at the seed level; the ResNet-50 interaction is not.
 - The robust finding is an architecture-dependent interaction, not a precise ranking. Calibration explains the thresholded sensitivity reversal.
 - Full results: `results/calibration/` and `results/ranking/`.
 
@@ -97,15 +97,16 @@ Grad-CAM on the CE-baseline models, three seeds, 343 tone-stratified test images
 
 | Architecture | Light mass | Dark mass | Light pointing | Dark pointing | Dark error rate | rho (mass, tone) |
 |---|---|---|---|---|---|---|
-| ResNet-50 | 0.593 | 0.504 | 0.882 | 0.674 | 0.178 | -0.167 |
-| EfficientNet-B0 | 0.456 | 0.342 | 0.718 | 0.449 | 0.140 | -0.170 |
-| ViT-S/16 | 0.341 | 0.265 | 0.604 | 0.248 | 0.217 | -0.184 |
+| ResNet-50 | 0.571 | 0.465 | 0.847 | 0.636 | 0.178 | -0.174 |
+| EfficientNet-B0 | 0.450 | 0.331 | 0.702 | 0.448 | 0.140 | -0.176 |
+| ViT-S/16 | 0.341 | 0.261 | 0.607 | 0.248 | 0.217 | -0.181 |
 
+- Grad-CAM targets the true class, so false-negative heatmaps describe evidence for melanoma rather than the benign prediction.
 - Attribution mass inside the lesion is lower in the dark stratum for all three architectures. The mass-tone correlation is negative in every case with p < 1e-7.
 - Pointing-game accuracy is lowest in the dark stratum in every architecture.
-- Attribution mass separates the two error types. False negatives have lower mass than false positives for EfficientNet-B0 (0.285 vs 0.522) and ViT-S/16 (0.298 vs 0.402). ResNet-50 is similar for both (0.578 vs 0.565).
-- The pooled mass-error correlation is near zero because false negatives move below the correct-class mass and false positives move above it. The XAI signal is group-level and error-type-specific, not per-image.
-- Full results: `results/xai/xai.md`. Figure: `results/figures/xai_by_tone.png`.
+- The mass-error correlation is architecture-dependent: -0.129 for EfficientNet-B0, -0.230 for ResNet-50, and +0.136 for ViT-S/16. The false-negative and false-positive mass values do not separate consistently.
+- The XAI signal is a group-level tone gradient, not a consistent per-image error marker.
+- Full results: `results/xai_true/xai.md`. Figure: `results/figures/xai_by_tone.png`.
 
 ### HIBA external validation
 
@@ -113,12 +114,13 @@ Grad-CAM on the CE-baseline models, three seeds, 343 tone-stratified test images
 - CE baseline, sensitivity and specificity: ResNet-50 0.391 / 0.944, EfficientNet-B0 0.396 / 0.922, ViT-S/16 0.221 / 0.967.
 - CE baseline AUC: 0.807, 0.782, and 0.791. The CNN-transformer gap transfers; absolute sensitivity drops by 16 to 18 points relative to HAM10000.
 - Focal2 + class-balanced, sensitivity and specificity: ResNet-50 0.315 / 0.925, EfficientNet-B0 0.253 / 0.945, ViT-S/16 0.315 / 0.954.
-- Focal effect on external sensitivity: ResNet-50 -7.6 points, EfficientNet-B0 -14.3, ViT-S/16 +9.4. The architecture interaction transfers.
+- Focal effect on external sensitivity: ResNet-50 -7.6 points, EfficientNet-B0 -14.3, ViT-S/16 +9.4 mean. The CNN losses are consistent in direction; the ViT changes are +0.219, +0.127, -0.067 across seeds and are not consistent.
 - Oracle sensitivity at 95% specificity (focal): ResNet-50 0.245, EfficientNet-B0 0.240, ViT-S/16 0.335. The direction is the same.
 - External AUC under focal: 0.774, 0.722, and 0.794. The external AUC ranking does not match the in-domain ranking; the ViT gain is threshold-driven.
+- Strong augmentation, sensitivity and specificity: ResNet-50 0.480 / 0.935, EfficientNet-B0 0.406 / 0.955, ViT-S/16 0.391 / 0.940.
+- Strong augmentation AUC: 0.835, 0.847, and 0.824. Oracle 95% specificity sensitivity: 0.408, 0.427, and 0.389. Strong augmentation is the best external condition for all three architectures.
 - Fitzpatrick I, II, III: CNN sensitivity 0.35 to 0.43; ViT 0.20 to 0.33. No monotonic skin-tone gradient.
 - Fitzpatrick IV: 25 images and zero melanomas, so sensitivity is undefined. No Fitzpatrick V-VI images.
-- Strong augmentation was not evaluated externally.
 - Full table: `results/external/hiba/external_summary.csv`.
 
 ## 4. Figures
@@ -132,12 +134,12 @@ The best-sensitivity figure uses the median seed of ResNet-50 CE baseline. The b
 
 ## 5. Interpretation
 
-1. **Does H1 hold? It is architecture-dependent.** Focal2 + class-balanced improves ViT-S/16 by 8.2 sensitivity points but reduces ResNet-50 by 11.7 and EfficientNet-B0 by 7.9. The paired within-architecture intervals include zero; the difference-in-differences between each CNN and the ViT excludes zero. The robust claim is an interaction, not a precise ranking.
-2. **Calibration explains the thresholded reversal.** Focal2 + class-balanced roughly triples ECE. The AUC ranking is stable, so the sensitivity flip is specific to the operating point.
+1. **Does H1 hold? It is architecture-dependent.** Focal2 + class-balanced improves ViT-S/16 by 8.2 sensitivity points but reduces ResNet-50 by 11.7 and EfficientNet-B0 by 7.9. Every within-architecture 95% t interval includes zero; the EfficientNet-B0 versus ViT interaction is significant at the seed level, the ResNet-50 versus ViT interaction is not. The robust claim is an interaction with limited precision, not a precise ranking.
+2. **Calibration tracks the CNN loss.** Focal2 + class-balanced raises ECE by 4.4x for ResNet-50, 3.0x for EfficientNet-B0, and 1.36x for ViT-S/16. The AUC ordering is preserved but the gaps close; the sensitivity flip is not purely a threshold effect.
 3. **Strong augmentation is not a universal fix.** It is neutral for ResNet-50 (0.568 versus 0.570), small positive for EfficientNet-B0 (0.563 versus 0.556), and positive for ViT (0.435 versus 0.400). The intervals overlap, so this is suggestive, not conclusive.
 4. **Specificity is stable.** All conditions operate near 95% specificity on validation; test specificity is 0.94 to 0.955. The sensitivity differences are not explained by a large specificity shift.
 5. **Fairness is error-type-specific.** The dark false positive rate is elevated at every cutoff. The dark AUC deficit is cutoff-dependent. Adjusted models show darker skin associated with more false positives and lighter skin with more false negatives, with lesion contrast moving both in opposite directions.
-6. **The architecture interaction transfers externally.** On HIBA, focal2 + class-balanced raises ViT-S/16 sensitivity by 9.4 points and lowers ResNet-50 by 7.6 and EfficientNet-B0 by 14.3. The external AUC ranking differs, so the gain is threshold-driven rather than a ranking-quality gain.
+6. **The external evidence is only partly consistent.** On HIBA, focal2 + class-balanced lowers ResNet-50 by 7.6 points and EfficientNet-B0 by 14.3, and raises ViT-S/16 by 9.4 on average. The CNN losses are negative in every seed for EfficientNet-B0 and in two of three for ResNet-50. The ViT changes are +0.219, +0.127, and -0.067, so the gain is seed-dependent. Strong augmentation is the best external condition for all three architectures (sensitivity 0.480, 0.406, 0.391; AUC 0.835, 0.847, 0.824), which supports its role as a domain-shift simulation.
 
 ## 6. Limitations
 
@@ -149,7 +151,7 @@ The best-sensitivity figure uses the median seed of ResNet-50 CE baseline. The b
 - HAM10000 has no Fitzpatrick labels. Fairness uses an image-based L* proxy, not clinical labels.
 - The adjusted false-positive and false-negative models are observational. They identify associations, not causal effects.
 - HIBA Fitzpatrick IV has 25 images and no melanomas, and HIBA has no Fitzpatrick V-VI. The dark-skin claim remains untested on clinical labels.
-- The external condition comparison covers the CE baseline and focal loss. Strong augmentation is not evaluated on HIBA.
+- The external condition comparison covers all three conditions. Strong augmentation is the best external condition for all three architectures.
 - The paired within-architecture intervals include zero. Treat the ranking as an interaction, not a precise ordering.
 
 ## 7. Next step

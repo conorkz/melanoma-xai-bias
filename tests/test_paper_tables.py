@@ -25,6 +25,7 @@ def test_stage_table_contains_values_and_escaped_names():
             "val_sensitivity_mean": [0.5],
             "val_sensitivity_std": [0.01],
             "sensitivity_mean": [0.6],
+            "sensitivity_std": [0.05],
             "sensitivity_ci_low": [0.5],
             "sensitivity_ci_high": [0.7],
             "specificity_mean": [0.95],
@@ -107,8 +108,11 @@ def test_external_table_handles_undefined_sensitivity():
             "n_mean": [804, 25],
             "n_positive_mean": [144, 0],
             "sensitivity_mean": [0.354, math.nan],
+            "sensitivity_std": [0.05, math.nan],
             "specificity_mean": [0.891, 1.0],
+            "specificity_std": [0.01, 0.0],
             "auc_mean": [0.739, math.nan],
+            "auc_std": [0.02, math.nan],
         }
     )
     output = generator.external_table(frame, "Caption", "tab:external")
