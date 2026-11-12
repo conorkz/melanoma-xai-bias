@@ -13,7 +13,7 @@
 - [x] ORCID for Sun Baoshan: 0000-0003-2193-3232.
 - [ ] ORCID for Nursultan Zhanat.
 - [x] Corresponding author and email.
-- [ ] Personal email for Nursultan Zhanat, if the journal requires it.
+- [x] Personal email for Nursultan Zhanat: zhanat.nursultan1@gmail.com.
 - [x] Author contributions.
 - [x] Funding statement.
 - [x] Competing interests statement.

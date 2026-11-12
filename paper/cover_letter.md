@@ -25,6 +25,7 @@ Sincerely,
 Nursultan Zhanat
 School of Computer Science and Technology, Tiangong University, Tianjin 300387, China
 Tianjin Key Laboratory of Autonomous Intelligence Technology and Systems, Tiangong University, Tianjin 300387, China
+zhanat.nursultan1@gmail.com
 
 On behalf of the authors, including the corresponding author:
 Sun Baoshan
