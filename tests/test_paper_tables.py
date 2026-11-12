@@ -119,6 +119,95 @@ def test_external_table_handles_undefined_sensitivity():
     assert r"\label{tab:external}" in output
 
 
+def test_dark_skin_table_contains_three_cutoffs():
+    generator = load_script("build_paper_tables")
+    rows = []
+    for threshold in (55, 58, 60):
+        for group, n, positive, auc, fpr in (
+            ("light", 644, 81, 0.868, 0.050),
+            ("medium", 840, 99, 0.911, 0.049),
+            ("dark", 43, 6, 0.805, 0.126),
+        ):
+            rows.append(
+                {
+                    "threshold": threshold,
+                    "tone_group": group,
+                    "n": n,
+                    "n_positive": positive,
+                    "sensitivity": 0.5,
+                    "auc": auc,
+                    "fpr": fpr,
+                }
+            )
+    output = generator.dark_skin_table(pd.DataFrame(rows), "Caption", "tab:darkskin")
+    assert "55" in output
+    assert "58" in output
+    assert "60" in output
+    assert r"\label{tab:darkskin}" in output
+
+
+def test_adjusted_model_table_contains_both_error_types():
+    generator = load_script("build_paper_tables")
+    rows = []
+    for outcome in ("false_positive", "false_negative"):
+        for backbone in ("resnet50", "efficientnet_b0", "vit_s"):
+            for term, odds in (("L", 0.8), ("delta_L", 2.0)):
+                rows.append(
+                    {
+                        "outcome": outcome,
+                        "backbone": backbone,
+                        "term": term,
+                        "odds_ratio": odds,
+                        "ci_low": odds - 0.1,
+                        "ci_high": odds + 0.1,
+                    }
+                )
+    output = generator.adjusted_model_table(
+        pd.DataFrame(rows), "Caption", "tab:adjusted"
+    )
+    assert "False positive" in output
+    assert "False negative" in output
+    assert r"\label{tab:adjusted}" in output
+
+
+def test_calibration_table_contains_ece_and_brier():
+    generator = load_script("build_paper_tables")
+    frame = pd.DataFrame(
+        {
+            "config_id": [
+                "stage2_resnet50_ce_random",
+                "stage2_resnet50_focal2_cb",
+            ],
+            "ece_mean": [0.046, 0.203],
+            "ece_std": [0.013, 0.041],
+            "brier_mean": [0.074, 0.133],
+            "brier_std": [0.004, 0.016],
+        }
+    )
+    output = generator.calibration_table(frame, "Caption", "tab:calibration")
+    assert "0.046" in output
+    assert "0.203" in output
+    assert "Brier" in output
+
+
+def test_ranking_table_contains_did_rows():
+    generator = load_script("build_paper_tables")
+    frame = pd.DataFrame(
+        {
+            "test": ["paired", "did"],
+            "comparison": ["focal2_cb_vs_ce", "resnet50_minus_vit_s"],
+            "backbone": ["resnet50", "resnet50_vs_vit_s"],
+            "delta_mean": [-0.116, -0.199],
+            "ci_low_min": [-0.244, -0.437],
+            "ci_high_max": [0.031, -0.011],
+            "p_max": [0.248, 0.032],
+        }
+    )
+    output = generator.ranking_table(frame, "Caption", "tab:ranking")
+    assert "Difference in differences" in output
+    assert "ResNet-50 minus ViT-S/16" in output
+
+
 def test_fairness_table_contains_three_groups():
     generator = load_script("build_paper_tables")
     rows = []

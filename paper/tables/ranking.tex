@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Paired sensitivity comparisons. Differences are paired by test image; intervals are 95\% bootstrap intervals over images. The within-architecture focal effects have intervals that include zero, while the difference-in-differences between each CNN and the ViT excludes zero.}
+\label{tab:ranking}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccc}
+\toprule
+Test & Architecture & $\Delta$ sensitivity & 95\% CI & $p$ \\
+\midrule
+Focal+CB vs CE & EfficientNet-B0 & -0.079 & -0.210 to +0.055 & 0.590 \\
+Focal+CB vs CE & ResNet-50 & -0.116 & -0.244 to +0.031 & 0.248 \\
+Focal+CB vs CE & ViT-S/16 & +0.082 & -0.038 to +0.237 & 0.440 \\
+\midrule
+Difference in differences & EfficientNet-B0 minus ViT-S/16 & -0.161 & -0.289 to -0.049 & 0.008 \\
+Difference in differences & ResNet-50 minus EfficientNet-B0 & -0.038 & -0.273 to +0.137 & 0.936 \\
+Difference in differences & ResNet-50 minus ViT-S/16 & -0.199 & -0.437 to -0.011 & 0.032 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

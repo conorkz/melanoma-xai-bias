@@ -19,7 +19,7 @@ if str(PROJECT_ROOT / "src") not in sys.path:
 
 from melanoma.data.transforms import build_transforms
 from melanoma.models.factory import build_model
-from melanoma.training.metrics import binary_metrics
+from melanoma.training.metrics import binary_metrics, sensitivity_at_specificity
 from melanoma.training.trainer import load_checkpoint
 from melanoma.utils import ensure_dir, get_device
 
@@ -72,6 +72,9 @@ def parse_args(argv=None):
     parser.add_argument("--run-pattern", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--backbones", default="efficientnet_b0,resnet50,vit_s")
     parser.add_argument("--seeds", default="1,2,3")
+    parser.add_argument(
+        "--conditions", default="ce_random,focal2_cb,ce_random_strong"
+    )
     parser.add_argument("--image-type", default="dermoscopic")
     parser.add_argument("--id-column", default="isic_id")
     parser.add_argument("--label-column", default="diagnosis")
@@ -112,9 +115,11 @@ def parse_list(value, cast=str):
 
 
 def run_ids(args, backbones, seeds):
+    conditions = parse_list(args.conditions)
     return [
-        f"stage2_{backbone}_ce_random_seed{seed}"
+        f"stage2_{backbone}_{condition}_seed{seed}"
         for backbone in backbones
+        for condition in conditions
         for seed in seeds
     ]
 
@@ -140,6 +145,9 @@ def metrics_for_group(frame, threshold, group=None):
     metrics["fpr"] = (
         1.0 - metrics["specificity"] if np.isfinite(metrics["specificity"]) else np.nan
     )
+    oracle = sensitivity_at_specificity(y_true, y_prob, 0.95)
+    metrics["sensitivity_at_95_spec"] = oracle["sensitivity"]
+    metrics["oracle_threshold"] = oracle["threshold"]
     metrics["tone_group"] = "all" if group is None else group
     return metrics
 
@@ -151,11 +159,13 @@ def summarize(per_run):
         "balanced_accuracy",
         "auc",
         "fpr",
+        "sensitivity_at_95_spec",
+        "oracle_threshold",
         "n",
         "n_positive",
     ]
     summary = (
-        per_run.groupby(["backbone", "tone_group"])[numeric]
+        per_run.groupby(["backbone", "condition", "tone_group"])[numeric]
         .agg(["mean", "std"])
         .reset_index()
     )
@@ -246,11 +256,15 @@ def main(argv=None):
         return 1
 
     per_run = pd.DataFrame(records)
+    per_run["condition"] = per_run["config_id"].str.extract(
+        r"^stage2_(?:resnet50|efficientnet_b0|vit_s)_(.+)$"
+    )[0]
     per_run = per_run[
         [
             "run_id",
             "config_id",
             "backbone",
+            "condition",
             "seed",
             "tone_group",
             "n",
@@ -261,6 +275,8 @@ def main(argv=None):
             "auc",
             "fpr",
             "threshold",
+            "sensitivity_at_95_spec",
+            "oracle_threshold",
         ]
     ]
     new_predictions = pd.concat(predictions, ignore_index=True)

@@ -1,16 +1,17 @@
 # Paper plan
 
-**Working title:** Imbalance correction reverses CNN-transformer rankings in melanoma classification: a controlled benchmark with fairness and explanation analysis
+**Working title:** Architecture-dependent effects of imbalance correction in melanoma classification: fairness, calibration, and explanation analysis
 
-**Status:** the RQ1 benchmark, the fairness analysis, the three-architecture XAI analysis, and the HIBA external validation are complete. The clinical dark-skin evaluation and the PROVe-AI extension are pending. The LaTeX draft in `paper/` contains the current results.
+**Status:** the RQ1 benchmark, the fairness analysis, the calibration analysis, the paired ranking tests, the three-architecture XAI analysis, and the nine-run HIBA external validation are complete. The 27-run HIBA validation, the clinical dark-skin evaluation, and the PROVe-AI extension are pending. The LaTeX draft in `paper/` contains the current results.
 
 ## Contributions
 
 1. A controlled benchmark of ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under three pre-declared conditions: CE baseline, focal loss with class-balanced sampling, and CE with strong augmentation. Each condition uses three seeds, a lesion-aware split, and a validation-selected threshold at 95% specificity.
-2. Evidence that focal loss with class-balanced sampling helps ViT-S/16 but hurts the two CNNs, which reverses the architecture ranking on sensitivity at 95% specificity. The AUC ranking is stable.
-3. A lightness-stratified fairness analysis that quantifies the representation gap and a consistent dark-stratum AUC and false positive rate signal, while showing that the dark-stratum sensitivity estimate is underpowered.
-4. A quantitative XAI analysis across all three architectures showing that attribution mass inside the lesion is lower in the dark stratum and that attribution mass is a weak predictor of individual errors.
-5. An external validation on HIBA that reproduces the CNN-transformer gap but shows a 16 to 18 point sensitivity drop, with no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
+2. Evidence that focal loss with class-balanced sampling helps ViT-S/16 but hurts the two CNNs. The paired within-architecture intervals include zero, but the difference-in-differences between each CNN and the ViT excludes zero. The AUC ranking is stable.
+3. A calibration analysis showing that focal loss with class-balanced sampling roughly triples expected calibration error, which identifies calibration and threshold placement as the mechanism behind the sensitivity reversal.
+4. A lightness-stratified fairness analysis at three cutoffs. The dark stratum has a higher false positive rate at every cutoff, while the dark AUC deficit is present only at the strictest cutoff. Adjusted models show that darker skin is associated with more false positives and lighter skin with more false negatives, with lesion contrast moving both error types in opposite directions.
+5. A quantitative XAI analysis across all three architectures showing that attribution mass inside the lesion is lower in the dark stratum, and that false negatives have lower mass than false positives.
+6. An external validation on HIBA that reproduces the CNN-transformer gap but shows a 16 to 18 point sensitivity drop, with no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
 
 ## Section outline
 
@@ -28,15 +29,21 @@
 
 - Table 1: Stage 1 screen, generated from `results/rq1_stage1.csv`.
 - Table 2: Stage 2 architecture comparison, generated from `results/rq1_stage2.csv`.
-- Table 3: Lightness-stratified fairness summary, generated from `results/fairness/lightness/fairness_summary.csv`.
-- Table 4: XAI metrics by architecture and lightness group, generated from `results/xai/xai_all_summary.csv`.
-- Table 5: XAI Spearman correlations, generated from `results/xai/xai_all_correlations.csv`.
-- Table 6: HIBA external validation, generated from `results/external/hiba/external_summary.csv`.
-- Figure 1: protocol diagram (to be drawn).
-- Figure 2: Stage 2 sensitivity at 95% specificity by architecture and condition (to be drawn).
-- Figure 3: ROC curve for the best Stage 2 run.
-- Figure 4: fairness AUC and false positive rate by tone group (done).
-- Figure 5: attribution mass and pointing game by tone group (done).
+- Table 3: Paired sensitivity tests, generated from `results/ranking/ranking_summary.csv`.
+- Table 4: Test-set calibration, generated from `results/calibration/calibration_overall.csv`.
+- Table 5: Lightness-stratified fairness summary, generated from `results/fairness/lightness/fairness_summary.csv`.
+- Table 6: Dark-skin cutoff sensitivity, generated from `results/dark_skin/threshold_sensitivity.csv`.
+- Table 7: Adjusted false-positive and false-negative models, generated from `results/dark_skin/continuous_model.csv`.
+- Table 8: XAI metrics by architecture and lightness group, generated from `results/xai/xai_all_summary.csv`.
+- Table 9: XAI Spearman correlations, generated from `results/xai/xai_all_correlations.csv`.
+- Table 10: HIBA external validation by Fitzpatrick type, generated from `results/external/hiba/external_summary.csv`.
+- Table 11: HIBA external validation by training condition, generated from `results/external/hiba/external_summary.csv`.
+- Figure 1: Stage 2 ROC curve for the best run.
+- Figure 2: fairness AUC and false positive rate by tone group.
+- Figure 3: dark-skin robustness, cutoff sensitivity and adjusted models.
+- Figure 4: attribution mass and pointing game by tone group.
+- Figure 5: calibration reliability and ECE by tone group.
+- Figure 6: training curves for the best run.
 
 ## Experiment status
 
@@ -44,8 +51,11 @@
 |---|---|---|
 | Stage 1 imbalance and augmentation screen | Done, 24 runs | `results/rq1_stage1.*` |
 | Stage 2 architecture comparison | Done, 27 runs | `results/rq1_stage2.*` |
+| Paired ranking tests | Done | `results/ranking/` |
+| Test-set calibration | Done, 27 runs | `results/calibration/` |
 | HAM10000 L* fairness pilot | Done | `results/fairness/lightness/` |
-| HIBA external dermoscopic validation | Done, 9 CE-baseline runs | `results/external/hiba/` |
+| Dark-skin cutoff and adjusted models | Done | `results/dark_skin/` |
+| HIBA external dermoscopic validation | 9 CE-baseline runs done; 18 condition runs in progress | `results/external/hiba/` |
 | Clinical dark-skin validation | Dataset not selected | DDI or PASSION |
 | Quantitative XAI on HAM10000 | Done, 3 architectures x 3 seeds | `results/xai/` |
 

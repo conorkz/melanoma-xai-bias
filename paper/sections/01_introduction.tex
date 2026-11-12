@@ -16,9 +16,10 @@ Our contributions are:
 
 \begin{enumerate}
   \item A controlled benchmark of three architectures under three pre-declared conditions: CE baseline, focal loss with class-balanced sampling, and CE with strong augmentation.
-  \item Evidence that focal loss with class-balanced sampling improves ViT-S/16 but reduces the sensitivity of both CNNs, which reverses the architecture ranking on sensitivity at 95\% specificity. The AUC ranking is stable.
-  \item A lightness-stratified fairness analysis that quantifies the representation gap and a consistent dark-stratum AUC and false positive rate signal, while showing that the dark-stratum sensitivity estimate is underpowered.
-  \item A quantitative XAI protocol for attribution localization, used to test whether attribution mass inside the lesion is associated with lightness group and error status. All three architectures place less attribution inside the lesion on darker images, but attribution mass is a weak predictor of individual errors.
+  \item Evidence that focal loss with class-balanced sampling improves ViT-S/16 but reduces the sensitivity of both CNNs, which reverses the point-estimate ranking at 95\% specificity. The paired within-architecture intervals include zero, while the difference-in-differences between each CNN and the ViT excludes zero. The AUC ranking is stable.
+  \item A calibration analysis that shows focal loss with class-balanced sampling roughly triples expected calibration error, which identifies calibration as a mechanism behind the sensitivity reversal.
+  \item A lightness-stratified fairness analysis at three cutoffs. The dark stratum has a higher false positive rate at every cutoff, while the dark AUC deficit is present only at the strictest cutoff. Adjusted models show that darker skin is associated with more false positives and lighter skin with more false negatives, with lesion contrast moving both error types in opposite directions.
+  \item A quantitative XAI analysis showing that all three architectures place less attribution inside the lesion on darker images, and that false negatives have lower attribution mass than false positives, which explains the weak pooled mass-error correlation.
   \item An external validation on HIBA that reproduces the CNN-transformer gap, shows a 16 to 18 point sensitivity drop, and confirms that HIBA contains no Fitzpatrick IV melanomas and no Fitzpatrick V-VI images.
 \end{enumerate}
 

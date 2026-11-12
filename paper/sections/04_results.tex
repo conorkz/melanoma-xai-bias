@@ -16,11 +16,14 @@ At the CE baseline, ResNet-50 reaches a test sensitivity of $0.570$ (95\% CI $0.
 
 Under focal loss with class-balanced sampling, ResNet-50 falls to $0.453$ ($0.379$ to $0.523$), EfficientNet-B0 falls to $0.477$ ($0.405$ to $0.548$), and ViT-S/16 rises to $0.482$ ($0.408$ to $0.556$). The correction helps the transformer by 8.2 points and hurts the CNNs by 11.7 and 7.9 points.
 
-The architecture ranking therefore reverses. At the CE baseline the order is ResNet-50, EfficientNet-B0, ViT-S/16. Under focal loss with class-balanced sampling the order is ViT-S/16, EfficientNet-B0, ResNet-50.
+The architecture ranking therefore reverses in the point estimates. At the CE baseline the order is ResNet-50, EfficientNet-B0, ViT-S/16. Under focal loss with class-balanced sampling the order is ViT-S/16, EfficientNet-B0, ResNet-50.
 
 Strong augmentation is close to neutral. ResNet-50 reaches $0.568$ ($0.498$ to $0.637$), EfficientNet-B0 reaches $0.563$ ($0.489$ to $0.636$), and ViT-S/16 reaches $0.435$ ($0.366$ to $0.503$). The intervals overlap with the CE baseline for the two CNNs.
 
+Table~\ref{tab:ranking} reports paired tests that resample test images and keep the condition pairing. The focal effect within a single architecture is not significant: $-0.079$ (95\% CI $-0.210$ to $0.055$) for EfficientNet-B0, $-0.116$ ($-0.244$ to $0.031$) for ResNet-50, and $+0.082$ ($-0.038$ to $0.237$) for ViT-S/16. The difference-in-differences is significant for each CNN against the ViT: $-0.161$ ($-0.289$ to $-0.049$, $p=0.008$) for EfficientNet-B0 minus ViT-S/16 and $-0.199$ ($-0.437$ to $-0.011$, $p=0.032$) for ResNet-50 minus ViT-S/16. The correction therefore has an architecture-dependent effect. The individual condition changes are too uncertain for a precise ranking claim.
+
 \input{tables/stage2}
+\input{tables/ranking}
 
 \subsection{AUC is stable while sensitivity ranking flips}
 
@@ -28,27 +31,51 @@ The AUC ranking does not follow the sensitivity ranking. At the CE baseline, the
 
 The stability of the AUC ranking suggests that the sensitivity reversal is specific to the thresholded operating point. Calibration and threshold placement are plausible mechanisms. Both metrics matter: a clinical screening claim depends on the thresholded sensitivity, and the AUC describes the ranking quality of the scores.
 
+\subsection{Calibration tracks the sensitivity reversal}
+
+Table~\ref{tab:calibration} reports test-set calibration at the validation-selected threshold. Focal loss with class-balanced sampling roughly triples the expected calibration error: 0.203 for ResNet-50, 0.178 for EfficientNet-B0, and 0.199 for ViT-S/16, against 0.046, 0.060, and 0.146 at the CE baseline. Strong augmentation keeps calibration close to the CE baseline, with ECE between 0.046 and 0.058. The Brier score follows the same pattern.
+
+The ViT is the worst-calibrated CE baseline, with an ECE of 0.146, and strong augmentation reduces it to 0.058. The focal condition makes all three architectures worse calibrated. Because the operating threshold is selected on validation at 95\% specificity, a miscalibrated score distribution moves the test operating point and changes sensitivity. This is consistent with the stable AUC and the unstable sensitivity ranking.
+
+Figure~\ref{fig:calibration} shows reliability curves and ECE by lightness group. The dark stratum has higher ECE than the light and medium groups for all three CE baselines: 0.126 against 0.072 and 0.052 for EfficientNet-B0, 0.132 against 0.063 and 0.035 for ResNet-50, and 0.235 against 0.144 and 0.149 for ViT-S/16.
+
+\input{tables/calibration}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{calibration_reliability.png}
+  \caption{Calibration at the CE baseline. (A) Reliability curves for the three architectures. (B) Expected calibration error by lightness group, mean and seed standard deviation across the CE-baseline runs.}
+  \label{fig:calibration}
+\end{figure}
+
 \subsection{Fairness across lightness strata}
 
 The test set contains 644 light images with 81 melanomas, 840 medium images with 99 melanomas, and 43 dark images with 6 melanomas. The dark stratum is 2.8\% of the test set and 3.2\% of the melanoma cases.
 
-Table~\ref{tab:fairness} reports the per-group sensitivity and the dark-stratum AUC and false positive rate for the nine Stage 2 configurations. Figure~\ref{fig:fairness} shows the AUC and false positive rate pattern.
+Table~\ref{tab:fairness} reports the per-group sensitivity at 95\% specificity for the nine Stage 2 configurations at the pre-declared cutoff $L^*\leq55$. At this cutoff the dark stratum has the lowest AUC in all nine configurations, 0.71 to 0.87, against 0.83 to 0.90 for light and 0.88 to 0.93 for medium. It also has the highest false positive rate, 0.08 to 0.19, against 0.04 to 0.07 for the other two groups.
 
-The dark stratum has the lowest AUC in all nine configurations. The dark AUC ranges from 0.71 to 0.87, against 0.83 to 0.90 for the light stratum and 0.88 to 0.93 for the medium stratum.
+The cutoff is a choice, so we repeated the analysis at $L^*\leq58$ and $L^*\leq60$ (Table~\ref{tab:darkskin}, Figure~\ref{fig:darkskin}). The dark AUC deficit is not robust to the cutoff. At $L^*\leq58$ the dark AUC is 0.891, against 0.868 for light and 0.908 for medium. At $L^*\leq60$ it is 0.881, against 0.868 and 0.912. The dark false positive rate is elevated at every cutoff: 0.126 at $L^*\leq55$, 0.086 at $L^*\leq58$, and 0.073 at $L^*\leq60$, against 0.047 to 0.050 for light and medium. Dark sensitivity is 0.500 with 6 melanomas, 0.648 with 12, and 0.580 with 23. The intervals are wide, and dark sensitivity is not consistently lower than light sensitivity.
 
-It also has the highest false positive rate. The dark false positive rate ranges from 0.08 to 0.19, against 0.04 to 0.07 for the light and medium strata.
+The adjusted models in Table~\ref{tab:adjusted} separate false positives from false negatives. Darker skin is associated with more false positives: the $L^*$ odds ratio is 0.78 for ResNet-50, 0.88 for EfficientNet-B0, and 0.77 for ViT-S/16 per standard deviation. The interval excludes 1 for ResNet-50; the other two include 1. Lighter skin is associated with more false negatives: the $L^*$ odds ratio is 1.74, 1.66, and 1.75, and all three intervals exclude 1. Lesion contrast moves in the opposite direction for the two error types. Higher contrast increases false positives (OR 2.05, 1.69, and 2.42) and reduces false negatives (OR 0.58, 0.74, and 0.48). The pooled error model shows no $L^*$ association, with odds ratios from 0.92 to 1.02 and all intervals including 1, because the two effects cancel.
 
-The dark-stratum sensitivity is too uncertain to support a strong claim. With six melanoma cases, the estimates range from 0.22 to 0.72 and the bootstrap intervals span 0 to 1.
-
-The medium stratum has the highest sensitivity in most configurations. The light stratum is often lower, which is consistent with a contrast effect: pale lesions on pale skin are harder to separate. Lesion contrast, not only skin tone, appears to drive difficulty.
+This changes the fairness interpretation. The strict dark group has a higher false positive rate across cutoffs, but the AUC deficit is cutoff-dependent and dark sensitivity is not lower. The error profile shifts with tone: darker images produce more false positives, lighter images produce more false negatives. Lesion contrast is the stronger correlate of both.
 
 \input{tables/fairness}
+\input{tables/dark_skin}
+\input{tables/adjusted_model}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{fairness_by_tone.png}
-  \caption{AUC and false positive rate by lightness group for the nine Stage 2 configurations. Columns are training conditions and lines are architectures. Points are means across three seeds; error bars are seed standard deviations. The dark stratum contains 43 test images and six melanoma cases.}
+  \caption{AUC and false positive rate by lightness group for the nine Stage 2 configurations at the pre-declared cutoff $L^*\leq55$. Columns are training conditions and lines are architectures. Points are means across three seeds; error bars are seed standard deviations. The dark stratum contains 43 test images and six melanoma cases.}
   \label{fig:fairness}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{dark_skin_robustness.png}
+  \caption{Dark-skin robustness. (A) AUC by $L^*$ cutoff. (B) False positive rate by cutoff. (C) Adjusted odds ratios for the pooled error model, per standard deviation, with lesion-cluster bootstrap 95\% CIs. The false-positive and false-negative models are reported separately in Table~\ref{tab:adjusted}.}
+  \label{fig:darkskin}
 \end{figure}
 
 \subsection{Quantitative XAI}
@@ -60,11 +87,9 @@ Attribution mass inside the lesion is highest in the light stratum for all three
 
 Pointing-game accuracy is lowest in the dark stratum in every case: $0.449$ for EfficientNet-B0, $0.674$ for ResNet-50, and $0.248$ for ViT-S/16. Attribution IoU follows the same direction for EfficientNet-B0 and ViT-S/16, and is only slightly lower in the dark stratum than the medium stratum for ResNet-50 ($0.330$ vs $0.362$).
 
-The error rate is higher in the dark stratum than in the light stratum for every architecture: $0.140$ vs $0.076$ for EfficientNet-B0, $0.178$ vs $0.076$ for ResNet-50, and $0.217$ vs $0.109$ for ViT-S/16. The direction matches the fairness results, though the dark sample is small.
+Attribution mass separates the two error types. False negatives have lower mass inside the lesion than false positives for EfficientNet-B0 ($0.285$ vs $0.522$) and ViT-S/16 ($0.298$ vs $0.402$). ResNet-50 is similar for the two error types ($0.578$ vs $0.565$). The pooled mass-error correlation is therefore near zero: false negatives move below the correct-class mass and false positives move above it. The XAI signal is group-level and error-type-specific, not a per-image predictor of error.
 
-Attribution mass does not predict individual errors well. The mass-error correlation is $-0.023$ for EfficientNet-B0 ($p=0.46$), $0.047$ for ResNet-50 ($p=0.13$), and $0.089$ for ViT-S/16 ($p=0.004$). Only the ViT correlation is significant, and its effect size is small. The XAI signal is therefore group-level: all three models place less attribution inside the lesion on darker images, and darker images have higher error rates. It does not identify which individual images will fail.
-
-Figure~\ref{fig:xai} shows the group pattern. ResNet-50 localizes best in absolute terms and has the highest dark-stratum attribution mass, but its dark error rate is higher than EfficientNet-B0's. Localization quality and error rate move together across tone groups, but they do not rank architectures the same way.
+Figure~\ref{fig:xai} shows the group pattern. ResNet-50 localizes best in absolute terms and has the highest dark-stratum attribution mass, but its dark false positive rate is not the lowest. Localization quality and error rate move together across tone groups, but they do not rank architectures the same way.
 
 \input{tables/xai}
 \input{tables/xai_correlations}
@@ -85,7 +110,7 @@ Sensitivity drops on the external set. ResNet-50 reaches $0.391$ at $0.944$ spec
 
 The per-type estimates do not show a monotonic skin-tone gradient. For Fitzpatrick I, II, and III, CNN sensitivity ranges from $0.35$ to $0.43$, and the ViT is lower at $0.20$ to $0.33$. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined and only specificity can be estimated. The group sizes are unbalanced: 804 of the 1,280 images are type II. HIBA cannot test the dark-skin claim, because it has almost no type IV melanoma cases and no type V-VI images at all.
 
-The CNN-transformer gap transfers, so the transformer deficit is not specific to HAM10000. The absolute performance does not transfer: the frozen HAM10000 threshold yields much lower sensitivity on HIBA, which means the operating point needs recalibration for a new source. The tone-specific claim remains limited to the image-based lightness strata in HAM10000 and to the consistent dark-stratum AUC and false positive rate signal.
+The CNN-transformer gap transfers, so the transformer deficit is not specific to HAM10000. The absolute performance does not transfer: the frozen HAM10000 threshold yields much lower sensitivity on HIBA, which means the operating point needs recalibration for a new source. The tone-specific claim remains limited to the image-based lightness strata in HAM10000 and to the error-type-specific associations reported above.
 
 \input{tables/external}
 

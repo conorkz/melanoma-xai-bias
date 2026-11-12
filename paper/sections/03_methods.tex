@@ -50,6 +50,12 @@ We also computed the Individual Typology Angle (ITA), $\mathrm{ITA}=\arctan((L^*
 
 For each Stage 2 run, we compute per-group sensitivity, specificity, false positive rate, false negative rate, AUC, and bootstrap intervals. We report the maximum group gap and the light-to-dark sensitivity ratio.
 
+Lesion contrast is computed from the same masks. The lesion color is the median CIELAB value inside the mask, and the surrounding skin is the median inside an 11-pixel ring after excluding $L^*<10$ and $L^*>95$. We define $\Delta L^*$ as skin minus lesion, so a positive value means the lesion is darker than the surrounding skin, and $\Delta E$ as the CIELAB 76 difference between the two median colors.
+
+The main analysis uses the pre-declared cutoff $L^*\leq55$. We repeat the group analysis at $L^*\leq58$ and $L^*\leq60$ to test whether the results depend on the cutoff. We also fit adjusted logistic models of false positive and false negative on perilesional $L^*$, $\Delta L^*$, log lesion area, age, sex, and anatomical site. Continuous predictors are standardized. Standard errors come from a cluster bootstrap over lesions with 300 replicates, so repeated images and seeds of the same lesion are not treated as independent.
+
+We compute expected calibration error with 10 equal-width bins and the Brier score on the test split. Paired sensitivity comparisons resample test images with replacement and keep the condition pairing. Difference-in-differences compares the CE-to-focal change of one architecture with that of another. Paired intervals use 1,000 bootstrap replicates.
+
 External validation uses HIBA \citep{hiba2023}, a dermoscopic dataset from Argentina with Fitzpatrick labels. We apply the frozen HAM10000 validation threshold and do not refit on HIBA. PROVe-AI \citep{proveai2023} is a possible extension but was not evaluated here. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is left for future work, with the imaging modality difference stated as a limitation.
 
 \subsection{XAI analysis}

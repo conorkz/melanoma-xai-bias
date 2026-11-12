@@ -45,6 +45,18 @@ def parse_args(argv=None):
     parser.add_argument(
         "--external", default="results/external/hiba/external_summary.csv"
     )
+    parser.add_argument(
+        "--dark-skin", default="results/dark_skin/threshold_sensitivity.csv"
+    )
+    parser.add_argument(
+        "--adjusted-model", default="results/dark_skin/continuous_model.csv"
+    )
+    parser.add_argument(
+        "--calibration", default="results/calibration/calibration_overall.csv"
+    )
+    parser.add_argument(
+        "--ranking", default="results/ranking/ranking_summary.csv"
+    )
     parser.add_argument("--out-dir", default="paper/tables")
     return parser.parse_args(argv)
 
@@ -239,6 +251,9 @@ def external_table(summary, caption, label):
     group_order = dict(FITZPATRICK_ORDER)
     group_order["all"] = 6
     frame = summary[summary["tone_group"] != "unknown"].copy()
+    if "condition" in frame.columns:
+        frame = frame[frame["condition"] == "ce_random"]
+    frame = frame
     frame["_backbone"] = frame["backbone"].map(backbone_order).fillna(99)
     frame["_group"] = frame["tone_group"].map(group_order).fillna(99)
     frame = frame.sort_values(["_backbone", "_group"])
@@ -286,6 +301,233 @@ def external_table(summary, caption, label):
                 format_metric(row["auc_mean"]),
             ]
             lines.append(" & ".join(values) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def dark_skin_table(summary, caption, label):
+    group_order = {"light": 0, "medium": 1, "dark": 2}
+    frame = summary.copy()
+    frame["_group"] = frame["tone_group"].map(group_order).fillna(3)
+    frame = frame.sort_values(["threshold", "_group"])
+    aggregated = (
+        frame.groupby(["threshold", "tone_group"])
+        .agg(
+            n=("n", "first"),
+            n_positive=("n_positive", "first"),
+            sensitivity=("sensitivity", "mean"),
+            auc=("auc", "mean"),
+            fpr=("fpr", "mean"),
+        )
+        .reset_index()
+    )
+    aggregated["_group"] = aggregated["tone_group"].map(group_order).fillna(3)
+    aggregated = aggregated.sort_values(["threshold", "_group"])
+
+    headers = [
+        "$L^*$ cutoff",
+        "Group",
+        "$n$",
+        "Melanomas",
+        "Sensitivity",
+        "AUC",
+        "FPR",
+    ]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\begin{tabular}{llccccc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    for threshold, block in aggregated.groupby("threshold", sort=True):
+        for index, (_, row) in enumerate(block.iterrows()):
+            cutoff = str(int(threshold)) if index == 0 else ""
+            lines.append(
+                f"{cutoff} & {row['tone_group']} & {int(row['n'])} & "
+                f"{int(row['n_positive'])} & {format_metric(row['sensitivity'])} & "
+                f"{format_metric(row['auc'])} & {format_metric(row['fpr'])} \\\\"
+            )
+        lines.append(r"\midrule")
+    lines = lines[:-1]
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def _format_or(frame, term):
+    subset = frame[frame["term"] == term]
+    if subset.empty:
+        return "--"
+    row = subset.iloc[0]
+    if not math.isfinite(row["odds_ratio"]):
+        return "--"
+    return (
+        f"{row['odds_ratio']:.2f} "
+        f"({row['ci_low']:.2f} to {row['ci_high']:.2f})"
+    )
+
+
+def adjusted_model_table(summary, caption, label):
+    order = {"resnet50": 0, "efficientnet_b0": 1, "vit_s": 2}
+    outcomes = [
+        ("false_positive", "False positive"),
+        ("false_negative", "False negative"),
+    ]
+    headers = ["Error type", "Architecture", "$L^*$ OR (95\\% CI)", "Contrast OR (95\\% CI)"]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\resizebox{\textwidth}{!}{%",
+        r"\begin{tabular}{llcc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    for outcome, outcome_label in outcomes:
+        subset = summary[summary["outcome"] == outcome]
+        rows = [backbone for backbone in BACKBONES if backbone in set(subset["backbone"])]
+        rows = sorted(rows, key=lambda value: order.get(value, 99))
+        for index, backbone in enumerate(rows):
+            block = subset[subset["backbone"] == backbone]
+            first = outcome_label if index == 0 else ""
+            lines.append(
+                f"{first} & {BACKBONES.get(backbone, backbone)} & "
+                f"{_format_or(block, 'L')} & {_format_or(block, 'delta_L')} \\\\"
+            )
+        lines.append(r"\midrule")
+    lines = lines[:-1]
+    lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def calibration_table(summary, caption, label):
+    frame = summary.copy()
+    frame["_backbone"] = frame["config_id"].str.extract(
+        r"^stage2_(resnet50|efficientnet_b0|vit_s)_"
+    )[0]
+    frame["_condition"] = frame["config_id"].str.replace(
+        r"^stage2_(resnet50|efficientnet_b0|vit_s)_", "", regex=True
+    )
+    backbone_order = {key: index for index, key in enumerate(BACKBONES)}
+    condition_order = {"ce_random": 0, "ce_random_strong": 1, "focal2_cb": 2}
+    frame["_b"] = frame["_backbone"].map(backbone_order).fillna(99)
+    frame["_c"] = frame["_condition"].map(condition_order).fillna(99)
+    frame = frame.sort_values(["_b", "_c"])
+
+    headers = ["Configuration", "ECE", "Brier"]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\begin{tabular}{lcc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    for _, row in frame.iterrows():
+        configuration = (
+            f"{BACKBONES.get(row['_backbone'], row['_backbone'])} / "
+            f"{CONDITIONS.get(row['_condition'], row['_condition'])}"
+        )
+        lines.append(
+            f"{configuration} & {row['ece_mean']:.3f} $\\pm$ {row['ece_std']:.3f} & "
+            f"{row['brier_mean']:.3f} $\\pm$ {row['brier_std']:.3f} \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def ranking_table(summary, caption, label):
+    headers = ["Test", "Architecture", "$\\Delta$ sensitivity", "95\\% CI", "$p$"]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\resizebox{\textwidth}{!}{%",
+        r"\begin{tabular}{llccc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    paired = summary[
+        (summary["test"] == "paired")
+        & (summary["comparison"] == "focal2_cb_vs_ce")
+    ]
+    for _, row in paired.sort_values("backbone").iterrows():
+        lines.append(
+            f"Focal+CB vs CE & {BACKBONES.get(row['backbone'], row['backbone'])} & "
+            f"{row['delta_mean']:+.3f} & "
+            f"{row['ci_low_min']:+.3f} to {row['ci_high_max']:+.3f} & "
+            f"{format_p(row['p_max'])} \\\\"
+        )
+    lines.append(r"\midrule")
+    did = summary[summary["test"] == "did"]
+    for _, row in did.iterrows():
+        parts = row["backbone"].split("_vs_")
+        if len(parts) != 2:
+            continue
+        label_text = (
+            f"{BACKBONES.get(parts[0], parts[0])} minus "
+            f"{BACKBONES.get(parts[1], parts[1])}"
+        )
+        lines.append(
+            f"Difference in differences & {label_text} & "
+            f"{row['delta_mean']:+.3f} & "
+            f"{row['ci_low_min']:+.3f} to {row['ci_high_max']:+.3f} & "
+            f"{format_p(row['p_max'])} \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
+def external_condition_table(summary, caption, label):
+    condition_order = {"ce_random": 0, "ce_random_strong": 1, "focal2_cb": 2}
+    backbone_order = {key: index for index, key in enumerate(BACKBONES)}
+    frame = summary[summary["tone_group"] == "all"].copy()
+    frame["_b"] = frame["backbone"].map(backbone_order).fillna(99)
+    frame["_c"] = frame["condition"].map(condition_order).fillna(99)
+    frame = frame.sort_values(["_b", "_c"])
+
+    headers = [
+        "Architecture",
+        "Condition",
+        "Sensitivity",
+        "Specificity",
+        "AUC",
+        "Sens. at 95\\% spec.",
+    ]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\resizebox{\textwidth}{!}{%",
+        r"\begin{tabular}{llcccc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    for _, row in frame.iterrows():
+        lines.append(
+            f"{BACKBONES.get(row['backbone'], row['backbone'])} & "
+            f"{CONDITIONS.get(row['condition'], row['condition'])} & "
+            f"{format_metric(row['sensitivity_mean'])} & "
+            f"{format_metric(row['specificity_mean'])} & "
+            f"{format_metric(row['auc_mean'])} & "
+            f"{format_metric(row['sensitivity_at_95_spec_mean'])} \\\\"
+        )
     lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
     return "\n".join(lines)
 
@@ -367,6 +609,66 @@ def main(argv=None):
     else:
         print(f"Skipping XAI table: {xai_path} not found")
 
+    dark_path = resolve(args.dark_skin)
+    if dark_path.exists():
+        dark_output = out_dir / "dark_skin.tex"
+        dark_output.write_text(
+            dark_skin_table(
+                pd.read_csv(dark_path),
+                "Dark-skin threshold sensitivity at 95\\% specificity. Values are means across the nine CE-baseline runs. The dark AUC gap is present at $L^*\\leq55$ but not at $L^*\\leq58$ or $60$, while the dark false positive rate remains elevated at every cutoff. These are image-based lightness groups, not clinical Fitzpatrick labels.",
+                "tab:darkskin",
+            ),
+            encoding="utf-8",
+        )
+        print(dark_output)
+    else:
+        print(f"Skipping dark-skin table: {dark_path} not found")
+
+    adjusted_path = resolve(args.adjusted_model)
+    if adjusted_path.exists():
+        adjusted_output = out_dir / "adjusted_model.tex"
+        adjusted_output.write_text(
+            adjusted_model_table(
+                pd.read_csv(adjusted_path),
+                "Adjusted odds ratios for false positives and false negatives. Each model includes perilesional $L^*$, lesion contrast, log lesion area, age, sex, and anatomical site. Odds ratios are per one standard deviation; intervals are lesion-cluster bootstrap 95\\% CIs. The pooled error model is not shown because the $L^*$ effects on false positives and false negatives have opposite signs.",
+                "tab:adjusted",
+            ),
+            encoding="utf-8",
+        )
+        print(adjusted_output)
+    else:
+        print(f"Skipping adjusted model table: {adjusted_path} not found")
+
+    calibration_path = resolve(args.calibration)
+    if calibration_path.exists():
+        calibration_output = out_dir / "calibration.tex"
+        calibration_output.write_text(
+            calibration_table(
+                pd.read_csv(calibration_path),
+                "Test-set calibration at the validation-selected threshold. ECE uses 10 equal-width bins. Values are mean and standard deviation across three seeds.",
+                "tab:calibration",
+            ),
+            encoding="utf-8",
+        )
+        print(calibration_output)
+    else:
+        print(f"Skipping calibration table: {calibration_path} not found")
+
+    ranking_path = resolve(args.ranking)
+    if ranking_path.exists():
+        ranking_output = out_dir / "ranking.tex"
+        ranking_output.write_text(
+            ranking_table(
+                pd.read_csv(ranking_path),
+                "Paired sensitivity comparisons. Differences are paired by test image; intervals are 95\\% bootstrap intervals over images. The within-architecture focal effects have intervals that include zero, while the difference-in-differences between each CNN and the ViT excludes zero.",
+                "tab:ranking",
+            ),
+            encoding="utf-8",
+        )
+        print(ranking_output)
+    else:
+        print(f"Skipping ranking table: {ranking_path} not found")
+
     external_path = resolve(args.external)
     if external_path.exists():
         external_summary = pd.read_csv(external_path)
@@ -380,6 +682,18 @@ def main(argv=None):
             encoding="utf-8",
         )
         print(external_output)
+
+        if "condition" in external_summary.columns:
+            condition_output = out_dir / "external_conditions.tex"
+            condition_output.write_text(
+                external_condition_table(
+                    external_summary,
+                    "External validation on HIBA by training condition. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.",
+                    "tab:externalcond",
+                ),
+                encoding="utf-8",
+            )
+            print(condition_output)
     else:
         print(f"Skipping external table: {external_path} not found")
     return 0

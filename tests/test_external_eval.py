@@ -48,17 +48,45 @@ def test_load_metadata_filters_and_maps_labels(tmp_path):
     assert frame["tone_group"].tolist() == ["II", "unknown"]
 
 
+def test_run_ids_cover_all_conditions():
+    evaluator = load_script("evaluate_external")
+
+    class Args:
+        conditions = "ce_random,focal2_cb,ce_random_strong"
+
+    ids = evaluator.run_ids(Args, ["resnet50", "vit_s"], [1, 2])
+    assert len(ids) == 12
+    assert "stage2_resnet50_focal2_cb_seed2" in ids
+    assert "stage2_vit_s_ce_random_strong_seed1" in ids
+
+
+def test_metrics_for_group_includes_oracle_sensitivity():
+    evaluator = load_script("evaluate_external")
+    frame = pd.DataFrame(
+        {
+            "y_true": [0, 0, 1, 1],
+            "y_prob": [0.1, 0.2, 0.8, 0.9],
+        }
+    )
+    metrics = evaluator.metrics_for_group(frame, 0.5)
+    assert "sensitivity_at_95_spec" in metrics
+    assert metrics["sensitivity_at_95_spec"] == 1.0
+
+
 def test_summarize_computes_seed_mean_and_std():
     evaluator = load_script("evaluate_external")
     frame = pd.DataFrame(
         {
             "backbone": ["resnet50"] * 3,
+            "condition": ["ce_random"] * 3,
             "tone_group": ["dark"] * 3,
             "sensitivity": [0.5, 0.6, 0.7],
             "specificity": [0.9, 0.9, 0.9],
             "balanced_accuracy": [0.7, 0.75, 0.8],
             "auc": [0.8, 0.82, 0.84],
             "fpr": [0.1, 0.1, 0.1],
+            "sensitivity_at_95_spec": [0.4, 0.42, 0.44],
+            "oracle_threshold": [0.6, 0.61, 0.62],
             "n": [43, 43, 43],
             "n_positive": [6, 6, 6],
         }

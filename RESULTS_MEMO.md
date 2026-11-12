@@ -2,7 +2,7 @@
 
 **Student:** Nursultan Zhanat
 **Supervisor:** Prof. Sun Baoshan
-**Date:** 11 November 2026
+**Date:** 12 November 2026
 **Code:** Stage 1 at commit `026f907`, Stage 2 at commit `6b8615e`. Both runs report a clean working tree.
 
 ## 1. Question and hypothesis
@@ -72,12 +72,24 @@ This update reports the controlled benchmark for RQ1, the lightness-stratified f
 
 ### Fairness across lightness strata
 
-- Test set: 644 light images with 81 melanomas, 840 medium with 99, and 43 dark with 6.
-- The dark stratum has the lowest AUC in all nine Stage 2 configurations: 0.71 to 0.87, against 0.83 to 0.90 for light and 0.88 to 0.93 for medium.
-- The dark stratum has the highest false positive rate in all nine configurations: 0.08 to 0.19, against 0.04 to 0.07 for light and medium.
-- Dark-stratum sensitivity ranges from 0.22 to 0.72, and the bootstrap intervals span 0 to 1. With six melanoma cases, the estimate is underpowered.
-- The medium stratum usually has the highest sensitivity. The light stratum is often lower, which is consistent with a lesion-contrast effect.
-- Full table: `results/fairness/lightness/fairness.md`. Figure: `results/figures/fairness_by_tone.png`.
+- Test set: 644 light images with 81 melanomas, 840 medium with 99, and 43 dark with 6 at the pre-declared cutoff L* <= 55.
+- At L* <= 55 the dark stratum has the lowest AUC in all nine configurations (0.71 to 0.87) and the highest false positive rate (0.08 to 0.19).
+- The dark AUC deficit is not robust to the cutoff. At L* <= 58 the dark AUC is 0.891 against 0.868 for light and 0.908 for medium. At L* <= 60 it is 0.881 against 0.868 and 0.912.
+- The dark false positive rate remains elevated at every cutoff: 0.126 at 55, 0.086 at 58, and 0.073 at 60, against 0.047 to 0.050 for light and medium.
+- Dark sensitivity is 0.500 (6 melanomas), 0.648 (12), and 0.580 (23). The intervals are wide, and dark sensitivity is not consistently lower than light sensitivity.
+- Adjusted models separate the error types. False positives: L* OR 0.78 for ResNet-50, 0.88 for EfficientNet-B0, 0.77 for ViT-S/16; contrast OR 2.05, 1.69, 2.42. False negatives: L* OR 1.74, 1.66, 1.75; contrast OR 0.58, 0.74, 0.48. The pooled error model shows no L* association because the two effects cancel.
+- The error profile shifts with tone: darker images produce more false positives, lighter images produce more false negatives. Lesion contrast is the stronger correlate of both.
+- Full tables: `results/dark_skin/dark_skin.md`. Figure: `results/figures/dark_skin_robustness.png`.
+
+### Calibration and paired ranking tests
+
+- CE-baseline ECE: ResNet-50 0.046, EfficientNet-B0 0.060, ViT-S/16 0.146.
+- Focal2 + class-balanced ECE: 0.203, 0.178, and 0.199. The correction roughly triples calibration error.
+- CE + strong ECE: 0.046, 0.052, and 0.058. Strong augmentation preserves calibration.
+- Paired within-architecture sensitivity change from CE to focal: -0.079 for EfficientNet-B0, -0.116 for ResNet-50, and +0.082 for ViT-S/16. All intervals include zero.
+- Difference-in-differences for the focal effect: EfficientNet-B0 minus ViT-S/16 is -0.161 (95% CI -0.289 to -0.049, p = 0.008); ResNet-50 minus ViT-S/16 is -0.199 (-0.437 to -0.011, p = 0.032).
+- The robust finding is an architecture-dependent interaction, not a precise ranking. Calibration explains the thresholded sensitivity reversal.
+- Full results: `results/calibration/` and `results/ranking/`.
 
 ### Quantitative XAI
 
@@ -91,8 +103,9 @@ Grad-CAM on the CE-baseline models, three seeds, 343 tone-stratified test images
 
 - Attribution mass inside the lesion is lower in the dark stratum for all three architectures. The mass-tone correlation is negative in every case with p < 1e-7.
 - Pointing-game accuracy is lowest in the dark stratum in every architecture.
-- Attribution mass is a weak predictor of individual errors: rho = -0.023 for EfficientNet-B0, 0.047 for ResNet-50, and 0.089 for ViT-S/16. Only the ViT correlation is significant, and the effect is small.
-- The XAI signal is group-level, not per-image. Full results: `results/xai/xai.md`. Figure: `results/figures/xai_by_tone.png`.
+- Attribution mass separates the two error types. False negatives have lower mass than false positives for EfficientNet-B0 (0.285 vs 0.522) and ViT-S/16 (0.298 vs 0.402). ResNet-50 is similar for both (0.578 vs 0.565).
+- The pooled mass-error correlation is near zero because false negatives move below the correct-class mass and false positives move above it. The XAI signal is group-level and error-type-specific, not per-image.
+- Full results: `results/xai/xai.md`. Figure: `results/figures/xai_by_tone.png`.
 
 ### HIBA external validation
 
@@ -114,10 +127,11 @@ The best-sensitivity figure uses the median seed of ResNet-50 CE baseline. The b
 
 ## 5. Interpretation
 
-1. **Does H1 hold? It is architecture-dependent.** Focal2 + class-balanced improves ViT-S/16 by 8.2 sensitivity points but reduces ResNet-50 by 11.7 and EfficientNet-B0 by 7.9. H1 is supported for the transformer and rejected for the CNNs in this pilot.
-2. **The architecture ranking flips.** The CNNs lead at the CE baseline, but the ViT leads under focal2 + class-balanced. The AUC ranking is more stable (EfficientNet-B0 > ResNet-50 > ViT in both conditions), which suggests the flip is specific to thresholded sensitivity and may involve calibration or threshold placement.
+1. **Does H1 hold? It is architecture-dependent.** Focal2 + class-balanced improves ViT-S/16 by 8.2 sensitivity points but reduces ResNet-50 by 11.7 and EfficientNet-B0 by 7.9. The paired within-architecture intervals include zero; the difference-in-differences between each CNN and the ViT excludes zero. The robust claim is an interaction, not a precise ranking.
+2. **Calibration explains the thresholded reversal.** Focal2 + class-balanced roughly triples ECE. The AUC ranking is stable, so the sensitivity flip is specific to the operating point.
 3. **Strong augmentation is not a universal fix.** It is neutral for ResNet-50 (0.568 versus 0.570), small positive for EfficientNet-B0 (0.563 versus 0.556), and positive for ViT (0.435 versus 0.400). The intervals overlap, so this is suggestive, not conclusive.
 4. **Specificity is stable.** All conditions operate near 95% specificity on validation; test specificity is 0.94 to 0.955. The sensitivity differences are not explained by a large specificity shift.
+5. **Fairness is error-type-specific.** The dark false positive rate is elevated at every cutoff. The dark AUC deficit is cutoff-dependent. Adjusted models show darker skin associated with more false positives and lighter skin with more false negatives, with lesion contrast moving both in opposite directions.
 
 ## 6. Limitations
 
@@ -125,10 +139,11 @@ The best-sensitivity figure uses the median seed of ResNet-50 CE baseline. The b
 - Binary endpoint. Seven-class classification is a secondary experiment.
 - Three seeds. The confidence intervals are wide.
 - 160 px Stage 1, 224 px Stage 2. Do not compare numbers across stages.
-- The test set has 186 melanoma images. The dark lightness stratum has 43 images and 6 melanomas.
+- The test set has 186 melanoma images. The pre-declared dark stratum has 43 images and 6 melanomas; the wider cutoffs have 12 and 23 melanomas.
 - HAM10000 has no Fitzpatrick labels. Fairness uses an image-based L* proxy, not clinical labels.
+- The adjusted false-positive and false-negative models are observational. They identify associations, not causal effects.
 - HIBA Fitzpatrick IV has 25 images and no melanomas, and HIBA has no Fitzpatrick V-VI. The dark-skin claim remains untested on clinical labels.
-- The top Stage 2 rows are within the confidence intervals. Treat the ranking as pilot evidence, not a final claim.
+- The paired within-architecture intervals include zero. Treat the ranking as an interaction, not a precise ordering.
 
 ## 7. Next step
 
@@ -149,16 +164,20 @@ python scripts/collect_results.py \
   --runs-dir outputs/runs --run-prefix stage2 \
   --out-dir results --prefix rq1_stage2
 
-# Fairness, XAI, and external validation
+# Fairness, calibration, ranking, XAI, and external validation
 python scripts/build_tone_table.py
 python scripts/analyze_fairness.py
+python scripts/build_contrast_table.py
+python scripts/analyze_dark_skin.py --n-boot 300
 python scripts/plot_fairness.py
+python scripts/analyze_calibration.py
+python scripts/analyze_ranking.py
 python scripts/analyze_xai.py --backbones efficientnet_b0 --seeds 1,2,3 --max-images 150 --out-dir results/xai/efficientnet_b0
 python scripts/analyze_xai.py --backbones resnet50 --seeds 1,2,3 --max-images 150 --out-dir results/xai/resnet50
 python scripts/analyze_xai.py --backbones vit_s --seeds 1,2,3 --max-images 150 --out-dir results/xai/vit_s
 python scripts/combine_xai_results.py
 python scripts/plot_xai.py
-python scripts/evaluate_external.py --device mps --out-dir results/external/hiba
+python scripts/evaluate_external.py --device mps --merge --out-dir results/external/hiba
 ```
 
 On Kaggle, replace `.venv/bin/python` with `python`.

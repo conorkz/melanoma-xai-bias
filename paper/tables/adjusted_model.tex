@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Adjusted odds ratios for false positives and false negatives. Each model includes perilesional $L^*$, lesion contrast, log lesion area, age, sex, and anatomical site. Odds ratios are per one standard deviation; intervals are lesion-cluster bootstrap 95\% CIs. The pooled error model is not shown because the $L^*$ effects on false positives and false negatives have opposite signs.}
+\label{tab:adjusted}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcc}
+\toprule
+Error type & Architecture & $L^*$ OR (95\% CI) & Contrast OR (95\% CI) \\
+\midrule
+False positive & ResNet-50 & 0.78 (0.61 to 0.94) & 2.05 (1.66 to 2.68) \\
+ & EfficientNet-B0 & 0.88 (0.67 to 1.11) & 1.69 (1.39 to 2.14) \\
+ & ViT-S/16 & 0.77 (0.57 to 1.03) & 2.42 (1.94 to 3.14) \\
+\midrule
+False negative & ResNet-50 & 1.74 (1.11 to 2.58) & 0.58 (0.35 to 1.02) \\
+ & EfficientNet-B0 & 1.66 (1.16 to 2.34) & 0.74 (0.51 to 1.13) \\
+ & ViT-S/16 & 1.75 (1.14 to 2.60) & 0.48 (0.29 to 0.75) \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

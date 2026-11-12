@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\small
+\caption{External validation on HIBA by training condition. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.}
+\label{tab:externalcond}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccc}
+\toprule
+Architecture & Condition & Sensitivity & Specificity & AUC & Sens. at 95\% spec. \\
+\midrule
+ResNet-50 & CE & 0.391 & 0.944 & 0.807 & 0.366 \\
+EfficientNet-B0 & CE & 0.396 & 0.922 & 0.782 & 0.311 \\
+ViT-S/16 & CE & 0.221 & 0.967 & 0.791 & 0.310 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
