@@ -18,7 +18,7 @@ Under focal loss with class-balanced sampling, ResNet-50 falls to $0.453$ ($0.37
 
 The architecture ranking therefore reverses in the point estimates. At the CE baseline the order is ResNet-50, EfficientNet-B0, ViT-S/16. Under focal loss with class-balanced sampling the order is ViT-S/16, EfficientNet-B0, ResNet-50.
 
-Strong augmentation is close to neutral. ResNet-50 reaches $0.568$ ($0.498$ to $0.637$), EfficientNet-B0 reaches $0.563$ ($0.489$ to $0.636$), and ViT-S/16 reaches $0.435$ ($0.366$ to $0.503$). The intervals overlap with the CE baseline for the two CNNs.
+Strong augmentation is close to neutral. ResNet-50 reaches $0.568$ ($0.498$ to $0.637$), EfficientNet-B0 reaches $0.563$ ($0.489$ to $0.636$), and ViT-S/16 reaches $0.435$ ($0.366$ to $0.503$). The intervals overlap with the CE baseline for the two CNNs. The paired CE-to-strong changes are $+0.007$ for EfficientNet-B0, $-0.002$ for ResNet-50, and $+0.036$ for ViT-S/16, and every interval includes zero.
 
 Table~\ref{tab:ranking} reports paired tests that resample test images and keep the condition pairing. The focal effect within a single architecture is not significant: $-0.079$ (95\% CI $-0.210$ to $0.055$) for EfficientNet-B0, $-0.116$ ($-0.244$ to $0.031$) for ResNet-50, and $+0.082$ ($-0.038$ to $0.237$) for ViT-S/16. The difference-in-differences is significant for each CNN against the ViT: $-0.161$ ($-0.289$ to $-0.049$, $p=0.008$) for EfficientNet-B0 minus ViT-S/16 and $-0.199$ ($-0.437$ to $-0.011$, $p=0.032$) for ResNet-50 minus ViT-S/16. The correction therefore has an architecture-dependent effect. The individual condition changes are too uncertain for a precise ranking claim.
 
@@ -110,9 +110,14 @@ Sensitivity drops on the external set. ResNet-50 reaches $0.391$ at $0.944$ spec
 
 The per-type estimates do not show a monotonic skin-tone gradient. For Fitzpatrick I, II, and III, CNN sensitivity ranges from $0.35$ to $0.43$, and the ViT is lower at $0.20$ to $0.33$. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined and only specificity can be estimated. The group sizes are unbalanced: 804 of the 1,280 images are type II. HIBA cannot test the dark-skin claim, because it has almost no type IV melanoma cases and no type V-VI images at all.
 
-The CNN-transformer gap transfers, so the transformer deficit is not specific to HAM10000. The absolute performance does not transfer: the frozen HAM10000 threshold yields much lower sensitivity on HIBA, which means the operating point needs recalibration for a new source. The tone-specific claim remains limited to the image-based lightness strata in HAM10000 and to the error-type-specific associations reported above.
+Table~\ref{tab:externalcond} compares the CE baseline and the focal condition on HIBA. The focal condition reproduces the architecture interaction on sensitivity: ViT-S/16 rises from $0.221$ to $0.315$ ($+9.4$ points), while ResNet-50 falls from $0.391$ to $0.315$ ($-7.6$) and EfficientNet-B0 from $0.396$ to $0.253$ ($-14.3$). At the oracle 95\% specificity threshold the direction is the same: ViT-S/16 rises from $0.310$ to $0.335$, while ResNet-50 falls from $0.366$ to $0.245$ and EfficientNet-B0 from $0.311$ to $0.240$. The interaction therefore transfers to a second dermoscopic source.
+
+The external AUC ranking does not transfer. Under focal loss the external AUC ranking is ViT-S/16 $0.794$, ResNet-50 $0.774$, and EfficientNet-B0 $0.722$, while the in-domain AUC ranking at the same condition is EfficientNet-B0 $0.891$, ResNet-50 $0.884$, and ViT-S/16 $0.872$. The ViT gain is therefore a threshold effect rather than a ranking-quality gain: its AUC is essentially unchanged, from $0.791$ to $0.794$, and the sensitivity gain appears at the operating point. This is the same pattern as the in-domain calibration result.
+
+The CNN-transformer gap transfers at the CE baseline and disappears under focal loss. The absolute performance does not transfer: the frozen HAM10000 threshold yields much lower sensitivity on HIBA, which means the operating point needs recalibration for a new source. The tone-specific claim remains limited to the image-based lightness strata in HAM10000 and to the error-type-specific associations reported above.
 
 \input{tables/external}
+\input{tables/external_conditions}
 
 \subsection{Figures}
 

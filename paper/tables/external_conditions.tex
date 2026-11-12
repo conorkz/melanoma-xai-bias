@@ -1,7 +1,7 @@
 \begin{table}[t]
 \centering
 \small
-\caption{External validation on HIBA by training condition. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.}
+\caption{External validation on HIBA for the CE-baseline and focal-loss models. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.}
 \label{tab:externalcond}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llcccc}
@@ -9,8 +9,11 @@
 Architecture & Condition & Sensitivity & Specificity & AUC & Sens. at 95\% spec. \\
 \midrule
 ResNet-50 & CE & 0.391 & 0.944 & 0.807 & 0.366 \\
+ResNet-50 & Focal+CB & 0.315 & 0.925 & 0.774 & 0.245 \\
 EfficientNet-B0 & CE & 0.396 & 0.922 & 0.782 & 0.311 \\
+EfficientNet-B0 & Focal+CB & 0.253 & 0.945 & 0.722 & 0.240 \\
 ViT-S/16 & CE & 0.221 & 0.967 & 0.791 & 0.310 \\
+ViT-S/16 & Focal+CB & 0.315 & 0.954 & 0.794 & 0.335 \\
 \bottomrule
 \end{tabular}
 }

@@ -462,15 +462,25 @@ def ranking_table(summary, caption, label):
     ]
     paired = summary[
         (summary["test"] == "paired")
-        & (summary["comparison"] == "focal2_cb_vs_ce")
-    ]
-    for _, row in paired.sort_values("backbone").iterrows():
-        lines.append(
-            f"Focal+CB vs CE & {BACKBONES.get(row['backbone'], row['backbone'])} & "
-            f"{row['delta_mean']:+.3f} & "
-            f"{row['ci_low_min']:+.3f} to {row['ci_high_max']:+.3f} & "
-            f"{format_p(row['p_max'])} \\\\"
+        & (
+            summary["comparison"].isin(
+                ["focal2_cb_vs_ce", "ce_random_strong_vs_ce"]
+            )
         )
+    ]
+    labels = {
+        "focal2_cb_vs_ce": "Focal+CB vs CE",
+        "ce_random_strong_vs_ce": "CE+strong vs CE",
+    }
+    for comparison in ("focal2_cb_vs_ce", "ce_random_strong_vs_ce"):
+        subset = paired[paired["comparison"] == comparison]
+        for _, row in subset.sort_values("backbone").iterrows():
+            lines.append(
+                f"{labels[comparison]} & {BACKBONES.get(row['backbone'], row['backbone'])} & "
+                f"{row['delta_mean']:+.3f} & "
+                f"{row['ci_low_min']:+.3f} to {row['ci_high_max']:+.3f} & "
+                f"{format_p(row['p_max'])} \\\\"
+            )
     lines.append(r"\midrule")
     did = summary[summary["test"] == "did"]
     for _, row in did.iterrows():
@@ -660,7 +670,7 @@ def main(argv=None):
         ranking_output.write_text(
             ranking_table(
                 pd.read_csv(ranking_path),
-                "Paired sensitivity comparisons. Differences are paired by test image; intervals are 95\\% bootstrap intervals over images. The within-architecture focal effects have intervals that include zero, while the difference-in-differences between each CNN and the ViT excludes zero.",
+                "Paired sensitivity comparisons. Differences are paired by test image; intervals are 95\\% bootstrap intervals over images. The within-architecture focal effects have intervals that include zero, the strong-augmentation changes are close to zero, and the difference-in-differences between each CNN and the ViT excludes zero.",
                 "tab:ranking",
             ),
             encoding="utf-8",
@@ -688,7 +698,7 @@ def main(argv=None):
             condition_output.write_text(
                 external_condition_table(
                     external_summary,
-                    "External validation on HIBA by training condition. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.",
+                    "External validation on HIBA for the CE-baseline and focal-loss models. Thresholds are the frozen HAM10000 validation thresholds. Sensitivity at 95\\% specificity uses an oracle threshold fitted on HIBA and is an upper bound, not a deployable result. Values are means across three seeds.",
                     "tab:externalcond",
                 ),
                 encoding="utf-8",

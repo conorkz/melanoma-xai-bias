@@ -110,10 +110,15 @@ Grad-CAM on the CE-baseline models, three seeds, 343 tone-stratified test images
 ### HIBA external validation
 
 - 1,280 dermoscopic images and 196 melanomas. Frozen HAM10000 threshold at 95% specificity, no refitting.
-- Overall sensitivity and specificity: ResNet-50 0.391 / 0.944, EfficientNet-B0 0.396 / 0.922, ViT-S/16 0.221 / 0.967.
-- AUC: 0.807, 0.782, and 0.791. The CNN-transformer gap transfers; absolute sensitivity drops by 16 to 18 points relative to HAM10000.
+- CE baseline, sensitivity and specificity: ResNet-50 0.391 / 0.944, EfficientNet-B0 0.396 / 0.922, ViT-S/16 0.221 / 0.967.
+- CE baseline AUC: 0.807, 0.782, and 0.791. The CNN-transformer gap transfers; absolute sensitivity drops by 16 to 18 points relative to HAM10000.
+- Focal2 + class-balanced, sensitivity and specificity: ResNet-50 0.315 / 0.925, EfficientNet-B0 0.253 / 0.945, ViT-S/16 0.315 / 0.954.
+- Focal effect on external sensitivity: ResNet-50 -7.6 points, EfficientNet-B0 -14.3, ViT-S/16 +9.4. The architecture interaction transfers.
+- Oracle sensitivity at 95% specificity (focal): ResNet-50 0.245, EfficientNet-B0 0.240, ViT-S/16 0.335. The direction is the same.
+- External AUC under focal: 0.774, 0.722, and 0.794. The external AUC ranking does not match the in-domain ranking; the ViT gain is threshold-driven.
 - Fitzpatrick I, II, III: CNN sensitivity 0.35 to 0.43; ViT 0.20 to 0.33. No monotonic skin-tone gradient.
 - Fitzpatrick IV: 25 images and zero melanomas, so sensitivity is undefined. No Fitzpatrick V-VI images.
+- Strong augmentation was not evaluated externally.
 - Full table: `results/external/hiba/external_summary.csv`.
 
 ## 4. Figures
@@ -132,6 +137,7 @@ The best-sensitivity figure uses the median seed of ResNet-50 CE baseline. The b
 3. **Strong augmentation is not a universal fix.** It is neutral for ResNet-50 (0.568 versus 0.570), small positive for EfficientNet-B0 (0.563 versus 0.556), and positive for ViT (0.435 versus 0.400). The intervals overlap, so this is suggestive, not conclusive.
 4. **Specificity is stable.** All conditions operate near 95% specificity on validation; test specificity is 0.94 to 0.955. The sensitivity differences are not explained by a large specificity shift.
 5. **Fairness is error-type-specific.** The dark false positive rate is elevated at every cutoff. The dark AUC deficit is cutoff-dependent. Adjusted models show darker skin associated with more false positives and lighter skin with more false negatives, with lesion contrast moving both in opposite directions.
+6. **The architecture interaction transfers externally.** On HIBA, focal2 + class-balanced raises ViT-S/16 sensitivity by 9.4 points and lowers ResNet-50 by 7.6 and EfficientNet-B0 by 14.3. The external AUC ranking differs, so the gain is threshold-driven rather than a ranking-quality gain.
 
 ## 6. Limitations
 
@@ -143,6 +149,7 @@ The best-sensitivity figure uses the median seed of ResNet-50 CE baseline. The b
 - HAM10000 has no Fitzpatrick labels. Fairness uses an image-based L* proxy, not clinical labels.
 - The adjusted false-positive and false-negative models are observational. They identify associations, not causal effects.
 - HIBA Fitzpatrick IV has 25 images and no melanomas, and HIBA has no Fitzpatrick V-VI. The dark-skin claim remains untested on clinical labels.
+- The external condition comparison covers the CE baseline and focal loss. Strong augmentation is not evaluated on HIBA.
 - The paired within-architecture intervals include zero. Treat the ranking as an interaction, not a precise ordering.
 
 ## 7. Next step

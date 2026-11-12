@@ -55,7 +55,7 @@
 | Test-set calibration | Done, 27 runs | `results/calibration/` |
 | HAM10000 L* fairness pilot | Done | `results/fairness/lightness/` |
 | Dark-skin cutoff and adjusted models | Done | `results/dark_skin/` |
-| HIBA external dermoscopic validation | 9 CE-baseline runs done; 18 condition runs in progress | `results/external/hiba/` |
+| HIBA external dermoscopic validation | Done, 18 runs (CE + focal) | `results/external/hiba/` |
 | Clinical dark-skin validation | Dataset not selected | DDI or PASSION |
 | Quantitative XAI on HAM10000 | Done, 3 architectures x 3 seeds | `results/xai/` |
 

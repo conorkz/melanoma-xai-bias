@@ -46,7 +46,7 @@ HAM10000 has no Fitzpatrick labels. We therefore compute an image-based lightnes
 
 We group images into light ($L^*>70$), medium ($55<L^*\leq70$), and dark ($L^*\leq55$). These thresholds are specific to the HAM10000 lightness distribution. They are image-based strata, not clinical Fitzpatrick labels.
 
-We also computed the Individual Typology Angle (ITA), $\mathrm{ITA}=\arctan((L^*-50)/b^*)\times180/\pi$. The ITA was unstable on 37\% of images because the $b^*$ channel was near zero or negative after dermatoscope color casts. The $L^*$ proxy is therefore the primary analysis, and the ITA is treated as a sensitivity check.
+We also computed the Individual Typology Angle (ITA), $\mathrm{ITA}=\arctan((L^*-50)/b^*)\times180/\pi$. The ITA was unstable on 37\% of images because the $b^*$ channel was near zero or negative after dermatoscope color casts. The $L^*$ proxy is therefore the primary analysis, and the ITA is not used for group comparisons.
 
 For each Stage 2 run, we compute per-group sensitivity, specificity, false positive rate, false negative rate, and AUC. The group intervals use the same bootstrap procedure as the overall metrics.
 
@@ -56,7 +56,7 @@ The main analysis uses the pre-declared cutoff $L^*\leq55$. We repeat the group 
 
 We compute expected calibration error with 10 equal-width bins and the Brier score on the test split. Paired sensitivity comparisons resample test images with replacement and keep the condition pairing. Difference-in-differences compares the CE-to-focal change of one architecture with that of another. Paired intervals use 1,000 bootstrap replicates.
 
-External validation uses HIBA \citep{hiba2023}, a dermoscopic dataset from Argentina with Fitzpatrick labels. We apply the frozen HAM10000 validation threshold and do not refit on HIBA. PROVe-AI \citep{proveai2023} is a possible extension but was not evaluated here. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is left for future work, with the imaging modality difference stated as a limitation.
+External validation uses HIBA \citep{hiba2023}, a dermoscopic dataset from Argentina with Fitzpatrick labels. We apply the frozen HAM10000 validation threshold and do not refit on HIBA. As a secondary comparison, we also report sensitivity at 95\% specificity with a threshold fitted on HIBA. This oracle threshold is an upper bound, not a deployable result. PROVe-AI \citep{proveai2023} is a possible extension but was not evaluated here. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is left for future work, with the imaging modality difference stated as a limitation.
 
 \subsection{XAI analysis}
 
@@ -74,4 +74,4 @@ We also implemented deletion and insertion curves, but the models are highly con
 
 \subsection{Reproducibility}
 
-Every run writes its configuration, git commit, seed, device, package versions, metrics, and per-sample predictions. The split is cached and reused. The code, configs, and table generation scripts are available in the project repository.
+Every run writes its configuration, git commit, seed, device, package versions, metrics, and per-sample predictions. The split is cached and reused. Stage 2 training used Kaggle GPUs. The calibration, XAI, and external evaluations used a local Apple Silicon GPU. The code, configs, and table generation scripts are available in the project repository.
