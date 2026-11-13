@@ -24,13 +24,13 @@ A blinded version of the manuscript and a separate title page with the author in
 
 Sincerely,
 
-Nursultan Zhanat
+Sun Baoshan
 School of Computer Science and Technology, Tiangong University, Tianjin 300387, China
 Tianjin Key Laboratory of Autonomous Intelligence Technology and Systems, Tiangong University, Tianjin 300387, China
+sunbaoshan@tiangong.edu.cn
+ORCID: 0000-0003-2193-3232
+
+On behalf of the co-author:
+Nursultan Zhanat
 zhanat.nursultan1@gmail.com
 ORCID: 0009-0006-7839-4785
-
-On behalf of the authors, including the corresponding author:
-Sun Baoshan
-sunbaoshan@tiangong.edu.cn
-Tiangong University, Tianjin 300387, China
