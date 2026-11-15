@@ -24,7 +24,7 @@ Shortcut learning complicates the interpretation of group gaps. Surgical skin ma
 
 \subsection{Calibration}
 
-Thresholded metrics such as sensitivity at a fixed specificity depend on the score distribution, not only on the ranking quality. Modern neural networks are often miscalibrated \citep{guo2017calibration}, and calibration is central to clinical prediction models \citep{vancalster2019calibration}. A correction that changes calibration can therefore change the sensitivity ranking while leaving the AUC ranking stable. This is the mechanism we test, rather than assume.
+Thresholded metrics such as sensitivity at a fixed specificity depend on the score distribution, not only on the ranking quality. Modern neural networks are often miscalibrated \citep{guo2017calibration}, and calibration is central to clinical prediction models \citep{vancalster2019calibration}. A correction that changes calibration changes sensitivity at a fixed probability threshold such as 0.5. It cannot change sensitivity at a threshold re-selected for a target specificity, because recalibration is monotone, unless the validation and test score distributions differ. We test whether calibration explains the sensitivity changes at our operating point.
 
 \subsection{Explainable AI in dermatology}
 
@@ -34,7 +34,7 @@ Qualitative evaluation is not enough for a fairness claim. A heatmap that looks 
 
 \subsection{Quantitative XAI metrics}
 
-Attribution localization can be measured against lesion segmentation masks: the fraction of attribution mass inside the lesion, the pointing game, and the attribution IoU. Faithfulness can be measured with deletion and insertion curves \citep{petsiuk2018rise}, sensitivity-n \citep{samek2017evaluating}, and the ROAD benchmark \citep{hooker2019benchmark}. These metrics make it possible to test whether an explanation is clinically meaningful rather than visually plausible.
+Attribution localization can be measured against lesion segmentation masks: the fraction of attribution mass inside the lesion, the pointing game, and the attribution IoU. Faithfulness can be measured with deletion and insertion curves \citep{petsiuk2018rise}, sensitivity-n \citep{samek2017evaluating}, and remove-and-retrain (ROAR) \citep{hooker2019benchmark}. These metrics make it possible to test whether an explanation is clinically meaningful rather than visually plausible.
 
 Dermatology studies rarely combine these metrics with skin tone stratification. The XAI analysis in this paper uses localization metrics across tone groups and error types, and it reports why faithfulness curves were not informative for these highly confident models.
 

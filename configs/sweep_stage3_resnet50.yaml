@@ -1,0 +1,72 @@
+# Stage 3: resnet50 rerun with checkpoint selection by validation AUC.
+# 5 conditions x 5 seeds = 25 runs at 224 px (about 6 GPU hours on Kaggle).
+#
+# Conditions:
+#   ce_random:        CE baseline, random sampler, standard augmentation
+#   focal2_cb:        focal (gamma 2, alpha 0.75) + class-balanced sampler
+#   focal2_random:    focal (gamma 2, alpha 0.75), random sampler   [ablation]
+#   ce_cb:            CE, class-balanced sampler                    [ablation]
+#   ce_random_strong: CE, random sampler, strong augmentation
+#
+# Set the learning rate chosen by scripts/select_lr.py:
+#   python scripts/run_sweep.py --config configs/sweep_stage3_resnet50.yaml --skip-existing --set training.lr=<LR>
+name: stage3
+base: configs/pilot.yaml
+seeds: [1, 2, 3, 4, 5]
+
+variants:
+  - name: resnet50_ce_random
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: ce
+      training.focal_gamma: 2.0
+      training.focal_alpha: 0.75
+      training.sampler: random
+      training.augmentation: standard
+      training.selection_metric: auc
+
+  - name: resnet50_focal2_cb
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: focal
+      training.focal_gamma: 2.0
+      training.focal_alpha: 0.75
+      training.sampler: class_balanced
+      training.augmentation: standard
+      training.selection_metric: auc
+
+  - name: resnet50_focal2_random
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: focal
+      training.focal_gamma: 2.0
+      training.focal_alpha: 0.75
+      training.sampler: random
+      training.augmentation: standard
+      training.selection_metric: auc
+
+  - name: resnet50_ce_cb
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: ce
+      training.focal_gamma: 2.0
+      training.focal_alpha: 0.75
+      training.sampler: class_balanced
+      training.augmentation: standard
+      training.selection_metric: auc
+
+  - name: resnet50_ce_random_strong
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: ce
+      training.focal_gamma: 2.0
+      training.focal_alpha: 0.75
+      training.sampler: random
+      training.augmentation: strong
+      training.selection_metric: auc
+

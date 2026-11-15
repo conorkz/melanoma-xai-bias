@@ -30,7 +30,25 @@ def parse_args(argv=None):
     parser.add_argument("--dry-run", action="store_true", help="Write configs but do not train")
     parser.add_argument("--skip-existing", action="store_true", help="Skip runs with metrics.json")
     parser.add_argument("--keep-going", action="store_true", help="Continue after a failed run")
+    parser.add_argument(
+        "--set",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Override a dotted config key for every run, e.g. training.lr=0.0001",
+    )
     return parser.parse_args(argv)
+
+
+def parse_set(items):
+    """Parse KEY=VALUE pairs; values are read as YAML scalars."""
+    parsed = {}
+    for item in items:
+        key, sep, value = item.partition("=")
+        if not sep or not key:
+            raise ValueError(f"--set expects KEY=VALUE, got {item!r}")
+        parsed[key] = yaml.safe_load(value)
+    return parsed
 
 
 def set_nested(config, dotted_key: str, value):
@@ -90,6 +108,11 @@ def main(argv=None):
         return 1
     base = yaml.safe_load(base_path.read_text(encoding="utf-8"))
     runs = expand_sweep(sweep)
+    try:
+        global_overrides = parse_set(args.set)
+    except ValueError as error:
+        print(error, file=sys.stderr)
+        return 1
 
     sweep_name = str(sweep.get("name", sweep_path.stem))
     out_dir = ensure_dir(resolve(args.out_dir or f"outputs/sweeps/{sweep_name}"))
@@ -99,6 +122,8 @@ def main(argv=None):
     for run in runs:
         config = copy.deepcopy(base)
         for key, value in run["overrides"].items():
+            set_nested(config, key, value)
+        for key, value in global_overrides.items():
             set_nested(config, key, value)
         config["run_name"] = run["name"]
         config["config_id"] = run["config_id"]

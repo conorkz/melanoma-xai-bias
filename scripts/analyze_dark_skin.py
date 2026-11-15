@@ -57,12 +57,17 @@ def parse_args(argv=None):
     parser.add_argument("--out-dir", default="results/dark_skin")
     parser.add_argument("--thresholds", default="55,58,60")
     parser.add_argument("--n-boot", type=int, default=500)
+    parser.add_argument(
+        "--no-source-adjustment",
+        action="store_true",
+        help="Omit the HAM10000 acquisition source from the adjusted models",
+    )
     return parser.parse_args(argv)
 
 
 def load_ce_predictions(root):
     frames = []
-    for path in sorted(root.glob("*_ce_random_seed[123]")):
+    for path in sorted(root.glob("*_ce_random_seed*")):
         predictions = path / "predictions_test.csv"
         if predictions.exists():
             frames.append(pd.read_csv(predictions))
@@ -70,15 +75,18 @@ def load_ce_predictions(root):
         raise FileNotFoundError(f"No CE predictions under {root}")
     frame = pd.concat(frames, ignore_index=True)
     frame["backbone"] = frame["run_id"].str.extract(
-        r"^stage2_(resnet50|efficientnet_b0|vit_s)_"
+        r"^stage\d+_(resnet50|efficientnet_b0|vit_s)_"
     )[0]
     return frame
 
 
-def load_tone(path, metadata_path):
+def load_tone(path, metadata_path, adjust_source=True):
     tone = pd.read_csv(resolve(path))
     metadata = pd.read_csv(resolve(metadata_path))
-    metadata = metadata[["image_id", "age", "sex", "localization", "lesion_id"]]
+    columns = ["image_id", "age", "sex", "localization", "lesion_id"]
+    if adjust_source and "dataset" in metadata.columns:
+        columns.append("dataset")
+    metadata = metadata[columns]
     tone = tone.merge(metadata, on="image_id", how="left")
     return tone
 
@@ -229,7 +237,9 @@ def main(argv=None):
     args = parse_args(argv)
     thresholds = tuple(int(item) for item in args.thresholds.split(",") if item)
     predictions = load_ce_predictions(resolve(args.predictions_root))
-    tone = load_tone(args.tone_table, args.metadata)
+    tone = load_tone(
+        args.tone_table, args.metadata, adjust_source=not args.no_source_adjustment
+    )
     contrast = pd.read_csv(resolve(args.contrast))
 
     sensitivity = threshold_sensitivity(predictions, tone, thresholds)

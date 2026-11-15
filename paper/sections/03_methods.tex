@@ -16,17 +16,17 @@ We compare ResNet-50, EfficientNet-B0, and ViT-S/16. All models use ImageNet pre
 
 \subsection{Training}
 
-All models use AdamW with a learning rate of $3\times10^{-4}$, weight decay $1\times10^{-4}$, and a cosine schedule. The batch size is 64, the maximum number of epochs is 15, and early stopping uses a patience of 5 on validation balanced accuracy. Gradients are clipped to a norm of 1.0. Training uses mixed precision when a GPU is available.
+All models use AdamW with a learning rate of $3\times10^{-4}$, weight decay $1\times10^{-4}$, and a cosine schedule. The batch size is 64, the maximum number of epochs is 15, and early stopping uses a patience of 5 on validation balanced accuracy at the 0.5 probability threshold; the checkpoint with the best validation balanced accuracy is kept. All architectures share these hyperparameters. Gradients are clipped to a norm of 1.0. Training uses mixed precision when a GPU is available.
 
 \subsection{Conditions}
 
-Stage 1 is a screen on EfficientNet-B0 at 160 pixels. It contains eight configurations: CE with a random sampler, CE with class-balanced sampling, weighted CE with a random sampler, focal loss with $\gamma=2$ and a random sampler, focal loss with $\gamma=2$ and class-balanced sampling, focal loss with $\gamma=3$ and class-balanced sampling, and two strong-augmentation variants. Each configuration uses three seeds, for 24 runs.
+Stage 1 is a screen on EfficientNet-B0 at 160 pixels. It contains eight configurations: CE with a random sampler, CE with class-balanced sampling, weighted CE with a random sampler, focal loss with $\gamma=2$ and a random sampler, focal loss with $\gamma=2$ and class-balanced sampling, focal loss with $\gamma=3$ and class-balanced sampling, and two strong-augmentation variants. Each configuration uses three seeds, for 24 runs. Every focal configuration uses $\alpha=0.75$ on the melanoma class.
 
 Stage 2 compares three pre-declared conditions across the three architectures at 224 pixels:
 
 \begin{enumerate}
   \item CE baseline: cross-entropy loss, random sampler, standard augmentation.
-  \item Planned imbalance correction: focal loss with $\gamma=2$, class-balanced sampling, standard augmentation.
+  \item Planned imbalance correction: focal loss with $\gamma=2$ and $\alpha=0.75$ on the melanoma class, class-balanced sampling, standard augmentation.
   \item Stage 1 winner: cross-entropy loss, random sampler, strong augmentation.
 \end{enumerate}
 
@@ -44,7 +44,7 @@ We test AUC differences between conditions and architectures with paired seed-le
 
 \subsection{Fairness analysis}
 
-HAM10000 has no Fitzpatrick labels. We therefore compute an image-based lightness proxy from non-lesional skin. The image is converted to CIELAB, the lesion mask is dilated by 11 pixels and excluded, and very dark pixels ($L^*<10$) and very bright pixels ($L^*>95$) are removed. The median $L^*$ of the remaining skin pixels is the proxy.
+HAM10000 has no Fitzpatrick labels. We therefore compute an image-based lightness proxy from non-lesional skin. Lesion masks are the HAM10000 segmentation masks released by Tschandl et al.\ \citep{tschandl2020human}. The image is converted to CIELAB, the lesion mask is dilated by 11 pixels and excluded, and very dark pixels ($L^*<10$) and very bright pixels ($L^*>95$) are removed. The median $L^*$ of the remaining skin pixels is the proxy.
 
 We group images into light ($L^*>70$), medium ($55<L^*\leq70$), and dark ($L^*\leq55$). These thresholds are specific to the HAM10000 lightness distribution. They are image-based strata, not clinical Fitzpatrick labels.
 
@@ -54,9 +54,9 @@ For each Stage 2 run, we compute per-group sensitivity, specificity, false posit
 
 Lesion contrast is computed from the same masks. The lesion color is the median CIELAB value inside the mask, and the surrounding skin is the median inside an 11-pixel ring after excluding $L^*<10$ and $L^*>95$. We define $\Delta L^*$ as skin minus lesion, so a positive value means the lesion is darker than the surrounding skin, and $\Delta E$ as the CIELAB 76 difference between the two median colors.
 
-The main analysis uses the pre-declared cutoff $L^*\leq55$. We repeat the group analysis at $L^*\leq58$ and $L^*\leq60$ to test whether the results depend on the cutoff. We also fit adjusted logistic models of false positive and false negative on perilesional $L^*$, $\Delta L^*$, log lesion area, age, sex, and anatomical site. Continuous predictors are standardized; one standard deviation is 7.2 $L^*$ units and 10.3 contrast units in the test set. Standard errors come from a cluster bootstrap over lesions with 300 replicates, so repeated images and seeds of the same lesion are not treated as independent. The $p$-values are descriptive and are not corrected for multiplicity across cutoffs and architectures.
+The main analysis uses the pre-declared cutoff $L^*\leq55$. We repeat the group analysis at $L^*\leq58$ and $L^*\leq60$ to test whether the results depend on the cutoff. We also fit adjusted logistic models of false positive and false negative on perilesional $L^*$, $\Delta L^*$, log lesion area, age, sex, anatomical site, and acquisition source. HAM10000 combines four source collections that differ in clinic, dermatoscope, and melanoma prevalence (0.6\% to 20\%), and image lightness depends on the device, so source is a potential confounder of the lightness effect. Diagnosis confirmation type is not included because it depends on the label. Continuous predictors are standardized; one standard deviation is 7.2 $L^*$ units and 10.3 contrast units in the test set. Standard errors come from a cluster bootstrap over lesions with 300 replicates, so repeated images and seeds of the same lesion are not treated as independent. The $p$-values are descriptive and are not corrected for multiplicity across cutoffs and architectures.
 
-We compute expected calibration error with 10 equal-width bins and the Brier score on the test split. Paired sensitivity and AUC comparisons are computed per seed and summarized with 95\% t intervals across three seeds. Difference-in-differences compares the CE-to-focal change of one architecture with that of another. The direction count reports how many seeds agree with the mean sign.
+We compute expected calibration error with 10 equal-width bins and the Brier score on the test split. Class-balanced sampling and the focal $\alpha$ train the model at an effective melanoma prior of 0.75 rather than the 11\% prevalence, which inflates the scores by construction. We therefore also report ECE after two monotone corrections: a prior-shift correction that adds the log ratio of the prevalence odds to the effective training odds to each logit, followed by a temperature fitted on the validation split by minimizing the negative log-likelihood. Neither correction changes the AUC or the validation-selected operating point. Paired sensitivity and AUC comparisons are computed per seed and summarized with 95\% t intervals across three seeds. Difference-in-differences compares the CE-to-focal change of one architecture with that of another. The direction count reports how many seeds agree with the mean sign.
 
 External validation uses HIBA \citep{hiba2023}, a dermoscopic dataset from Argentina with Fitzpatrick labels. We apply the frozen HAM10000 validation threshold and do not refit on HIBA. As a secondary comparison, we also report sensitivity at 95\% specificity with a threshold fitted on HIBA. This oracle threshold is an upper bound, not a deployable result. PROVe-AI \citep{proveai2023} is a possible extension but was not evaluated here. A clinical dark-skin dataset, such as DDI \citep{daneshjou2022ddi} or PASSION \citep{passion2024}, is left for future work, with the imaging modality difference stated as a limitation.
 

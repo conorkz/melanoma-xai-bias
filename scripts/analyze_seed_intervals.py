@@ -24,7 +24,7 @@ if str(PROJECT_ROOT / "src") not in sys.path:
 from melanoma.training.metrics import sensitivity_at_specificity
 from melanoma.utils import ensure_dir
 
-PATTERN = re.compile(r"^stage2_(resnet50|efficientnet_b0|vit_s)_(.+)_seed([123])$")
+PATTERN = re.compile(r"^stage\d+_(resnet50|efficientnet_b0|vit_s)_(.+)_seed(\d+)$")
 BACKBONES = ["resnet50", "efficientnet_b0", "vit_s"]
 CONDITIONS = ["ce_random", "focal2_cb", "ce_random_strong"]
 

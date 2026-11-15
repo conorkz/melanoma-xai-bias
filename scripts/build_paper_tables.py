@@ -2,6 +2,7 @@
 """Generate the LaTeX tables in paper/tables from the result CSVs."""
 
 import argparse
+import re
 import math
 import sys
 from pathlib import Path
@@ -25,6 +26,11 @@ CONDITIONS = {
     "ce_random": "CE",
     "ce_random_strong": "CE+strong",
     "focal2_cb": "Focal+CB",
+    "focal2_random": "Focal",
+    "ce_cb": "CE+CB",
+    "wce_random": "Weighted CE",
+    "focal2_cb_strong": "Focal+CB+strong",
+    "focal3_cb": "Focal ($\\gamma=3$)+CB",
 }
 
 
@@ -100,9 +106,9 @@ def stage_table(frame, caption, label):
     ]
     for _, row in frame.iterrows():
         lines.append(
-            f"{escape(row['config_id'])} & "
+            f"{short_name(row['config_id'])} & "
             f"{plus_minus(row['val_sensitivity_mean'], row['val_sensitivity_std'])} & "
-            f"{t_interval(row['sensitivity_mean'], row['sensitivity_std'], 3)} & "
+            f"{t_interval(row['sensitivity_mean'], row['sensitivity_std'], int(row.get('n_seeds', 3)))} & "
             f"{row['specificity_mean']:.3f} & "
             f"{row['balanced_accuracy_mean']:.3f} & "
             f"{row['auc_mean']:.3f} \\\\"
@@ -112,12 +118,14 @@ def stage_table(frame, caption, label):
 
 
 def short_name(config_id):
+    """Readable label such as 'ResNet-50 / Focal+CB' for a config id."""
+    stripped = re.sub(r"^stage\d+[a-z]*_", "", str(config_id))
     for backbone_key, backbone_name in BACKBONES.items():
-        prefix = f"stage2_{backbone_key}_"
-        if config_id.startswith(prefix):
-            condition = config_id[len(prefix):]
-            return f"{backbone_name} / {CONDITIONS.get(condition, condition)}"
-    return config_id
+        prefix = f"{backbone_key}_"
+        if stripped.startswith(prefix):
+            condition = stripped[len(prefix):]
+            return f"{backbone_name} / {CONDITIONS.get(condition, escape(condition))}"
+    return CONDITIONS.get(stripped, escape(stripped))
 
 
 def fairness_table(summary, caption, label):
@@ -427,13 +435,19 @@ def adjusted_model_table(summary, caption, label):
     return "\n".join(lines)
 
 
-def calibration_table(summary, caption, label):
+def calibration_table(summary, caption, label, corrected=None):
     frame = summary.copy()
+    if corrected is not None:
+        frame = frame.merge(
+            corrected[["config_id", "ece_prior_ts_mean", "ece_prior_ts_std", "temperature_mean"]],
+            on="config_id",
+            how="left",
+        )
     frame["_backbone"] = frame["config_id"].str.extract(
-        r"^stage2_(resnet50|efficientnet_b0|vit_s)_"
+        r"^stage\d+_(resnet50|efficientnet_b0|vit_s)_"
     )[0]
     frame["_condition"] = frame["config_id"].str.replace(
-        r"^stage2_(resnet50|efficientnet_b0|vit_s)_", "", regex=True
+        r"^stage\d+_(resnet50|efficientnet_b0|vit_s)_", "", regex=True
     )
     backbone_order = {key: index for index, key in enumerate(BACKBONES)}
     condition_order = {"ce_random": 0, "ce_random_strong": 1, "focal2_cb": 2}
@@ -441,14 +455,17 @@ def calibration_table(summary, caption, label):
     frame["_c"] = frame["_condition"].map(condition_order).fillna(99)
     frame = frame.sort_values(["_b", "_c"])
 
+    has_corrected = "ece_prior_ts_mean" in frame.columns
     headers = ["Configuration", "ECE", "Brier"]
+    if has_corrected:
+        headers += ["ECE, corrected", "$T$"]
     lines = [
         r"\begin{table}[t]",
         r"\centering",
         r"\small",
         r"\caption{" + caption + "}",
         r"\label{" + label + "}",
-        r"\begin{tabular}{lcc}",
+        r"\begin{tabular}{l" + "c" * (len(headers) - 1) + "}",
         r"\toprule",
         " & ".join(headers) + r" \\",
         r"\midrule",
@@ -458,10 +475,17 @@ def calibration_table(summary, caption, label):
             f"{BACKBONES.get(row['_backbone'], row['_backbone'])} / "
             f"{CONDITIONS.get(row['_condition'], row['_condition'])}"
         )
-        lines.append(
-            f"{configuration} & {row['ece_mean']:.3f} $\\pm$ {row['ece_std']:.3f} & "
-            f"{row['brier_mean']:.3f} $\\pm$ {row['brier_std']:.3f} \\\\"
-        )
+        cells = [
+            configuration,
+            f"{row['ece_mean']:.3f} $\\pm$ {row['ece_std']:.3f}",
+            f"{row['brier_mean']:.3f} $\\pm$ {row['brier_std']:.3f}",
+        ]
+        if has_corrected:
+            cells += [
+                f"{row['ece_prior_ts_mean']:.3f} $\\pm$ {row['ece_prior_ts_std']:.3f}",
+                f"{row['temperature_mean']:.2f}",
+            ]
+        lines.append(" & ".join(cells) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
     return "\n".join(lines)
 
@@ -753,7 +777,7 @@ def main(argv=None):
         adjusted_output.write_text(
             adjusted_model_table(
                 pd.read_csv(adjusted_path),
-                "Adjusted odds ratios for false positives and false negatives. Each model includes perilesional $L^*$, lesion contrast, log lesion area, age, sex, and anatomical site. Odds ratios are per one standard deviation; intervals are lesion-cluster bootstrap 95\\% CIs. The pooled error model is not shown because the $L^*$ effects on false positives and false negatives have opposite signs.",
+                "Adjusted odds ratios for false positives and false negatives. Each model includes perilesional $L^*$, lesion contrast, log lesion area, age, sex, anatomical site, and acquisition source. Odds ratios are per one standard deviation; intervals are lesion-cluster bootstrap 95\\% CIs. The pooled error model is not shown because the $L^*$ effects on false positives and false negatives have opposite signs.",
                 "tab:adjusted",
             ),
             encoding="utf-8",
@@ -768,8 +792,13 @@ def main(argv=None):
         calibration_output.write_text(
             calibration_table(
                 pd.read_csv(calibration_path),
-                "Test-set calibration. ECE uses 10 equal-width bins and is independent of the operating threshold. Values are mean and standard deviation across three seeds.",
+                "Test-set calibration. ECE uses 10 equal-width bins. The corrected column first moves the scores from the effective training prior (set by the sampler and the focal $\\alpha$) to the training prevalence, then applies a temperature $T$ fitted on the validation split. Both corrections are monotone, so AUC and the validation-selected operating point are unchanged. Values are mean and standard deviation across three seeds.",
                 "tab:calibration",
+                corrected=(
+                    pd.read_csv(calibration_path.parent / "calibration_corrected.csv")
+                    if (calibration_path.parent / "calibration_corrected.csv").exists()
+                    else None
+                ),
             ),
             encoding="utf-8",
         )

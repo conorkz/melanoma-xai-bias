@@ -87,6 +87,9 @@ def load_checkpoint(path, model, device="cpu"):
     return {key: value for key, value in payload.items() if key != "model_state_dict"}
 
 
+SELECTION_METRICS = ("balanced_accuracy", "auc")
+
+
 def fit(
     model,
     train_loader,
@@ -101,8 +104,14 @@ def fit(
     grad_clip=None,
     max_batches=None,
     verbose=False,
+    selection_metric="balanced_accuracy",
 ):
     """Train with validation, early stopping, and best-checkpoint saving.
+
+    selection_metric is the validation metric used for early stopping and for
+    picking the best checkpoint. "balanced_accuracy" is computed at the 0.5
+    threshold, so its meaning depends on the training prior; "auc" is
+    threshold-free and treats every training condition the same way.
 
     When checkpoint_path is given, the best epoch is saved during training and
     loaded back into the model at the end, so the caller always holds the best
@@ -115,6 +124,10 @@ def fit(
         raise ValueError(f"epochs must be >= 1, got {epochs}")
     if patience is not None and patience < 1:
         raise ValueError(f"patience must be >= 1, got {patience}")
+    if selection_metric not in SELECTION_METRICS:
+        raise ValueError(
+            f"selection_metric must be one of {SELECTION_METRICS}, got {selection_metric!r}"
+        )
 
     history = {"train_loss": [], "val_metrics": [], "best_epoch": None, "stopped_early": False}
     best_score = -np.inf
@@ -128,7 +141,7 @@ def fit(
         history["train_loss"].append(loss)
         history["val_metrics"].append(metrics)
 
-        raw_score = metrics["balanced_accuracy"]
+        raw_score = metrics[selection_metric]
         score = raw_score if not np.isnan(raw_score) else -np.inf
         improved = score > best_score or history["best_epoch"] is None
         if improved:
@@ -146,7 +159,8 @@ def fit(
         if verbose:
             print(
                 f"epoch {epoch}/{epochs} train_loss={loss:.4f} "
-                f"balanced_acc={raw_score:.4f} auc={metrics['auc']:.4f}"
+                f"balanced_acc={metrics['balanced_accuracy']:.4f} auc={metrics['auc']:.4f} "
+                f"selection={selection_metric}"
             )
 
         if patience is not None and epochs_without_improvement >= patience:

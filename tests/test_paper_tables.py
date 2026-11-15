@@ -17,7 +17,7 @@ def load_script(stem):
     return module
 
 
-def test_stage_table_contains_values_and_escaped_names():
+def test_stage_table_contains_values_and_readable_names():
     generator = load_script("build_paper_tables")
     frame = pd.DataFrame(
         {
@@ -35,7 +35,8 @@ def test_stage_table_contains_values_and_escaped_names():
     )
     output = generator.stage_table(frame, "Caption", "tab:test")
     assert r"\toprule" in output
-    assert r"stage2\_resnet50\_ce\_random" in output
+    assert "ResNet-50 / CE" in output
+    assert "stage2" not in output
     assert r"$\pm$" in output
     assert r"\label{tab:test}" in output
 
@@ -240,3 +241,10 @@ def test_fairness_table_contains_three_groups():
     assert "ViT-S/16 / Focal+CB" in output
     assert r"\label{tab:fairness}" in output
     assert "43 / 6" in output
+
+
+def test_short_name_handles_stage1_and_unknown_conditions():
+    generator = load_script("build_paper_tables")
+    assert generator.short_name("stage1_ce_random_strong") == "CE+strong"
+    assert generator.short_name("stage3_vit_s_ce_cb") == "ViT-S/16 / CE+CB"
+    assert generator.short_name("stage1_odd_name") == r"odd\_name"

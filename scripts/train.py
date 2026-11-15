@@ -371,6 +371,7 @@ def main(argv=None):
         grad_clip=grad_clip,
         max_batches=max_batches,
         verbose=True,
+        selection_metric=str(config.training.get("selection_metric", "balanced_accuracy")),
     )
     elapsed = time.time() - start
 
@@ -451,8 +452,15 @@ def main(argv=None):
             if str(config.training.get("loss", "ce")) == "focal"
             else None
         ),
+        "focal_alpha": (
+            config.training.get("focal_alpha")
+            if str(config.training.get("loss", "ce")) == "focal"
+            else None
+        ),
         "sampler": str(config.training.get("sampler", "random")),
         "augmentation": augmentation,
+        "lr": float(config.training.lr),
+        "selection_metric": str(config.training.get("selection_metric", "balanced_accuracy")),
         "epochs": epochs,
         "best_epoch": history["best_epoch"],
         "stopped_early": history["stopped_early"],

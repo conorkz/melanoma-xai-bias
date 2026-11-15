@@ -44,7 +44,7 @@ def parse_args(argv=None):
 
 def load_runs(root):
     pattern = re.compile(
-        r"^stage2_(resnet50|efficientnet_b0|vit_s)_(.+)_seed([123])$"
+        r"^stage\d+_(resnet50|efficientnet_b0|vit_s)_(.+)_seed(\d+)$"
     )
     runs = {}
     for path in sorted(root.glob("*/predictions_test.csv")):

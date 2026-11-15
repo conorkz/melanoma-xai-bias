@@ -20,50 +20,59 @@ Group metrics at three L* cutoffs, adjusted error models, and continuous trends.
 
 | Outcome | Architecture | Term | OR | 95% CI | p |
 |---|---|---|---|---|---|
-| error | EfficientNet-B0 | L | 1.017 | 0.840 to 1.182 | 0.777 |
-| error | EfficientNet-B0 | delta_L | 1.550 | 1.316 to 1.828 | 0.000 |
-| error | EfficientNet-B0 | log_area | 1.321 | 1.064 to 1.671 | 0.007 |
-| error | EfficientNet-B0 | age | 1.388 | 1.183 to 1.728 | 0.000 |
-| error | EfficientNet-B0 | sex_male | 1.088 | 0.918 to 1.297 | 0.319 |
-| error | EfficientNet-B0 | site_back | 1.389 | 1.089 to 1.987 | 0.020 |
-| error | EfficientNet-B0 | site_lower extremity | 1.378 | 1.068 to 2.013 | 0.013 |
-| error | EfficientNet-B0 | site_other | 1.463 | 1.091 to 2.364 | 0.020 |
-| error | EfficientNet-B0 | site_trunk | 0.773 | 0.482 to 1.112 | 0.206 |
-| error | EfficientNet-B0 | site_upper extremity | 1.455 | 1.139 to 1.883 | 0.000 |
-| error | ResNet-50 | L | 0.955 | 0.780 to 1.130 | 0.671 |
-| error | ResNet-50 | delta_L | 1.622 | 1.341 to 2.020 | 0.000 |
-| error | ResNet-50 | log_area | 1.316 | 1.071 to 1.646 | 0.020 |
-| error | ResNet-50 | age | 1.351 | 1.103 to 1.688 | 0.000 |
-| error | ResNet-50 | sex_male | 1.027 | 0.855 to 1.253 | 0.738 |
-| error | ResNet-50 | site_back | 1.537 | 1.169 to 2.431 | 0.000 |
-| error | ResNet-50 | site_lower extremity | 1.685 | 1.249 to 2.672 | 0.000 |
-| error | ResNet-50 | site_other | 1.677 | 1.198 to 2.710 | 0.013 |
-| error | ResNet-50 | site_trunk | 0.851 | 0.584 to 1.277 | 0.472 |
-| error | ResNet-50 | site_upper extremity | 1.501 | 1.138 to 2.115 | 0.013 |
-| error | ViT-S/16 | L | 0.920 | 0.761 to 1.065 | 0.319 |
-| error | ViT-S/16 | delta_L | 1.692 | 1.437 to 2.028 | 0.000 |
-| error | ViT-S/16 | log_area | 1.541 | 1.284 to 1.950 | 0.000 |
-| error | ViT-S/16 | age | 1.497 | 1.237 to 1.846 | 0.000 |
-| error | ViT-S/16 | sex_male | 1.010 | 0.832 to 1.225 | 0.924 |
-| error | ViT-S/16 | site_back | 1.268 | 1.031 to 1.789 | 0.027 |
-| error | ViT-S/16 | site_lower extremity | 1.212 | 0.956 to 1.681 | 0.159 |
-| error | ViT-S/16 | site_other | 1.326 | 0.987 to 1.866 | 0.073 |
-| error | ViT-S/16 | site_trunk | 0.569 | 0.367 to 0.822 | 0.013 |
-| error | ViT-S/16 | site_upper extremity | 1.299 | 1.062 to 1.696 | 0.013 |
+| error | EfficientNet-B0 | L | 1.005 | 0.805 to 1.176 | 0.977 |
+| error | EfficientNet-B0 | delta_L | 1.282 | 1.087 to 1.529 | 0.000 |
+| error | EfficientNet-B0 | log_area | 1.408 | 1.170 to 1.757 | 0.000 |
+| error | EfficientNet-B0 | age | 1.223 | 1.034 to 1.492 | 0.013 |
+| error | EfficientNet-B0 | sex_male | 1.091 | 0.925 to 1.336 | 0.312 |
+| error | EfficientNet-B0 | site_back | 1.150 | 0.875 to 1.662 | 0.365 |
+| error | EfficientNet-B0 | site_lower extremity | 1.243 | 0.928 to 1.792 | 0.140 |
+| error | EfficientNet-B0 | site_other | 1.049 | 0.741 to 1.673 | 0.764 |
+| error | EfficientNet-B0 | site_trunk | 1.013 | 0.664 to 1.462 | 0.957 |
+| error | EfficientNet-B0 | site_upper extremity | 1.249 | 0.964 to 1.602 | 0.113 |
+| error | EfficientNet-B0 | source_vidir_modern | 1.181 | 0.939 to 1.526 | 0.120 |
+| error | EfficientNet-B0 | source_vidir_molemax | 0.212 | 0.101 to 0.327 | 0.000 |
+| error | EfficientNet-B0 | source_vienna_dias | 1.029 | 0.831 to 1.238 | 0.837 |
+| error | ResNet-50 | L | 0.974 | 0.786 to 1.181 | 0.791 |
+| error | ResNet-50 | delta_L | 1.295 | 1.050 to 1.625 | 0.007 |
+| error | ResNet-50 | log_area | 1.435 | 1.179 to 1.793 | 0.000 |
+| error | ResNet-50 | age | 1.203 | 1.006 to 1.499 | 0.047 |
+| error | ResNet-50 | sex_male | 1.045 | 0.869 to 1.275 | 0.645 |
+| error | ResNet-50 | site_back | 1.309 | 0.965 to 2.078 | 0.086 |
+| error | ResNet-50 | site_lower extremity | 1.606 | 1.135 to 2.590 | 0.000 |
+| error | ResNet-50 | site_other | 1.233 | 0.856 to 1.985 | 0.292 |
+| error | ResNet-50 | site_trunk | 1.176 | 0.790 to 1.781 | 0.472 |
+| error | ResNet-50 | site_upper extremity | 1.312 | 0.934 to 1.858 | 0.080 |
+| error | ResNet-50 | source_vidir_modern | 1.398 | 1.092 to 1.826 | 0.000 |
+| error | ResNet-50 | source_vidir_molemax | 0.193 | 0.075 to 0.321 | 0.000 |
+| error | ResNet-50 | source_vienna_dias | 1.024 | 0.833 to 1.238 | 0.757 |
+| error | ViT-S/16 | L | 0.923 | 0.745 to 1.093 | 0.319 |
+| error | ViT-S/16 | delta_L | 1.362 | 1.142 to 1.633 | 0.000 |
+| error | ViT-S/16 | log_area | 1.734 | 1.406 to 2.131 | 0.000 |
+| error | ViT-S/16 | age | 1.297 | 1.094 to 1.573 | 0.000 |
+| error | ViT-S/16 | sex_male | 1.031 | 0.852 to 1.258 | 0.811 |
+| error | ViT-S/16 | site_back | 1.047 | 0.815 to 1.479 | 0.804 |
+| error | ViT-S/16 | site_lower extremity | 1.102 | 0.818 to 1.530 | 0.605 |
+| error | ViT-S/16 | site_other | 0.918 | 0.666 to 1.285 | 0.651 |
+| error | ViT-S/16 | site_trunk | 0.726 | 0.514 to 0.991 | 0.040 |
+| error | ViT-S/16 | site_upper extremity | 1.103 | 0.864 to 1.468 | 0.399 |
+| error | ViT-S/16 | source_vidir_modern | 1.400 | 1.111 to 1.731 | 0.000 |
+| error | ViT-S/16 | source_vidir_molemax | 0.199 | 0.072 to 0.314 | 0.000 |
+| error | ViT-S/16 | source_vienna_dias | 1.035 | 0.866 to 1.216 | 0.711 |
 
 ## False positive and false negative models
 
 | Outcome | Architecture | Term | OR | 95% CI | p |
 |---|---|---|---|---|---|
-| false_positive | EfficientNet-B0 | L | 0.876 | 0.667 to 1.108 | 0.233 |
-| false_positive | EfficientNet-B0 | delta_L | 1.688 | 1.391 to 2.139 | 0.000 |
-| false_positive | ResNet-50 | L | 0.775 | 0.613 to 0.943 | 0.013 |
-| false_positive | ResNet-50 | delta_L | 2.048 | 1.661 to 2.678 | 0.000 |
-| false_positive | ViT-S/16 | L | 0.765 | 0.568 to 1.028 | 0.066 |
-| false_positive | ViT-S/16 | delta_L | 2.422 | 1.938 to 3.142 | 0.000 |
-| false_negative | EfficientNet-B0 | L | 1.662 | 1.164 to 2.342 | 0.000 |
-| false_negative | EfficientNet-B0 | delta_L | 0.739 | 0.510 to 1.125 | 0.159 |
-| false_negative | ResNet-50 | L | 1.739 | 1.110 to 2.579 | 0.013 |
-| false_negative | ResNet-50 | delta_L | 0.579 | 0.352 to 1.017 | 0.060 |
-| false_negative | ViT-S/16 | L | 1.754 | 1.140 to 2.602 | 0.013 |
-| false_negative | ViT-S/16 | delta_L | 0.480 | 0.294 to 0.750 | 0.007 |
+| false_positive | EfficientNet-B0 | L | 0.814 | 0.619 to 0.997 | 0.053 |
+| false_positive | EfficientNet-B0 | delta_L | 1.437 | 1.207 to 1.826 | 0.000 |
+| false_positive | ResNet-50 | L | 0.754 | 0.600 to 0.934 | 0.000 |
+| false_positive | ResNet-50 | delta_L | 1.590 | 1.241 to 2.004 | 0.000 |
+| false_positive | ViT-S/16 | L | 0.722 | 0.535 to 0.949 | 0.013 |
+| false_positive | ViT-S/16 | delta_L | 2.006 | 1.557 to 2.590 | 0.000 |
+| false_negative | EfficientNet-B0 | L | 1.644 | 1.141 to 2.515 | 0.013 |
+| false_negative | EfficientNet-B0 | delta_L | 0.719 | 0.460 to 1.141 | 0.159 |
+| false_negative | ResNet-50 | L | 1.594 | 1.009 to 2.367 | 0.047 |
+| false_negative | ResNet-50 | delta_L | 0.605 | 0.343 to 1.088 | 0.100 |
+| false_negative | ViT-S/16 | L | 1.569 | 1.045 to 2.410 | 0.047 |
+| false_negative | ViT-S/16 | delta_L | 0.471 | 0.289 to 0.746 | 0.007 |

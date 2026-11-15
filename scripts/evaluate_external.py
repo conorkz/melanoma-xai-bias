@@ -257,7 +257,7 @@ def main(argv=None):
 
     per_run = pd.DataFrame(records)
     per_run["condition"] = per_run["config_id"].str.extract(
-        r"^stage2_(?:resnet50|efficientnet_b0|vit_s)_(.+)$"
+        r"^stage\d+_(?:resnet50|efficientnet_b0|vit_s)_(.+)$"
     )[0]
     per_run = per_run[
         [

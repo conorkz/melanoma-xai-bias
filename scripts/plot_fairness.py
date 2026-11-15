@@ -41,7 +41,7 @@ METRICS = [
     ("auc", "AUC", (0.65, 0.95)),
     ("fpr", "False positive rate", (0.0, 0.22)),
 ]
-PATTERN = re.compile(r"^stage2_(resnet50|efficientnet_b0|vit_s)_(.+)$")
+PATTERN = re.compile(r"^stage\d+_(resnet50|efficientnet_b0|vit_s)_(.+)$")
 
 
 def resolve(path):

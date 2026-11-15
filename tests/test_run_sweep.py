@@ -227,3 +227,19 @@ def test_sweep_executes_training_subprocess(tmp_path):
     assert (runs_dir / "e2e_ce_seed1" / "metrics.json").exists()
     assert (runs_dir / "e2e_ce_seed1" / "predictions_test.csv").exists()
     assert (checkpoints_dir / "e2e_ce_seed1.pt").exists()
+
+
+def test_parse_set_reads_yaml_scalars():
+    parse_set = load_script("run_sweep").parse_set
+
+    parsed = parse_set(["training.lr=0.0001", "training.selection_metric=auc"])
+    assert parsed == {"training.lr": 0.0001, "training.selection_metric": "auc"}
+
+
+def test_parse_set_rejects_missing_equals():
+    import pytest
+
+    parse_set = load_script("run_sweep").parse_set
+
+    with pytest.raises(ValueError):
+        parse_set(["training.lr"])

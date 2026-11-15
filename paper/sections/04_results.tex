@@ -28,20 +28,21 @@ At a common 95\% test specificity, the CE CNNs reach $0.581$ and $0.575$ against
 \input{tables/ranking}
 
 \subsection{AUC ordering is preserved while the gaps close}
+\label{sec:auc}
 
 The AUC ordering does not follow the sensitivity ranking. At the CE baseline, the AUC is 0.914 for EfficientNet-B0, 0.897 for ResNet-50, and 0.854 for ViT-S/16. Under focal loss with class-balanced sampling, the AUC is 0.891 for EfficientNet-B0, 0.884 for ResNet-50, and 0.872 for ViT-S/16. The point-estimate order is unchanged: EfficientNet-B0 first, ResNet-50 second, ViT-S/16 last.
 
 The gaps are not stable. In-domain AUC differences are reported in Table~\ref{tab:auctests}. At the CE baseline, EfficientNet-B0 exceeds ViT-S/16 by $0.060$ ($0.040$ to $0.081$) and ResNet-50 exceeds ViT-S/16 by $0.043$ ($0.002$ to $0.084$). Under focal loss, the corresponding differences are $0.018$ ($-0.008$ to $0.045$) and $0.012$ ($-0.017$ to $0.040$), so no architecture pair is significantly separated. Focal loss lowers ResNet-50 AUC by $0.013$ ($-0.023$ to $-0.003$) and EfficientNet-B0 by $0.023$ ($-0.047$ to $0.000$), while the ViT changes by $+0.018$ ($-0.003$ to $0.040$). The ResNet-50 versus ViT AUC interaction is $-0.031$ ($-0.061$ to $-0.001$).
 
-The sensitivity reversal is therefore not purely a threshold effect. The ViT improves both sensitivity and AUC under focal loss, and the CNN AUC also falls. Calibration and threshold placement remain part of the explanation, but they do not account for the whole pattern.
+The sensitivity reversal is therefore not purely a threshold effect. The ViT improves both sensitivity and AUC under focal loss, and the CNN AUC also falls.
 
 \input{tables/auc_tests}
 
-\subsection{Calibration tracks the CNN loss}
+\subsection{Calibration does not explain the sensitivity changes}
 
 Table~\ref{tab:calibration} reports test-set calibration. Focal loss with class-balanced sampling raises expected calibration error from 0.046 to 0.203 for ResNet-50 (4.4x), from 0.060 to 0.178 for EfficientNet-B0 (3.0x), and from 0.146 to 0.199 for ViT-S/16 (1.36x). Strong augmentation keeps ECE between 0.046 and 0.058. The Brier score follows the same pattern.
 
-The calibration change tracks the CNN sensitivity loss, but it does not explain the ViT gain. The ViT gains sensitivity and AUC while its ECE rises only modestly. The CNNs lose both sensitivity and calibration. Calibration is therefore part of the mechanism for the CNN degradation, not a single explanation for the ranking reversal.
+Most of this rise is a prior shift. After the prior-shift correction and validation temperature scaling, the focal ECE is 0.061 for ResNet-50, 0.045 for EfficientNet-B0, and 0.045 for ViT-S/16, against 0.035, 0.026, and 0.119 for the corrected CE baselines. The CNNs keep a small residual penalty, and the corrected focal ViT is better calibrated than the corrected CE ViT. Both corrections are monotone, so they leave the AUC and the validation-selected operating point unchanged, and miscalibration cannot account for the sensitivity changes at that operating point. The CNN loss under focal loss coincides with a loss in AUC (Section~\ref{sec:auc}), which no monotone recalibration can repair.
 
 Figure~\ref{fig:calibration} shows reliability curves and ECE by lightness group. The dark stratum has higher ECE than the light and medium groups for all three CE baselines: 0.126 against 0.072 and 0.052 for EfficientNet-B0, 0.132 against 0.063 and 0.035 for ResNet-50, and 0.235 against 0.144 and 0.149 for ViT-S/16.
 
@@ -64,9 +65,9 @@ The dark AUC differences are not statistically supported. Across the three cutof
 
 Dark sensitivity is 0.500 with 6 melanomas, 0.648 with 12, and 0.580 with 23. It is not consistently lower than light sensitivity, and the intervals are wide.
 
-The adjusted models in Table~\ref{tab:adjusted} separate false positives from false negatives. The most robust fairness result is the false-negative association: the $L^*$ odds ratio is 1.74 for ResNet-50, 1.66 for EfficientNet-B0, and 1.75 for ViT-S/16, and all three intervals exclude 1. Lighter skin is associated with more missed melanomas. The false-positive association points in the opposite direction, with $L^*$ odds ratios of 0.78, 0.88, and 0.77, but the interval excludes 1 only for ResNet-50. Lesion contrast is associated with more false positives for all three architectures (OR 2.05, 1.69, and 2.42) and with fewer false negatives for ViT-S/16 (OR 0.48; the other two intervals include 1).
+The adjusted models in Table~\ref{tab:adjusted} separate false positives from false negatives and adjust for acquisition source. Lighter perilesional skin is associated with more missed melanomas: the $L^*$ odds ratio per standard deviation is 1.59 for ResNet-50, 1.64 for EfficientNet-B0, and 1.57 for ViT-S/16, and all three intervals exclude 1. The false-positive association points the other way, with $L^*$ odds ratios of 0.75, 0.81, and 0.72; the interval excludes 1 for ResNet-50 and ViT-S/16, and its upper bound is 0.997 for EfficientNet-B0. Lesion contrast is associated with more false positives for all three architectures (OR 1.59, 1.44, and 2.01) and with fewer false negatives for ViT-S/16 (OR 0.47; the other two intervals include 1).
 
-The error-type pattern is therefore suggestive but not symmetric. The supported finding is the false-negative lightness association; the false-positive association and the contrast effects are directionally consistent but imprecise. A single sensitivity or AUC summary hides this distinction.
+Without the source adjustment, the false-negative odds ratios were 1.66 to 1.75 and the false-positive association excluded 1 only for ResNet-50. The lightness effects are therefore not explained by acquisition source. Lightness shifts the type of error rather than the overall error rate, and a single sensitivity or AUC summary hides this.
 
 \input{tables/fairness}
 \input{tables/dark_skin}

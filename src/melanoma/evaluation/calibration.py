@@ -121,3 +121,52 @@ def calibration_summary(predictions, tone=None):
                 }
             )
     return pd.DataFrame(rows)
+
+
+def _logit(y_prob, eps=1e-6):
+    p = np.clip(np.asarray(y_prob, dtype=float), eps, 1.0 - eps)
+    return np.log(p) - np.log1p(-p)
+
+
+def _sigmoid(z):
+    return 1.0 / (1.0 + np.exp(-np.asarray(z, dtype=float)))
+
+
+def prior_shift_correction(y_prob, train_prior, deployed_prior):
+    """Move scores from the training prior to the deployed prior.
+
+    A class-balanced sampler trains at an effective prior of 0.5. Under the
+    label-shift assumption the correct posterior at the true prevalence is
+    obtained by adding the log prior odds ratio to the logit.
+    """
+    for name, value in (("train_prior", train_prior), ("deployed_prior", deployed_prior)):
+        if not 0.0 < value < 1.0:
+            raise ValueError(f"{name} must be in (0, 1), got {value}")
+    shift = np.log(deployed_prior / (1.0 - deployed_prior)) - np.log(
+        train_prior / (1.0 - train_prior)
+    )
+    return _sigmoid(_logit(y_prob) + shift)
+
+
+def fit_temperature(y_true, y_prob, bounds=(0.05, 20.0), n_grid=400):
+    """Fit a single temperature on held-out scores by minimizing the NLL.
+
+    A log-spaced grid search is used: it is deterministic, needs no optimizer
+    dependency, and is accurate enough for a scalar parameter.
+    """
+    y_true = np.asarray(y_true, dtype=float)
+    logits = _logit(y_prob)
+    temperatures = np.exp(np.linspace(np.log(bounds[0]), np.log(bounds[1]), n_grid))
+    best_t, best_nll = 1.0, np.inf
+    for t in temperatures:
+        p = np.clip(_sigmoid(logits / t), 1e-12, 1 - 1e-12)
+        nll = -np.mean(y_true * np.log(p) + (1 - y_true) * np.log(1 - p))
+        if nll < best_nll:
+            best_t, best_nll = float(t), nll
+    return best_t
+
+
+def apply_temperature(y_prob, temperature):
+    if temperature <= 0:
+        raise ValueError(f"temperature must be positive, got {temperature}")
+    return _sigmoid(_logit(y_prob) / temperature)

@@ -1,0 +1,102 @@
+# Stage 3a: learning-rate check for each architecture.
+# CE baseline, 3 architectures x 3 learning rates x 1 seed = 9 runs, 224 px.
+# Checkpoints are selected by validation AUC. Pick each architecture's learning
+# rate by validation AUC with scripts/select_lr.py, never by test metrics.
+#
+# Run:    python scripts/run_sweep.py --config configs/sweep_stage3_lr.yaml --skip-existing
+# Select: python scripts/select_lr.py --runs-dir outputs/runs --prefix stage3lr
+name: stage3lr
+base: configs/pilot.yaml
+seeds: [1]
+
+variants:
+  - name: resnet50_ce_random_lr3e-5
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.00003
+      training.selection_metric: auc
+
+  - name: resnet50_ce_random_lr1e-4
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.0001
+      training.selection_metric: auc
+
+  - name: resnet50_ce_random_lr3e-4
+    overrides:
+      model.backbone: resnet50
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.0003
+      training.selection_metric: auc
+
+  - name: efficientnet_b0_ce_random_lr3e-5
+    overrides:
+      model.backbone: efficientnet_b0
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.00003
+      training.selection_metric: auc
+
+  - name: efficientnet_b0_ce_random_lr1e-4
+    overrides:
+      model.backbone: efficientnet_b0
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.0001
+      training.selection_metric: auc
+
+  - name: efficientnet_b0_ce_random_lr3e-4
+    overrides:
+      model.backbone: efficientnet_b0
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.0003
+      training.selection_metric: auc
+
+  - name: vit_s_ce_random_lr3e-5
+    overrides:
+      model.backbone: vit_small_patch16_224
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.00003
+      training.selection_metric: auc
+
+  - name: vit_s_ce_random_lr1e-4
+    overrides:
+      model.backbone: vit_small_patch16_224
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.0001
+      training.selection_metric: auc
+
+  - name: vit_s_ce_random_lr3e-4
+    overrides:
+      model.backbone: vit_small_patch16_224
+      training.img_size: 224
+      training.loss: ce
+      training.sampler: random
+      training.augmentation: standard
+      training.lr: 0.0003
+      training.selection_metric: auc
+

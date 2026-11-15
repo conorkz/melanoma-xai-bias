@@ -139,6 +139,17 @@ def _design_matrix(frame):
     top = locations.value_counts().head(5).index.tolist()
     locations = locations.where(locations.isin(top), "other")
     dummies = pd.get_dummies(locations, prefix="site", drop_first=True, dtype=float)
+    if "dataset" in frame.columns:
+        # Acquisition source (site and dermatoscope) affects image lightness and
+        # melanoma prevalence, so it is adjusted for when available.
+        sources = frame["dataset"].fillna("unknown").astype(str)
+        dummies = pd.concat(
+            [
+                dummies,
+                pd.get_dummies(sources, prefix="source", drop_first=True, dtype=float),
+            ],
+            axis=1,
+        )
 
     numeric = pd.DataFrame(
         {

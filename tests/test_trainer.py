@@ -234,3 +234,49 @@ def test_load_checkpoint_invalid_content_raises(tmp_path):
     torch.save({"something": 1}, path)
     with pytest.raises(ValueError, match="model_state_dict"):
         load_checkpoint(path, TinyNet(), device="cpu")
+
+
+def test_fit_selects_checkpoint_by_auc(monkeypatch):
+    import melanoma.training.trainer as trainer_module
+
+    model = TinyNet()
+    train_loader, val_loader = make_loaders()
+    # Balanced accuracy peaks at epoch 1, AUC at epoch 3.
+    scores = iter(
+        [
+            {"balanced_accuracy": 0.9, "auc": 0.6},
+            {"balanced_accuracy": 0.5, "auc": 0.7},
+            {"balanced_accuracy": 0.4, "auc": 0.8},
+        ]
+    )
+    monkeypatch.setattr(trainer_module, "train_one_epoch", lambda *a, **k: 0.1)
+    monkeypatch.setattr(
+        trainer_module, "evaluate_metrics", lambda *a, **k: next(scores)
+    )
+    history = fit(
+        model,
+        train_loader,
+        val_loader,
+        make_optimizer(model),
+        nn.CrossEntropyLoss(),
+        "cpu",
+        epochs=3,
+        selection_metric="auc",
+    )
+    assert history["best_epoch"] == 3
+
+
+def test_fit_rejects_unknown_selection_metric():
+    model = TinyNet()
+    train_loader, val_loader = make_loaders()
+    with pytest.raises(ValueError):
+        fit(
+            model,
+            train_loader,
+            val_loader,
+            make_optimizer(model),
+            nn.CrossEntropyLoss(),
+            "cpu",
+            epochs=1,
+            selection_metric="f1",
+        )

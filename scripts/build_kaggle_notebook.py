@@ -14,6 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_benchmark.ipynb"
 DEFAULT_STAGE1_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_stage1.ipynb"
 DEFAULT_STAGE2_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_stage2.ipynb"
+DEFAULT_STAGE3_OUTPUT = PROJECT_ROOT / "notebooks" / "kaggle_stage3.ipynb"
 
 INTRO = """# RQ1 benchmark on Kaggle
 
@@ -489,6 +490,84 @@ CELLS = [
 ]
 
 
+STAGE3_INTRO = """# Stage 3 on Kaggle: revision reruns
+
+Checkpoints are selected by validation AUC. Run this notebook four times:
+
+1. `MODE = "lr"`: learning-rate check, 9 runs, about 2 GPU hours.
+   Copy the three `--set training.lr=...` lines it prints.
+2. `MODE = "main"` with `ARCH = "resnet50"` and its learning rate: 25 runs, about 6 GPU hours.
+3. The same for `ARCH = "efficientnet_b0"`.
+4. The same for `ARCH = "vit_s"`.
+
+Each session stays under Kaggle's 12-hour limit. Download `stage3_<name>.zip` after each session.
+
+## Before you run
+
+1. Open **Settings**, set **Accelerator** to a GPU, and set **Internet** to **On**.
+2. Attach the dataset `kmader/skin-cancer-mnist-ham10000`.
+3. Push the latest code to GitHub first; the notebook clones it.
+"""
+
+STAGE3_PARAMS = """# Edit these two lines before each session.
+MODE = "lr"            # "lr" for the learning-rate check, "main" for an architecture
+ARCH = "resnet50"      # resnet50, efficientnet_b0, or vit_s (used when MODE == "main")
+LR = None              # learning rate from scripts/select_lr.py, e.g. 0.0001
+"""
+
+STAGE3_RUN = """import os
+import subprocess
+import sys
+
+os.chdir(REPO_DIR)
+if MODE == "lr":
+    config = "configs/sweep_stage3_lr.yaml"
+    extra = []
+    SESSION = "lr"
+elif MODE == "main":
+    if ARCH not in {"resnet50", "efficientnet_b0", "vit_s"}:
+        raise ValueError(f"Unknown ARCH {ARCH!r}")
+    if LR is None:
+        raise ValueError("Set LR from the learning-rate check before a main run")
+    config = f"configs/sweep_stage3_{ARCH}.yaml"
+    extra = ["--set", f"training.lr={LR}"]
+    SESSION = ARCH
+else:
+    raise ValueError(f"Unknown MODE {MODE!r}")
+
+subprocess.run(
+    [sys.executable, "scripts/run_sweep.py", "--config", config, "--skip-existing", "--keep-going", *extra],
+    check=True,
+)
+if MODE == "lr":
+    subprocess.run([sys.executable, "scripts/select_lr.py", "--prefix", "stage3lr"], check=True)
+"""
+
+STAGE3_PACKAGE = """import os
+import subprocess
+from pathlib import Path
+
+os.chdir(REPO_DIR)
+prefix = "stage3lr_" if MODE == "lr" else f"stage3_{ARCH}_"
+runs = sorted(str(path) for path in Path("outputs/runs").glob(prefix + "*"))
+archive = f"stage3_{SESSION}.zip"
+subprocess.run(["zip", "-r", "-q", archive, *runs], check=True)
+print(f"{len(runs)} runs packaged. Download from the Output pane:")
+print(Path(archive).resolve())
+"""
+
+STAGE3_CELLS = [
+    new_markdown_cell(STAGE3_INTRO),
+    new_code_cell(ENVIRONMENT),
+    new_code_cell(CLONE),
+    new_markdown_cell(DATA_MARKDOWN),
+    new_code_cell(DATA),
+    new_code_cell(STAGE3_PARAMS),
+    new_code_cell(STAGE3_RUN),
+    new_code_cell(STAGE3_PACKAGE),
+]
+
+
 NOTEBOOK_METADATA = {
     "kernelspec": {
         "display_name": "Python 3",
@@ -526,7 +605,13 @@ def build_stage2(path=DEFAULT_STAGE2_OUTPUT):
     return _write(STAGE2_CELLS, path)
 
 
+def build_stage3(path=DEFAULT_STAGE3_OUTPUT):
+    """Write the Stage 3 revision-rerun notebook (LR check and per-architecture runs)."""
+    return _write(STAGE3_CELLS, path)
+
+
 if __name__ == "__main__":
     print(build())
     print(build_stage1())
     print(build_stage2())
+    print(build_stage3())
