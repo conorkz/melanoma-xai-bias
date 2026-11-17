@@ -1,0 +1,15 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Architecture interaction for focal loss with class-balanced sampling: the difference between two architectures in their Focal+CB minus CE sensitivity change, under the original (Stage 2, three seeds) and revised (Stage 3, five seeds) protocols. Intervals are 95\% t intervals across seeds.}
+\label{tab:interaction}
+\begin{tabular}{lcc}
+\toprule
+Comparison & Original protocol & Revised protocol \\
+\midrule
+EfficientNet-B0 minus ViT-S/16 & -0.161 (-0.209 to -0.113) & +0.006 (-0.115 to +0.128) \\
+ResNet-50 minus ViT-S/16 & -0.199 (-0.484 to +0.087) & -0.016 (-0.115 to +0.082) \\
+ResNet-50 minus EfficientNet-B0 & -0.038 (-0.283 to +0.208) & -0.023 (-0.143 to +0.097) \\
+\bottomrule
+\end{tabular}
+\end{table}

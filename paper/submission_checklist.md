@@ -4,7 +4,7 @@
 
 - [x] Choose the journal: Journal of Imaging Informatics in Medicine (JIIM).
 - [x] Use the JIIM LaTeX submission route and citation-order references (`unsrtnat`).
-- [x] Abstract is 247 words, within the JIIM 150 to 250 range. JIIM has no strict manuscript word limit.
+- [x] Abstract is 243 words, within the JIIM 150 to 250 range. JIIM has no strict manuscript word limit.
 - [x] Subscription route is free; open access is optional.
 
 ## Manuscript metadata
@@ -24,7 +24,9 @@
 
 - [x] Every number in the paper traces to a CSV under `results/`.
 - [x] The test split was not used for model selection.
-- [x] The three seeds and the lesion-aware split are stated.
+- [x] The seeds (three in Stage 2, five in Stage 3) and the lesion-aware split are stated.
+- [x] Stage 3 is disclosed as designed after the Stage 2 results; the learning rate search is reported in full (Supplementary Table S1).
+- [x] The Stage 2 versus Stage 3 comparison is reported for every architecture.
 - [x] The paired tests and calibration analysis are reported.
 - [x] The cutoff sensitivity analysis is reported.
 - [x] The false-positive and false-negative models are reported.

@@ -2,55 +2,60 @@
 
 \subsection{Stage 1: loss, sampling, and augmentation screen}
 
-Table~\ref{tab:stage1} reports the Stage 1 screen on EfficientNet-B0 at 160 pixels. The validation winner is CE with strong augmentation, with a validation sensitivity of $0.556\pm0.027$ at 95\% specificity. The CE baseline reaches $0.536\pm0.016$. The planned focal loss with class-balanced sampling reaches $0.502\pm0.039$, and focal loss with $\gamma=3$ and class-balanced sampling reaches $0.449\pm0.051$.
-
-The planned imbalance correction did not beat the CE baseline on validation. The difference between the CE baseline and the strong-augmentation variant is small relative to the seed standard deviation. The test columns in Table~\ref{tab:stage1} are descriptive; the model selection used validation only.
+Table~\ref{tab:stage1} reports the Stage 1 screen on EfficientNet-B0 at 160 pixels. The validation winner is CE with strong augmentation, with a validation sensitivity of $0.556\pm0.027$ at 95\% specificity. The CE baseline reaches $0.536\pm0.016$, focal loss with class-balanced sampling $0.502\pm0.039$, and focal loss with $\gamma=3$ and class-balanced sampling $0.449\pm0.051$. No imbalance correction beat the CE baseline on validation, and the gap between the baseline and strong augmentation is small relative to the seed standard deviation. The test columns are descriptive; selection used validation only.
 
 \input{tables/stage1}
 
-\subsection{Stage 2: architecture comparison}
+\subsection{Stage 2: an apparent architecture interaction under the original protocol}
 
-Table~\ref{tab:stage2} reports the Stage 2 comparison at 224 pixels. The three conditions are the CE baseline, focal loss with class-balanced sampling, and CE with strong augmentation.
-
-At the CE baseline, ResNet-50 reaches a test sensitivity of $0.570$ (95\% t interval $0.469$ to $0.671$), EfficientNet-B0 reaches $0.556$ ($0.465$ to $0.646$), and ViT-S/16 reaches $0.400$ ($0.291$ to $0.508$). The two CNNs lead the transformer in the point estimates, but the intervals overlap.
-
-Under focal loss with class-balanced sampling, ResNet-50 falls to $0.453$ ($0.289$ to $0.618$), EfficientNet-B0 falls to $0.477$ ($0.295$ to $0.658$), and ViT-S/16 rises to $0.482$ ($0.428$ to $0.536$). The correction changes the point estimates by $+8.2$ points for the transformer and by $-11.7$ and $-7.9$ points for the two CNNs.
-
-Strong augmentation is close to neutral. ResNet-50 reaches $0.568$ ($0.495$ to $0.642$), EfficientNet-B0 reaches $0.563$ ($0.402$ to $0.724$), and ViT-S/16 reaches $0.435$ ($0.228$ to $0.643$).
-
-Table~\ref{tab:ranking} reports the seed-level paired comparisons. Every ResNet-50 and EfficientNet-B0 seed falls under focal loss, and every ViT-S/16 seed rises, but all three within-architecture 95\% t intervals include zero. The difference-in-differences is $-0.161$ ($-0.209$ to $-0.113$) for EfficientNet-B0 minus ViT-S/16 and $-0.199$ ($-0.484$ to $0.087$) for ResNet-50 minus ViT-S/16. The EfficientNet-B0 versus ViT interaction is therefore significant at the seed level; the ResNet-50 versus ViT interaction is directionally consistent but not significant.
-
-The point-estimate ranking reverses, but the evidence supports an architecture-dependent interaction with limited precision, not a definitive ordering. The same caveat applies to the strong-augmentation changes, whose intervals all include zero.
-
-At a common 95\% test specificity, the CE CNNs reach $0.581$ and $0.575$ against $0.348$ for the ViT. Under focal loss the values are $0.450$, $0.466$, and $0.437$. The ViT gain and the CNN loss therefore persist at a matched operating point, not only at the validation-selected threshold.
+Table~\ref{tab:stage2} reports Stage 2. At the CE baseline, test sensitivity at the validation-selected 95\% specificity threshold is $0.570$ for ResNet-50, $0.556$ for EfficientNet-B0, and $0.400$ for ViT-S/16. Under Focal+CB, ResNet-50 falls to $0.453$ and EfficientNet-B0 to $0.477$, while ViT-S/16 rises to $0.482$: changes of $-11.7$, $-7.9$, and $+8.2$ points. Every CNN seed fell and every ViT seed rose. The within-architecture intervals all include zero, but the EfficientNet-B0 versus ViT-S/16 interaction is $-0.161$ ($-0.209$ to $-0.113$) and excludes zero (Table~\ref{tab:interaction}). The CE ViT has the lowest AUC (0.854, against 0.897 and 0.914), and Focal+CB raises it to 0.872 while lowering both CNNs. Read at face value, Stage 2 says that the same imbalance correction helps a transformer and hurts CNNs.
 
 \input{tables/stage2}
+
+\subsection{Stage 3: the interaction does not survive the revised protocol}
+
+Table~\ref{tab:stage3} reports Stage 3, and Table~\ref{tab:protocol} sets the two protocols side by side. Under the revised protocol, CE-baseline sensitivity is $0.580$ ($0.541$ to $0.618$) for ResNet-50, $0.557$ ($0.476$ to $0.638$) for EfficientNet-B0, and $0.620$ ($0.575$ to $0.666$) for ViT-S/16. Focal+CB changes sensitivity by $-4.0$, $-1.7$, and $-2.4$ points. All three changes have the same sign, all three intervals include zero, and three of five seeds are negative in each architecture.
+
+The interaction disappears (Table~\ref{tab:interaction}). The EfficientNet-B0 versus ViT-S/16 interaction moves from $-0.161$ to $+0.006$ ($-0.115$ to $+0.128$), and the ResNet-50 versus ViT-S/16 interaction from $-0.199$ to $-0.016$ ($-0.115$ to $+0.082$). Across all four corrections and three architecture pairs, one of the twelve Stage 3 interaction intervals excludes zero (focal loss alone, ResNet-50 minus ViT-S/16: $-0.069$, $-0.135$ to $-0.002$), roughly what twelve uncorrected comparisons produce by chance.
+
+The ablations do not reveal a hidden architecture effect (Table~\ref{tab:ranking}). Class-balanced sampling without focal loss gives the largest CNN losses, $-5.3$ and $-5.4$ points, with intervals that include zero. Focal loss with a random sampler changes ViT-S/16 sensitivity by $+2.4$ points and the CNNs by $-4.5$ and $-2.5$, again with intervals that include zero. Strong augmentation changes every architecture by $-1.4$ to $-1.6$ points. The 15 Stage 3 configurations span 0.503 to 0.644 in sensitivity, and the seed standard deviation within a configuration reaches 0.065.
+
+The same conclusion holds at a matched operating point. At a common 95\% test specificity, the CE baselines reach 0.553, 0.539, and 0.624, and Focal+CB reaches 0.510, 0.542, and 0.595.
+
+\input{tables/stage3}
+\input{tables/protocol}
+\input{tables/interaction}
 \input{tables/ranking}
 
-\subsection{AUC ordering is preserved while the gaps close}
+\subsection{Which protocol change matters}
 
-The AUC ordering does not follow the sensitivity ranking. At the CE baseline, the AUC is 0.914 for EfficientNet-B0, 0.897 for ResNet-50, and 0.854 for ViT-S/16. Under focal loss with class-balanced sampling, the AUC is 0.891 for EfficientNet-B0, 0.884 for ResNet-50, and 0.872 for ViT-S/16. The point-estimate order is unchanged: EfficientNet-B0 first, ResNet-50 second, ViT-S/16 last.
+The design does not fully separate the two protocol changes, but it bounds their roles. For the CNNs the learning rate did not change ($3\times10^{-4}$ in both stages), so the difference between stages comes from the checkpoint rule and the two added seeds. The CNN checkpoints now come from similar epochs in every condition: the median best epoch is 8 for the CE and 9 for the Focal+CB ResNet-50, and 6 for both EfficientNet-B0 conditions, against 8 and 4 in Stage 2. EfficientNet-B0 loses $1.7$ points under Focal+CB instead of $7.9$, and its Focal+CB AUC rises from 0.891 to 0.911. ResNet-50 loses $4.0$ points instead of $11.7$. Restricted to seeds 1 to 3, the ResNet-50 loss is $7.5$ points with all three seeds negative, so part of the ResNet-50 penalty persists under the revised rule and the remainder of the shrinkage comes from the two added seeds.
 
-The gaps are not stable. In-domain AUC differences are reported in Table~\ref{tab:auctests}. At the CE baseline, EfficientNet-B0 exceeds ViT-S/16 by $0.060$ ($0.040$ to $0.081$) and ResNet-50 exceeds ViT-S/16 by $0.043$ ($0.002$ to $0.084$). Under focal loss, the corresponding differences are $0.018$ ($-0.008$ to $0.045$) and $0.012$ ($-0.017$ to $0.040$), so no architecture pair is significantly separated. Focal loss lowers ResNet-50 AUC by $0.013$ ($-0.023$ to $-0.003$) and EfficientNet-B0 by $0.023$ ($-0.047$ to $0.000$), while the ViT changes by $+0.018$ ($-0.003$ to $0.040$). The ResNet-50 versus ViT AUC interaction is $-0.031$ ($-0.061$ to $-0.001$).
+For the ViT both changes matter. With seed 1 and the CE baseline, the original protocol gives a test sensitivity of 0.349 and an AUC of 0.850. Changing only the checkpoint rule, at the same learning rate, gives 0.489 and 0.869. Changing the learning rate to $3\times10^{-5}$ as well gives 0.608 and 0.923. These are single runs and descriptive, but they show that the Stage 2 ViT baseline was undertrained, so the apparent Focal+CB gain was a gain over a weak reference. Across five seeds, the revised CE ViT reaches an AUC of 0.923, against 0.854 in Stage 2.
 
-The sensitivity reversal is therefore not purely a threshold effect. The ViT improves both sensitivity and AUC under focal loss, and the CNN AUC also falls. Calibration and threshold placement remain part of the explanation, but they do not account for the whole pattern.
+\subsection{AUC}
+\label{sec:auc}
+
+Under the revised protocol the ViT has the highest AUC. At the CE baseline the AUC is 0.923 for ViT-S/16, 0.907 for EfficientNet-B0, and 0.906 for ResNet-50 (Table~\ref{tab:auctests}). ViT-S/16 exceeds ResNet-50 by $0.017$ ($0.006$ to $0.028$) at the CE baseline and by $0.019$ ($0.005$ to $0.032$) under Focal+CB. The ViT versus EfficientNet-B0 difference is $0.016$ ($-0.002$ to $0.034$) and $0.009$ ($-0.006$ to $0.023$), and the two CNNs do not differ. Focal+CB does not move the AUC of any architecture: the paired changes are $-0.004$ ($-0.014$ to $+0.005$) for ResNet-50, $+0.004$ ($-0.024$ to $+0.031$) for EfficientNet-B0, and $-0.003$ ($-0.014$ to $+0.008$) for ViT-S/16. Class-balanced sampling alone and strong augmentation lower ResNet-50 AUC by about 0.013 and 0.012, with intervals that exclude zero.
+
+The Stage 2 AUC ranking, with EfficientNet-B0 first and ViT-S/16 last, is therefore also a product of the original protocol.
 
 \input{tables/auc_tests}
 
-\subsection{Calibration tracks the CNN loss}
+\subsection{Calibration}
 
-Table~\ref{tab:calibration} reports test-set calibration. Focal loss with class-balanced sampling raises expected calibration error from 0.046 to 0.203 for ResNet-50 (4.4x), from 0.060 to 0.178 for EfficientNet-B0 (3.0x), and from 0.146 to 0.199 for ViT-S/16 (1.36x). Strong augmentation keeps ECE between 0.046 and 0.058. The Brier score follows the same pattern.
+Table~\ref{tab:calibration} reports test-set calibration. At the CE baseline, ECE is 0.040 for ResNet-50, 0.051 for EfficientNet-B0, and 0.060 for ViT-S/16. Focal+CB raises it to 0.119 and 0.092 for the CNNs and leaves the ViT at 0.050. The rise is smaller than under the original protocol, where Focal+CB reached about 0.18 to 0.20; the original rule picked earlier focal CNN checkpoints, which may have been less well calibrated. Class-balanced sampling alone raises ECE to 0.084 to 0.092 in every architecture, and strong augmentation leaves it between 0.044 and 0.052.
 
-The calibration change tracks the CNN sensitivity loss, but it does not explain the ViT gain. The ViT gains sensitivity and AUC while its ECE rises only modestly. The CNNs lose both sensitivity and calibration. Calibration is therefore part of the mechanism for the CNN degradation, not a single explanation for the ranking reversal.
+After the prior-shift correction and validation temperature scaling, the Focal+CB ECE is 0.053, 0.048, and 0.046, against 0.024, 0.026, and 0.042 for the corrected CE baselines. For the ViT, the prior shift alone over-corrects (ECE 0.087) and the temperature restores it, which suggests that the AUC-selected focal ViT does not inflate its scores as much as the effective training prior implies. Both corrections are monotone and leave the AUC and the operating point unchanged.
 
-Figure~\ref{fig:calibration} shows reliability curves and ECE by lightness group. The dark stratum has higher ECE than the light and medium groups for all three CE baselines: 0.126 against 0.072 and 0.052 for EfficientNet-B0, 0.132 against 0.063 and 0.035 for ResNet-50, and 0.235 against 0.144 and 0.149 for ViT-S/16.
+Figure~\ref{fig:calibration} shows reliability curves and ECE by lightness group. The dark stratum has the highest ECE for every CE baseline: 0.123 against 0.049 and 0.037 for ResNet-50, 0.120 against 0.068 and 0.043 for EfficientNet-B0, and 0.139 against 0.069 and 0.055 for ViT-S/16.
 
 \input{tables/calibration}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{calibration_reliability.png}
-  \caption{Calibration at the CE baseline. (A) Reliability curves for the three architectures. (B) Expected calibration error by lightness group, mean and seed standard deviation across the CE-baseline runs.}
+  \caption{Calibration of the Stage 3 models. (A) Reliability curves for the CE baselines. (B) Expected calibration error by lightness group, mean and seed standard deviation across the CE-baseline runs.}
   \label{fig:calibration}
 \end{figure}
 
@@ -58,15 +63,13 @@ Figure~\ref{fig:calibration} shows reliability curves and ECE by lightness group
 
 The test set contains 644 light images with 81 melanomas, 840 medium images with 99 melanomas, and 43 dark images with 6 melanomas at the pre-declared cutoff $L^*\leq55$. The dark stratum is 2.8\% of the test set and 3.2\% of the melanoma cases.
 
-Table~\ref{tab:fairness} reports the per-group sensitivity at 95\% specificity for the nine Stage 2 configurations at the pre-declared cutoff. At this cutoff the dark stratum has the lowest AUC in all nine configurations, 0.71 to 0.87, against 0.83 to 0.90 for light and 0.88 to 0.93 for medium. It also has the highest false positive rate, 0.08 to 0.19, against 0.04 to 0.07 for the other two groups.
+Table~\ref{tab:fairness} reports per-group results for the 15 Stage 3 configurations. At this cutoff the dark stratum has the lowest AUC in all 15 configurations, 0.78 to 0.87, against 0.87 to 0.91 for light and 0.91 to 0.95 for medium. It also has the highest false positive rate in all 15, 0.070 to 0.205, against 0.038 to 0.060 for the other groups. Dark sensitivity varies from 0.300 to 0.667 with six melanomas and is not consistently lower than light sensitivity.
 
-The dark AUC differences are not statistically supported. Across the three cutoffs, none of the 54 dark-versus-light and dark-versus-medium AUC comparisons has a bootstrap interval that excludes zero. The dark AUC deficit is therefore a descriptive feature of the strict cutoff, not a confirmed group difference. The false positive rate is more consistent: it is 0.126 at $L^*\leq55$, 0.086 at $L^*\leq58$, and 0.073 at $L^*\leq60$, against 0.047 to 0.050 for light and medium at every cutoff. The intervals around these group rates remain wide.
+The AUC deficit is consistent in direction but not statistically supported per run. Of the 90 dark-versus-light and dark-versus-medium AUC comparisons across the three cutoffs and the 15 CE-baseline runs, four have a bootstrap interval that excludes zero, all of them dark versus medium; this is close to the number expected by chance. The false positive rate is the more stable signal (Table~\ref{tab:darkskin}): for the CE baselines it is 0.115 at $L^*\leq55$, 0.092 at $L^*\leq58$, and 0.080 at $L^*\leq60$, against 0.052 to 0.054 for light and medium at every cutoff. The dark AUC, by contrast, is 0.826 at $L^*\leq55$ but 0.897 and 0.896 at the wider cutoffs, level with the light stratum (0.894) (Figure~\ref{fig:darkskin}).
 
-Dark sensitivity is 0.500 with 6 melanomas, 0.648 with 12, and 0.580 with 23. It is not consistently lower than light sensitivity, and the intervals are wide.
+The adjusted models in Table~\ref{tab:adjusted} separate false positives from false negatives and adjust for acquisition source. Lighter perilesional skin is associated with more missed melanomas: the $L^*$ odds ratio per standard deviation is 2.04 (1.39 to 3.17) for ResNet-50, 2.01 (1.48 to 2.85) for EfficientNet-B0, and 1.42 (0.98 to 2.27) for ViT-S/16. Darker skin is associated with more false positives in all three: the $L^*$ odds ratios are 0.65 (0.50 to 0.79), 0.80 (0.63 to 0.95), and 0.79 (0.59 to 0.96). Lesion contrast is associated with more false positives (odds ratios 1.52, 1.39, and 1.32) and with fewer false negatives (0.49, 0.60, and 0.53) in all three architectures, and every one of these intervals excludes 1. In a pooled model of any error, the $L^*$ odds ratio is close to 1 for every architecture (0.93 to 1.01), because the two error types move in opposite directions.
 
-The adjusted models in Table~\ref{tab:adjusted} separate false positives from false negatives. The most robust fairness result is the false-negative association: the $L^*$ odds ratio is 1.74 for ResNet-50, 1.66 for EfficientNet-B0, and 1.75 for ViT-S/16, and all three intervals exclude 1. Lighter skin is associated with more missed melanomas. The false-positive association points in the opposite direction, with $L^*$ odds ratios of 0.78, 0.88, and 0.77, but the interval excludes 1 only for ResNet-50. Lesion contrast is associated with more false positives for all three architectures (OR 2.05, 1.69, and 2.42) and with fewer false negatives for ViT-S/16 (OR 0.48; the other two intervals include 1).
-
-The error-type pattern is therefore suggestive but not symmetric. The supported finding is the false-negative lightness association; the false-positive association and the contrast effects are directionally consistent but imprecise. A single sensitivity or AUC summary hides this distinction.
+These associations replicate the Stage 2 analysis, where the false-negative $L^*$ odds ratios were 1.57 to 1.64. They do not depend on the protocol that reversed the imbalance result.
 
 \input{tables/fairness}
 \input{tables/dark_skin}
@@ -74,30 +77,21 @@ The error-type pattern is therefore suggestive but not symmetric. The supported 
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{fairness_by_tone.png}
-  \caption{AUC and false positive rate by lightness group for the nine Stage 2 configurations at the pre-declared cutoff $L^*\leq55$. Columns are training conditions and lines are architectures. Points are means across three seeds; error bars are seed standard deviations. The dark stratum contains 43 test images and six melanoma cases.}
-  \label{fig:fairness}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
   \includegraphics[width=\linewidth]{dark_skin_robustness.png}
-  \caption{Dark-skin robustness. (A) AUC by $L^*$ cutoff. (B) False positive rate by cutoff. (C) Adjusted odds ratios for the pooled error model, per standard deviation, with lesion-cluster bootstrap 95\% CIs. The false-positive and false-negative models are reported separately in Table~\ref{tab:adjusted}.}
+  \caption{Dark-skin robustness for the Stage 3 CE baselines. (A) AUC by $L^*$ cutoff. (B) False positive rate by cutoff. (C) Adjusted odds ratios per standard deviation of perilesional $L^*$ for false negatives (circles) and false positives (squares), with lesion-cluster bootstrap 95\% CIs. Points and error bars in A and B are means and standard deviations across the 15 CE-baseline runs.}
   \label{fig:darkskin}
 \end{figure}
 
 \subsection{Quantitative XAI}
 \label{sec:xai}
 
-Table~\ref{tab:xai} reports attribution mass inside the lesion, pointing-game accuracy, attribution IoU, and error rate for the CE-baseline models. Grad-CAM targets the true class, so a false-negative heatmap describes the evidence for melanoma rather than the benign prediction. Table~\ref{tab:xaicorr} reports the Spearman correlations. The sample contains 129 dark images and 18 melanomas across the three seeds, and 450 light and 450 medium images.
+Table~\ref{tab:xai} reports attribution mass inside the lesion, pointing-game accuracy, attribution IoU, and error rate for the Stage 3 CE-baseline models, and Table~\ref{tab:xaicorr} reports the Spearman correlations. Grad-CAM targets the true class, so a false-negative heatmap describes the evidence for melanoma rather than the benign prediction. Across five seeds the analysis covers 3,220 light, 4,200 medium, and 215 dark image evaluations per architecture.
 
-Attribution mass inside the lesion is highest in the light stratum for all three architectures. EfficientNet-B0 falls from $0.450$ to $0.368$ to $0.331$ across light, medium, and dark. ViT-S/16 falls from $0.341$ to $0.260$ and then stays near $0.261$. ResNet-50 falls from $0.571$ to $0.480$ and then to $0.465$. The mass-tone correlation is negative and significant for every architecture: $-0.176$ for EfficientNet-B0, $-0.174$ for ResNet-50, and $-0.181$ for ViT-S/16, all with $p<10^{-7}$.
+All three architectures place less attribution inside the lesion on darker images. The mass-tone correlation is $-0.143$ for EfficientNet-B0, $-0.107$ for ResNet-50, and $-0.148$ for ViT-S/16, all with $p<10^{-20}$. For EfficientNet-B0 the mass falls steadily from 0.430 (light) to 0.350 (medium) and 0.327 (dark). For ResNet-50 and ViT-S/16 the main drop is from light to medium (0.511 to 0.453 and 0.547 to 0.488), and the dark stratum sits slightly above medium (0.478 and 0.501). Pointing-game accuracy is lowest in the dark stratum for every architecture: 0.481, 0.660, and 0.688. Attribution IoU is also lowest in the dark stratum for every architecture.
 
-Pointing-game accuracy is lowest in the dark stratum in every case: $0.448$ for EfficientNet-B0, $0.636$ for ResNet-50, and $0.248$ for ViT-S/16. Attribution IoU follows the same direction for EfficientNet-B0 and ViT-S/16, and is lower in the dark stratum than the medium stratum for ResNet-50 ($0.301$ vs $0.346$).
+Under the revised protocol the ViT localizes as well as the CNNs. Its attribution mass is the highest of the three in every stratum, and its pointing-game accuracy in the dark stratum is the highest. In Stage 2 the undertrained ViT had the lowest localization scores (dark pointing-game accuracy 0.248), so the transformer's poor Grad-CAM localization in the original protocol was also partly a training artifact.
 
-The mass-error correlation is architecture-dependent. It is negative for ResNet-50 ($-0.230$, $p<10^{-13}$) and EfficientNet-B0 ($-0.129$, $p<10^{-4}$), and positive for ViT-S/16 ($+0.136$, $p<10^{-4}$). Higher attribution mass inside the lesion is associated with fewer errors for the CNNs and with more errors for the ViT. The false-negative and false-positive mass values do not separate consistently: false negatives vs false positives are $0.374$ vs $0.260$ for EfficientNet-B0, $0.346$ vs $0.349$ for ResNet-50, and $0.420$ vs $0.344$ for ViT-S/16. The XAI signal is a group-level tone gradient, not a consistent per-image error marker.
-
-Figure~\ref{fig:xai} shows the group pattern. ResNet-50 localizes best in absolute terms and has the highest dark-stratum attribution mass, but its dark false positive rate is not the lowest. Localization quality and error rate move together across tone groups, but they do not rank architectures the same way.
+The relation between attribution and error is architecture-dependent and weak. The mass-error correlation is $-0.186$ for ResNet-50 ($p<10^{-50}$), $+0.008$ for EfficientNet-B0 ($p=0.49$), and $+0.090$ for ViT-S/16 ($p<10^{-14}$). False negatives and false positives do not separate consistently: their mean attribution masses are 0.504 and 0.324 for EfficientNet-B0, 0.328 and 0.325 for ResNet-50, and 0.549 and 0.585 for ViT-S/16 (Supplementary Table~S4). Attribution mass is therefore a group-level signal that tracks lightness in every architecture, not a per-image error marker.
 
 \input{tables/xai}
 \input{tables/xai_correlations}
@@ -105,26 +99,22 @@ Figure~\ref{fig:xai} shows the group pattern. ResNet-50 localizes best in absolu
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{xai_by_tone.png}
-  \caption{Attribution mass inside the lesion and pointing-game accuracy by lightness group for the three CE-baseline architectures. Grad-CAM targets the true class. Bars are means across three seeds; error bars are seed standard deviations. The sample contains all 43 dark test images per seed and 150 randomly drawn light and medium images per seed.}
+  \caption{Attribution mass inside the lesion and pointing-game accuracy by lightness group for the Stage 3 CE-baseline models. Grad-CAM targets the true class. Bars are means across five seeds; error bars are seed standard deviations. Counts are image evaluations per architecture summed over seeds.}
   \label{fig:xai}
 \end{figure}
 
-\subsection{External tone-labeled validation}
+\subsection{External validation on HIBA}
 \label{sec:external}
 
-Table~\ref{tab:external} reports the HIBA dermoscopic subset for the CE-baseline models: 1,280 images and 196 melanomas. We applied the HAM10000 validation threshold at 95\% specificity without refitting. HIBA contains Fitzpatrick I-IV only, and 108 images have no Fitzpatrick label.
+Table~\ref{tab:external} reports the HIBA dermoscopic subset for the Stage 3 CE baselines: 1,280 images and 196 melanomas. We applied the HAM10000 validation threshold at 95\% specificity without refitting. HIBA contains Fitzpatrick I-IV only, and 108 images have no Fitzpatrick label.
 
-Sensitivity drops on the external set. ResNet-50 reaches $0.391\pm0.056$ at $0.944$ specificity, EfficientNet-B0 reaches $0.396\pm0.036$ at $0.922$, and ViT-S/16 reaches $0.221\pm0.130$ at $0.967$. The AUCs are $0.807\pm0.018$, $0.782\pm0.024$, and $0.791\pm0.027$. On the HAM10000 test set the same models reached $0.57$, $0.56$, and $0.40$ sensitivity at 95\% specificity. Both CNNs outperform the transformer on external sensitivity, but the two CNNs are within half a point of each other. The absolute drop is consistent with domain shift between the Argentine HIBA collection and HAM10000.
+Performance drops on the external set, as expected under a change of clinic, population, and device. Sensitivity is $0.362\pm0.048$ for ResNet-50, $0.360\pm0.038$ for EfficientNet-B0, and $0.388\pm0.070$ for ViT-S/16, at specificities of 0.946, 0.944, and 0.951, so the frozen threshold keeps its specificity but loses about 20 points of sensitivity. The AUCs are $0.796\pm0.022$, $0.768\pm0.034$, and $0.837\pm0.011$. The in-domain ranking carries over: the ViT has the highest external AUC.
 
-The per-type estimates do not show a monotonic skin-tone gradient. For Fitzpatrick I, II, and III, CNN sensitivity ranges from $0.35$ to $0.43$, and the ViT is lower at $0.20$ to $0.33$. Fitzpatrick IV contains 25 images and no melanomas, so sensitivity is undefined and only specificity can be estimated. The group sizes are unbalanced: 804 of the 1,280 images are type II. HIBA cannot test the dark-skin claim, because it has almost no type IV melanoma cases and no type V-VI images at all.
+The per-type estimates do not show a monotonic skin-tone gradient. Sensitivity ranges from 0.22 to 0.42 across Fitzpatrick I, II, and III, and the ordering of the types differs by architecture. Fitzpatrick IV contains 25 images and no melanomas, so only specificity can be estimated. Most images are type II (804 of 1,280). HIBA therefore cannot test a dark-skin claim.
 
-Table~\ref{tab:externalcond} compares all three conditions on HIBA. The focal condition raises ViT-S/16 sensitivity from $0.221$ to $0.315$, lowers ResNet-50 from $0.391$ to $0.315$, and lowers EfficientNet-B0 from $0.396$ to $0.253$. The ViT change is $+0.219$, $+0.127$, and $-0.067$ across seeds, with a mean of $+0.094$; the CNN changes are negative in every seed for EfficientNet-B0 and in two of three seeds for ResNet-50. The focal evidence is therefore directionally consistent for the CNNs and suggestive but not confirmatory for the ViT.
+Table~\ref{tab:externalcond} compares three conditions on HIBA. Focal+CB does not change external sensitivity: the paired changes are $+0.017$ ($-0.065$ to $+0.100$) for ResNet-50, $+0.006$ ($-0.091$ to $+0.104$) for EfficientNet-B0, and $+0.053$ ($-0.101$ to $+0.207$) for ViT-S/16. Under the original protocol, the same comparison had shown a consistent CNN loss under focal loss; that external result also does not survive the revised protocol.
 
-Strong augmentation is the best external condition for all three architectures. It raises sensitivity from $0.391$ to $0.480$ for ResNet-50, from $0.396$ to $0.406$ for EfficientNet-B0, and from $0.221$ to $0.391$ for ViT-S/16. The corresponding AUCs are $0.835$, $0.847$, and $0.824$, and the oracle 95\% specificity sensitivities are $0.408$, $0.427$, and $0.389$. The near-neutral in-domain effect of strong augmentation therefore does not transfer: the condition designed to simulate domain shift improves external generalization. This is a more favorable external result for the Stage 1 winner than the in-domain benchmark suggested.
-
-At the oracle 95\% specificity threshold, focal loss leaves the CNN sensitivity below the CE baseline and raises the ViT, while strong augmentation raises all three above the CE baseline. The external AUC ordering also differs from the in-domain ordering. Under focal loss the external AUC ranking is ViT-S/16 $0.794$, ResNet-50 $0.774$, and EfficientNet-B0 $0.722$, while the in-domain focal ranking is EfficientNet-B0 $0.891$, ResNet-50 $0.884$, and ViT-S/16 $0.872$. HIBA is a different imaging regime, not a clean replication.
-
-The external validation supports a limited conclusion. Strong augmentation generalizes best, the CNN sensitivity loss under focal loss is consistent in direction, and the ViT focal gain is possible but seed-dependent. The absolute performance of the CE baseline does not transfer, so the operating point needs recalibration for a new source. The tone-specific claim remains limited to the image-based lightness strata in HAM10000 and to the error-type associations reported above.
+Strong augmentation is the one intervention that transfers. It raises external sensitivity by $+0.110$ ($+0.045$ to $+0.176$) for ResNet-50, $+0.094$ ($-0.019$ to $+0.207$) for EfficientNet-B0, and $+0.092$ ($+0.001$ to $+0.183$) for ViT-S/16, and the change is positive in all five seeds of every architecture. It also raises external AUC by $0.026$ to $0.053$, again in every seed, and the ViT with strong augmentation reaches the best external result: AUC 0.873 and oracle sensitivity at 95\% specificity of 0.507. In domain, the same condition changed sensitivity by only $-1.4$ to $-1.6$ points. Augmentation designed to simulate acquisition shift therefore helps where acquisition actually shifts, and an in-domain benchmark does not show it.
 
 \input{tables/external}
 \input{tables/external_conditions}

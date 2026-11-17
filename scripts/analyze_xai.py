@@ -58,6 +58,7 @@ def parse_args(argv=None):
     parser.add_argument("--out-dir", default="results/xai")
     parser.add_argument("--backbones", default="resnet50,efficientnet_b0,vit_s")
     parser.add_argument("--seeds", default="1,2,3")
+    parser.add_argument("--run-prefix", default="stage2")
     parser.add_argument("--img-size", type=int, default=224)
     parser.add_argument(
         "--max-images",
@@ -209,7 +210,7 @@ def main(argv=None):
             print(f"Unknown backbone {backbone_key}", file=sys.stderr)
             continue
         for seed in seeds:
-            run_id = f"stage2_{backbone_key}_ce_random_seed{seed}"
+            run_id = f"{args.run_prefix}_{backbone_key}_ce_random_seed{seed}"
             checkpoint = checkpoints_root / f"{run_id}.pt"
             predictions_path = predictions_root / run_id / "predictions_test.csv"
             if not checkpoint.exists() or not predictions_path.exists():

@@ -62,8 +62,9 @@ def main(argv=None):
     args = parse_args(argv)
     runs = load_runs(resolve(args.predictions_root))
     rows = []
+    seeds = sorted({seed for (_, _, seed) in runs})
     for backbone in BACKBONES:
-        for seed in (1, 2, 3):
+        for seed in seeds:
             ce = runs.get((backbone, "ce_random", seed))
             focal = runs.get((backbone, "focal2_cb", seed))
             strong = runs.get((backbone, "ce_random_strong", seed))
@@ -96,7 +97,7 @@ def main(argv=None):
                     }
                 )
 
-    for seed in (1, 2, 3):
+    for seed in seeds:
         for first, second in (
             ("resnet50", "vit_s"),
             ("efficientnet_b0", "vit_s"),

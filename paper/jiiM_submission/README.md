@@ -7,17 +7,17 @@ Journal: Journal of Imaging Informatics in Medicine (JIIM), Springer.
 - `JIIM_full.pdf`: full manuscript with author names, affiliations, corresponding author, ORCID, and statements.
 - `JIIM_blinded.pdf`: blinded manuscript with no author names, affiliations, or repository URL, for double-blind review.
 - `JIIM_title_page.pdf`: separate title page with author information and the Statements and Declarations section.
-- `JIIM_supplement.pdf`: supplementary information with per-seed metrics, XAI error-type mass, training curves, ROC curve, and data/code notes.
+- `JIIM_supplement.pdf`: supplementary information with the learning rate check, per-seed Stage 3 and Stage 2 metrics, XAI error-type mass, Stage 2 training and ROC curves, and data/code notes.
 - `cover_letter.md`: cover letter addressed to JIIM.
 - `submission_checklist.md`: submission checklist.
 - `source/`: LaTeX source, sections, generated tables, figures, and bibliography. The system can compile the source; `main.tex` is the full version and `main_blinded.tex` is the blinded version.
 
 ## Status
 
-- Abstract: 247 words, within the JIIM 150 to 250 range.
-- Keywords: 6.
-- References: 40, numbered in citation order with `unsrtnat`.
-- Tables: 12. Figures: 4.
+- Abstract: 243 words, within the JIIM 150 to 250 range.
+- Keywords: 7.
+- References: 46, numbered in citation order with `unsrtnat`.
+- Tables: 15. Figures: 3.
 - Author order: Sun Baoshan first and corresponding; Nursultan Zhanat second.
 - Corresponding author: Sun Baoshan, sunbaoshan@tiangong.edu.cn, ORCID 0000-0003-2193-3232.
 - Second author: Nursultan Zhanat, zhanat.nursultan1@gmail.com, ORCID 0009-0006-7839-4785.

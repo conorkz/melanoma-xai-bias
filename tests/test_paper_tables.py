@@ -195,22 +195,116 @@ def test_calibration_table_contains_ece_and_brier():
     assert "Brier" in output
 
 
-def test_ranking_table_contains_did_rows():
+def _seed_frames(seeds=(1, 2, 3, 4, 5)):
+    paired_per_seed = pd.DataFrame(
+        [
+            {"backbone": backbone, "condition": condition, "seed": seed,
+             "delta_sensitivity": -0.02 if seed % 2 else 0.01}
+            for backbone in ("resnet50", "vit_s")
+            for condition in ("focal2_cb", "ce_cb")
+            for seed in seeds
+        ]
+    )
+    paired_summary = pd.DataFrame(
+        [
+            {"backbone": backbone, "condition": condition, "metric": "delta_sensitivity",
+             "mean": -0.01, "sd": 0.02, "t_low": -0.04, "t_high": 0.02, "n_seeds": len(seeds)}
+            for backbone in ("resnet50", "vit_s")
+            for condition in ("focal2_cb", "ce_cb")
+        ]
+    )
+    did_per_seed = pd.DataFrame(
+        [
+            {"condition": "focal2_cb", "architecture_a": "resnet50",
+             "architecture_b": "vit_s", "seed": seed, "delta_sensitivity": -0.01}
+            for seed in seeds
+        ]
+    )
+    did_summary = pd.DataFrame(
+        [
+            {"condition": "focal2_cb", "architecture_a": "resnet50", "architecture_b": "vit_s",
+             "metric": "delta_sensitivity", "mean": -0.016, "sd": 0.08,
+             "t_low": -0.115, "t_high": 0.082, "n_seeds": len(seeds)}
+        ]
+    )
+    return paired_summary, did_summary, paired_per_seed, did_per_seed
+
+
+def test_seed_ranking_table_handles_five_seeds_and_ablations():
+    generator = load_script("build_paper_tables")
+    output = generator.seed_ranking_table(*_seed_frames(), "Caption", "tab:ranking")
+    assert "Focal+CB vs CE" in output
+    assert "CE+CB vs CE" in output
+    assert "3/5 negative" in output
+    assert "Interaction, Focal+CB" in output
+    assert "ResNet-50 minus ViT-S/16" in output
+    # Focal+CB rows come before the CE+CB ablation rows.
+    assert output.index("Focal+CB vs CE") < output.index("CE+CB vs CE")
+
+
+def test_seed_ranking_table_accepts_stage2_did_without_condition():
+    generator = load_script("build_paper_tables")
+    paired_summary, did_summary, paired_per_seed, did_per_seed = _seed_frames((1, 2, 3))
+    output = generator.seed_ranking_table(
+        paired_summary,
+        did_summary.drop(columns="condition"),
+        paired_per_seed,
+        did_per_seed.drop(columns="condition"),
+        "Caption",
+        "tab:ranking",
+    )
+    assert "Interaction, Focal+CB" in output
+    assert "3/3 negative" in output
+
+
+def test_protocol_table_compares_both_stages(tmp_path):
+    generator = load_script("build_paper_tables")
+    for name, n_seeds, delta in (("stage2", 3, 0.082), ("stage3", 5, -0.024)):
+        directory = tmp_path / name
+        directory.mkdir()
+        pd.DataFrame(
+            [
+                {"backbone": "vit_s", "condition": "focal2_cb", "metric": "delta_sensitivity",
+                 "mean": delta, "sd": 0.05, "t_low": delta - 0.1, "t_high": delta + 0.1,
+                 "n_seeds": n_seeds}
+            ]
+        ).to_csv(directory / "paired_summary.csv", index=False)
+        pd.DataFrame(
+            [
+                {"backbone": "vit_s", "condition": "ce_random", "seed": seed,
+                 "sensitivity": 0.6, "auc": 0.9}
+                for seed in range(1, n_seeds + 1)
+            ]
+        ).to_csv(directory / f"{name}_per_seed.csv", index=False)
+    output = generator.protocol_table(
+        tmp_path / "stage2", tmp_path / "stage3", "Caption", "tab:protocol"
+    )
+    assert "Original & 3" in output
+    assert "Revised & 5" in output
+    assert "+0.082" in output
+    assert "-0.024" in output
+
+
+def test_per_seed_table_lists_every_seed():
     generator = load_script("build_paper_tables")
     frame = pd.DataFrame(
-        {
-            "test": ["paired", "did"],
-            "comparison": ["focal2_cb_vs_ce", "resnet50_minus_vit_s"],
-            "backbone": ["resnet50", "resnet50_vs_vit_s"],
-            "delta_mean": [-0.116, -0.199],
-            "ci_low_min": [-0.244, -0.437],
-            "ci_high_max": [0.031, -0.011],
-            "p_max": [0.248, 0.032],
-        }
+        [
+            {"backbone": "resnet50", "condition": condition, "seed": seed,
+             "sensitivity": 0.5 + seed / 100, "auc": 0.9}
+            for condition in ("ce_random", "focal2_cb")
+            for seed in range(1, 6)
+        ]
     )
-    output = generator.ranking_table(frame, "Caption", "tab:ranking")
-    assert "Difference in differences" in output
-    assert "ResNet-50 minus ViT-S/16" in output
+    output = generator.per_seed_table(frame, "Caption", "tab:suppstage3")
+    assert "ResNet-50 & CE & 0.510 & 0.520 & 0.530 & 0.540 & 0.550" in output
+    assert "Sensitivity by seed" in output
+
+
+def test_t_interval_supports_five_seeds():
+    generator = load_script("build_paper_tables")
+    text = generator.t_interval(0.5, 0.1, n=5)
+    half = 2.776 * 0.1 / math.sqrt(5)
+    assert f"{0.5 - half:.3f}" in text and f"{0.5 + half:.3f}" in text
 
 
 def test_fairness_table_contains_three_groups():

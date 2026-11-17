@@ -1,18 +1,18 @@
 \begin{table}[h]
 \centering
 \small
-\caption{Attribution mass by error type for the true-class Grad-CAM analysis. Values are means across images and seeds.}
+\caption{Attribution mass inside the lesion by error type for the Stage 3 CE baselines, with Grad-CAM targeting the true class. Values are means across image evaluations pooled over five seeds.}
 \label{tab:suppxai}
 \begin{tabular}{llcc}
 \toprule
-Architecture & Error type & Images & Attribution mass \\
+Architecture & Error type & Image evaluations & Attribution mass \\
 \midrule
-EfficientNet-B0 & FN & 23 & 0.374 \\
-EfficientNet-B0 & FP & 31 & 0.260 \\
-ResNet-50 & FN & 22 & 0.346 \\
-ResNet-50 & FP & 25 & 0.349 \\
-ViT-S/16 & FN & 30 & 0.420 \\
-ViT-S/16 & FP & 31 & 0.344 \\
+ResNet-50 & FN & 391 & 0.328 \\
+ResNet-50 & FP & 379 & 0.325 \\
+EfficientNet-B0 & FN & 412 & 0.504 \\
+EfficientNet-B0 & FP & 368 & 0.324 \\
+ViT-S/16 & FN & 353 & 0.549 \\
+ViT-S/16 & FP & 358 & 0.585 \\
 \bottomrule
 \end{tabular}
 \end{table}

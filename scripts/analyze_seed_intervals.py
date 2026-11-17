@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Seed-level inference for the Stage 2 benchmark.
+"""Seed-level inference for the benchmark stages.
 
 The experimental unit for a training intervention is the seed, not the test
 image. This script reports per-seed metrics, seed-level 95% t intervals for the
@@ -41,6 +41,11 @@ def parse_args(argv=None):
         default="outputs/kaggle/rq1-stage-2/melanoma-xai-bias/extracted/outputs/runs",
     )
     parser.add_argument("--out-dir", default="results/seed_intervals")
+    parser.add_argument(
+        "--label",
+        default="stage2",
+        help="Prefix for the per-seed and summary file names",
+    )
     return parser.parse_args(argv)
 
 
@@ -129,7 +134,7 @@ def main(argv=None):
         )
     per_seed = pd.DataFrame(rows).sort_values(["backbone", "condition", "seed"])
     out_dir = ensure_dir(resolve(args.out_dir))
-    per_seed.to_csv(out_dir / "stage2_per_seed.csv", index=False)
+    per_seed.to_csv(out_dir / f"{args.label}_per_seed.csv", index=False)
 
     summary_rows = []
     for (backbone, condition), group in per_seed.groupby(["backbone", "condition"]):
@@ -153,13 +158,19 @@ def main(argv=None):
                 }
             )
     summary = pd.DataFrame(summary_rows)
-    summary.to_csv(out_dir / "stage2_summary.csv", index=False)
+    summary.to_csv(out_dir / f"{args.label}_summary.csv", index=False)
 
+    seeds = sorted({seed for (_, _, seed) in runs})
+    treatments = [
+        condition
+        for condition in sorted({condition for (_, condition, _) in runs})
+        if condition != "ce_random"
+    ]
     paired_rows = []
     for backbone in BACKBONES:
-        for seed in (1, 2, 3):
+        for seed in seeds:
             ce = runs.get((backbone, "ce_random", seed))
-            for condition in ("focal2_cb", "ce_random_strong"):
+            for condition in treatments:
                 other = runs.get((backbone, condition, seed))
                 if ce is None or other is None:
                     continue
@@ -195,7 +206,7 @@ def main(argv=None):
     paired_summary.to_csv(out_dir / "paired_summary.csv", index=False)
 
     did_rows = []
-    for seed in (1, 2, 3):
+    for condition, seed in [(c, s) for c in treatments for s in seeds]:
         for first, second in (
             ("resnet50", "vit_s"),
             ("efficientnet_b0", "vit_s"),
@@ -205,21 +216,22 @@ def main(argv=None):
                 key: runs.get((key[0], key[1], seed))
                 for key in (
                     (first, "ce_random"),
-                    (first, "focal2_cb"),
+                    (first, condition),
                     (second, "ce_random"),
-                    (second, "focal2_cb"),
+                    (second, condition),
                 )
             }
             if any(frame is None for frame in frames.values()):
                 continue
             first_change = paired_changes(
-                frames[(first, "ce_random")], frames[(first, "focal2_cb")]
+                frames[(first, "ce_random")], frames[(first, condition)]
             )
             second_change = paired_changes(
-                frames[(second, "ce_random")], frames[(second, "focal2_cb")]
+                frames[(second, "ce_random")], frames[(second, condition)]
             )
             did_rows.append(
                 {
+                    "condition": condition,
                     "architecture_a": first,
                     "architecture_b": second,
                     "seed": seed,
@@ -232,11 +244,14 @@ def main(argv=None):
     did.to_csv(out_dir / "did_per_seed.csv", index=False)
 
     did_summary_rows = []
-    for (first, second), group in did.groupby(["architecture_a", "architecture_b"]):
+    for (condition, first, second), group in did.groupby(
+        ["condition", "architecture_a", "architecture_b"]
+    ):
         for metric_name in ("delta_sensitivity", "delta_auc"):
             mean, sd, low, high = t_summary(group[metric_name].to_numpy())
             did_summary_rows.append(
                 {
+                    "condition": condition,
                     "architecture_a": first,
                     "architecture_b": second,
                     "metric": metric_name,
@@ -251,8 +266,8 @@ def main(argv=None):
     did_summary.to_csv(out_dir / "did_summary.csv", index=False)
 
     auc_rows = []
-    for seed in (1, 2, 3):
-        for condition in ("ce_random", "focal2_cb"):
+    for seed in seeds:
+        for condition in ["ce_random", *treatments]:
             for first, second in (
                 ("resnet50", "vit_s"),
                 ("efficientnet_b0", "vit_s"),
@@ -301,9 +316,9 @@ def main(argv=None):
     lines = [
         "# Seed-level inference",
         "",
-        "The seed is the experimental unit. Intervals are 95% t intervals across three seeds.",
+        f"The seed is the experimental unit. Intervals are 95% t intervals across {len(seeds)} seeds.",
         "",
-        "## Stage 2 sensitivity",
+        f"## {args.label} sensitivity",
         "",
         "| Configuration | Mean | SD | 95% t interval |",
         "|---|---|---|---|",
@@ -331,13 +346,13 @@ def main(argv=None):
         "",
         "## Difference in differences",
         "",
-        "| Comparison | Mean | SD | 95% t interval |",
-        "|---|---|---|---|",
+        "| Condition | Comparison | Mean | SD | 95% t interval |",
+        "|---|---|---|---|---|",
     ]
     did_sens = did_summary[did_summary["metric"] == "delta_sensitivity"]
     for _, row in did_sens.iterrows():
         lines.append(
-            f"| {row['architecture_a']} minus {row['architecture_b']} | "
+            f"| {row['condition']} | {row['architecture_a']} minus {row['architecture_b']} | "
             f"{row['mean']:+.3f} | {row['sd']:.3f} | "
             f"{row['t_low']:+.3f} to {row['t_high']:+.3f} |"
         )
@@ -347,7 +362,7 @@ def main(argv=None):
 
     print(sens[["backbone", "condition", "mean", "sd", "t_low", "t_high"]].to_string(index=False))
     print(paired_sens[["backbone", "condition", "mean", "sd", "t_low", "t_high"]].to_string(index=False))
-    print(did_sens[["architecture_a", "architecture_b", "mean", "sd", "t_low", "t_high"]].to_string(index=False))
+    print(did_sens[["condition", "architecture_a", "architecture_b", "mean", "sd", "t_low", "t_high"]].to_string(index=False))
     print(f"Saved seed-level inference to {out_dir}")
     return 0
 

@@ -4,13 +4,17 @@
 
 Deep learning for skin lesion classification moved from dermatologist-level comparisons on single datasets \citep{esteva2017dermatologist} to multi-source benchmarks. HAM10000 contributed 10,015 dermoscopic images across seven diagnostic classes \citep{tschandl2018ham10000}, and the ISIC challenges expanded the scale and the number of sources \citep{codella2018isic}. BCN20000 added 18,946 dermoscopic images with eight diagnostic classes \citep{combalia2019bcn20000}, and the ISIC 2020 collection added patient-level context and a clinical endpoint \citep{rotemberg2021isic}. Cassidy et al.\ analysed the ISIC datasets and showed that duplicate lesions, class imbalance, and inconsistent metadata affect benchmark comparisons \citep{cassidy2022isic}. Human-reader studies and reporting guidelines now set a higher bar for evaluation \citep{tschandl2019human,daneshjou2022clear}. Clinical translation also requires prospective validation and reporting standards that go beyond a single benchmark \citep{rajpurkar2022ai}.
 
-Architecture comparisons usually cover a ResNet-style CNN \citep{he2016resnet}, an efficient CNN \citep{tan2019efficientnet}, and a vision transformer \citep{dosovitskiy2021vit}. The comparisons differ in preprocessing, split protocol, and threshold choice, which makes cross-paper rankings difficult to interpret. This paper fixes the split, the seeds, and the operating point so that the architecture and the training condition are the only variables.
+Architecture comparisons usually cover a ResNet-style CNN \citep{he2016resnet}, an efficient CNN \citep{tan2019efficientnet}, and a vision transformer \citep{dosovitskiy2021vit}. The comparisons differ in preprocessing, split protocol, and threshold choice, which makes cross-paper rankings difficult to interpret. This paper fixes the split, the seeds, and the operating point, and compares two training protocols to show how much the comparison depends on them.
 
 \subsection{Class imbalance}
 
 Focal loss down-weights easy examples and is the most common loss-level remedy for class imbalance \citep{lin2017focal}. Class-balanced loss reweights classes by their effective number of samples \citep{cui2019classbalanced}, and class-balanced sampling changes the effective class prior directly. Johnson and Khoshgoftaar survey the broader set of resampling, reweighting, and augmentation methods \citep{johnson2019imbalance}. Controlled studies in convolutional networks show that the best correction depends on the architecture and the dataset size \citep{buda2018systematic}. Strong photometric and geometric augmentation is often added at the same time.
 
-The three interventions are usually evaluated together, so their separate effects and their interactions with architecture are rarely reported. This matters because a correction that is neutral on average may help one architecture and hurt another. The present benchmark treats the correction as a pre-declared condition and tests the interaction directly.
+The three interventions are usually evaluated together, so their separate effects and their interactions with architecture are rarely reported. A correction that is neutral on average could help one architecture and hurt another, so we test the interaction directly and separate focal loss from class-balanced sampling.
+
+\subsection{Benchmark methodology}
+
+Reported differences between methods often depend on how each method was trained and selected. Comparisons of language models \citep{melis2018evaluation} and generative adversarial networks \citep{lucic2018gans} found that differences shrink or vanish when each method receives a comparable tuning budget. Bouthillier et al.\ showed that data sampling, initialization, and hyperparameter choice each add variance that a single-configuration comparison ignores \citep{bouthillier2021variance}, and Dodge et al.\ argued for reporting validation performance as a function of the tuning budget \citep{dodge2019showyourwork}. Varoquaux and Cheplygina reviewed how such choices bias conclusions in medical imaging \citep{varoquaux2022failures}. Checkpoint selection receives less attention than hyperparameter tuning, although the selection metric determines which model is evaluated. This paper shows a case where the selection metric interacts with the training intervention under study.
 
 \subsection{Fairness in dermatology}
 
@@ -24,7 +28,7 @@ Shortcut learning complicates the interpretation of group gaps. Surgical skin ma
 
 \subsection{Calibration}
 
-Thresholded metrics such as sensitivity at a fixed specificity depend on the score distribution, not only on the ranking quality. Modern neural networks are often miscalibrated \citep{guo2017calibration}, and calibration is central to clinical prediction models \citep{vancalster2019calibration}. A correction that changes calibration can therefore change the sensitivity ranking while leaving the AUC ranking stable. This is the mechanism we test, rather than assume.
+Thresholded metrics such as sensitivity at a fixed specificity depend on the score distribution, not only on the ranking quality. Modern neural networks are often miscalibrated \citep{guo2017calibration}, and calibration is central to clinical prediction models \citep{vancalster2019calibration}. A correction that changes calibration changes sensitivity at a fixed probability threshold such as 0.5. It cannot change sensitivity at a threshold re-selected for a target specificity, because recalibration is monotone, unless the validation and test score distributions differ. We test whether calibration explains the sensitivity changes at our operating point.
 
 \subsection{Explainable AI in dermatology}
 
@@ -34,10 +38,10 @@ Qualitative evaluation is not enough for a fairness claim. A heatmap that looks 
 
 \subsection{Quantitative XAI metrics}
 
-Attribution localization can be measured against lesion segmentation masks: the fraction of attribution mass inside the lesion, the pointing game, and the attribution IoU. Faithfulness can be measured with deletion and insertion curves \citep{petsiuk2018rise}, sensitivity-n \citep{samek2017evaluating}, and the ROAD benchmark \citep{hooker2019benchmark}. These metrics make it possible to test whether an explanation is clinically meaningful rather than visually plausible.
+Attribution localization can be measured against lesion segmentation masks: the fraction of attribution mass inside the lesion, the pointing game, and the attribution IoU. Faithfulness can be measured with deletion and insertion curves \citep{petsiuk2018rise}, sensitivity-n \citep{samek2017evaluating}, and remove-and-retrain (ROAR) \citep{hooker2019benchmark}. These metrics make it possible to test whether an explanation is clinically meaningful rather than visually plausible.
 
 Dermatology studies rarely combine these metrics with skin tone stratification. The XAI analysis in this paper uses localization metrics across tone groups and error types, and it reports why faithfulness curves were not informative for these highly confident models.
 
 \subsection{Gap}
 
-Three questions remain open: whether imbalance correction changes the ranking of architecture families, whether calibration explains the change, and whether attribution metrics can detect a group-level problem before it appears in aggregate sensitivity. This paper addresses the first two with paired tests and calibration, and it addresses the third with tone-stratified localization metrics and a false-positive/false-negative split.
+Three questions remain open: whether imbalance correction changes the ranking of architecture families once each architecture is trained and selected fairly, whether the skin-lightness signal in a melanoma classifier is a gap in overall accuracy or a shift between error types, and whether attribution metrics show a group-level difference across lightness strata. This paper addresses the first with two protocols and seed-level interaction tests, the second with adjusted false-positive and false-negative models, and the third with tone-stratified localization metrics.

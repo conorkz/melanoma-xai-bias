@@ -178,21 +178,19 @@ def plot_robustness(thresholds, models, output):
     axis.legend(frameon=False, fontsize=8)
     axis.set_title("B. False positives by cutoff")
 
-    # Panel C: adjusted odds ratios for L* and lesion contrast.
+    # Panel C: adjusted L* odds ratios for false negatives and false positives.
     axis = axes[2]
-    terms = ["L", "delta_L"]
-    labels = {"L": "Perilesional $L^*$", "delta_L": "Lesion contrast"}
-    positions = []
+    outcomes = [("false_negative", "false negative", "o"), ("false_positive", "false positive", "s")]
     ticks = []
     labels_out = []
     position = 0
-    error_models = models[models["outcome"] == "error"]
     for backbone in BACKBONES:
-        subset = error_models[
-            (error_models["backbone"] == backbone) & (error_models["term"].isin(terms))
-        ]
-        for term in terms:
-            row = subset[subset["term"] == term]
+        for outcome, outcome_label, marker in outcomes:
+            row = models[
+                (models["outcome"] == outcome)
+                & (models["backbone"] == backbone)
+                & (models["term"] == "L")
+            ]
             if row.empty:
                 continue
             row = row.iloc[0]
@@ -203,26 +201,29 @@ def plot_robustness(thresholds, models, output):
                     [row["odds_ratio"] - row["ci_low"]],
                     [row["ci_high"] - row["odds_ratio"]],
                 ],
-                marker="o",
+                marker=marker,
                 capsize=3,
                 color=COLORS[backbone],
                 linewidth=1.5,
             )
-            positions.append(position)
             ticks.append(position)
-            labels_out.append(f"{BACKBONES[backbone]} / {labels[term]}")
+            labels_out.append(f"{BACKBONES[backbone]}, {outcome_label}")
             position += 1
         position += 0.5
     axis.axvline(1.0, color="#666666", linestyle="--", linewidth=1)
     axis.set_xscale("log")
+    axis.set_xticks([0.5, 0.7, 1.0, 1.5, 2.0, 3.0])
+    axis.set_xticklabels(["0.5", "0.7", "1", "1.5", "2", "3"])
+    axis.minorticks_off()
     axis.set_yticks(ticks)
     axis.set_yticklabels(labels_out, fontsize=7)
-    axis.set_xlabel("Adjusted odds ratio (95% CI)")
+    axis.invert_yaxis()
+    axis.set_xlabel("Adjusted $L^*$ odds ratio per SD (95% CI)")
     axis.grid(axis="x", color="#DDDDDD", linewidth=0.8)
     axis.set_axisbelow(True)
     axis.spines["top"].set_visible(False)
     axis.spines["right"].set_visible(False)
-    axis.set_title("C. Adjusted error model")
+    axis.set_title("C. Lightness and error type")
 
     figure.tight_layout()
     output = Path(output)
@@ -264,7 +265,7 @@ def main(argv=None):
     figure = plot_robustness(
         sensitivity,
         models,
-        resolve("results/figures/dark_skin_robustness.png"),
+        out_dir / "dark_skin_robustness.png",
     )
 
     lines = [

@@ -242,7 +242,7 @@ def main(argv=None):
     predictions.to_csv(out_dir / "predictions_for_calibration.csv", index=False)
 
     figure = plot_calibration(
-        predictions, summary, resolve("results/figures/calibration_reliability.png")
+        predictions, summary, out_dir / "calibration_reliability.png"
     )
 
     overall = (

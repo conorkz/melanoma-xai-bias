@@ -13,7 +13,7 @@
 \graphicspath{{figures/}}
 \setlength{\emergencystretch}{2em}
 
-\title{Architecture-dependent effects of imbalance correction in melanoma classification: a controlled audit with fairness, calibration, and explanation analysis}
+\title{When imbalance correction appears architecture-dependent: a protocol audit of melanoma classifiers with fairness, calibration, and explanation analysis}
 
 \author{}
 
@@ -25,10 +25,10 @@
 \maketitle
 
 \begin{abstract}
-Melanoma classifiers are trained on imbalanced, predominantly light-skinned data. We ask whether a standard imbalance correction affects CNNs and a vision transformer differently, whether calibration explains the effect, and how errors vary with skin lightness and lesion contrast. We benchmark ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under three pre-declared conditions (cross-entropy, focal loss with class-balanced sampling, and cross-entropy with strong augmentation), with three seeds, a lesion-aware split, and a validation-selected threshold at 95\% specificity. Focal loss with class-balanced sampling raises ViT-S/16 sensitivity by 8.2 points and lowers ResNet-50 by 11.7 and EfficientNet-B0 by 7.9. Every seed moves in the same direction, but every within-architecture interval includes zero; the EfficientNet-B0 versus ViT interaction is significant and the ResNet-50 versus ViT interaction is not. The AUC ordering is preserved, but the ViT closes the gap. Expected calibration error rises 3.0x to 4.4x under the correction, but a prior-shift correction with validation temperature scaling removes most of the rise without moving the operating point, so calibration does not explain the sensitivity changes. In error models adjusted for acquisition source, lesion contrast, age, sex, site, and lesion size, lighter perilesional skin is associated with more false negatives in all three architectures and darker skin with more false positives; dark-stratum AUC differences are not significant. Grad-CAM places less attribution inside the lesion on darker images. On the external HIBA set, strong augmentation generalizes best, the CNN losses under focal loss persist, and the ViT gain is seed-dependent.
+Benchmarks of melanoma classifiers often apply one training protocol to every architecture. We asked whether a standard imbalance correction, focal loss with class-balanced sampling, affects CNNs and a vision transformer differently, and how errors and attributions vary with skin lightness. On HAM10000 with a lesion-aware split and a validation-selected threshold at 95\% specificity, our first benchmark (shared learning rate, checkpoint selected by validation balanced accuracy at 0.5, three seeds) found that the correction raised ViT-S/16 sensitivity by 8.2 points and lowered ResNet-50 and EfficientNet-B0 by 11.7 and 7.9 points, with every seed agreeing and a significant EfficientNet-B0 versus ViT interaction. A revised protocol with a per-architecture learning rate, checkpoint selection by validation AUC, five seeds, and ablations of each component removed the interaction: the correction changed sensitivity by $-1.7$ to $-4.0$ points in all three architectures, every interval included zero, and the AUC did not move. The ViT, undertrained under the first protocol, had the highest AUC (0.923). In error models adjusted for acquisition source and lesion contrast, lighter perilesional skin was associated with more false negatives and darker skin with more false positives in all three architectures, under both protocols. The darkest stratum had the highest false positive rate and the lowest Grad-CAM pointing-game accuracy in every architecture. On the external HIBA set, strong augmentation raised sensitivity in every seed of every architecture, while the imbalance correction had no effect. Architecture-by-intervention findings should be re-tested under per-architecture tuning and threshold-free checkpoint selection.
 \end{abstract}
 
-\noindent\textbf{Keywords:} melanoma classification, class imbalance, fairness, calibration, explainable artificial intelligence, skin tone
+\noindent\textbf{Keywords:} melanoma classification, class imbalance, benchmark methodology, fairness, calibration, explainable artificial intelligence, skin tone
 
 \input{sections/01_introduction}
 \input{sections/02_related_work}

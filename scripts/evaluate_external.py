@@ -72,6 +72,7 @@ def parse_args(argv=None):
     parser.add_argument("--run-pattern", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--backbones", default="efficientnet_b0,resnet50,vit_s")
     parser.add_argument("--seeds", default="1,2,3")
+    parser.add_argument("--run-prefix", default="stage2")
     parser.add_argument(
         "--conditions", default="ce_random,focal2_cb,ce_random_strong"
     )
@@ -116,8 +117,9 @@ def parse_list(value, cast=str):
 
 def run_ids(args, backbones, seeds):
     conditions = parse_list(args.conditions)
+    prefix = getattr(args, "run_prefix", "stage2")
     return [
-        f"stage2_{backbone}_{condition}_seed{seed}"
+        f"{prefix}_{backbone}_{condition}_seed{seed}"
         for backbone in backbones
         for condition in conditions
         for seed in seeds

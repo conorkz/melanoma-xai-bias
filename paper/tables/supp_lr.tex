@@ -1,0 +1,23 @@
+\begin{table}[h]
+\centering
+\small
+\caption{Learning rate check: CE baseline, seed 1, checkpoint selected by validation AUC. The learning rate with the highest validation AUC (bold) was used in Stage 3. Test values are shown for completeness and were not used for the choice.}
+\label{tab:supplr}
+\begin{tabular}{lccccc}
+\toprule
+Architecture & Learning rate & Val AUC & Best epoch & Test AUC & Test sensitivity \\
+\midrule
+ResNet-50 & $3\times10^{-5}$ & 0.853 & 15 & 0.870 & 0.478 \\
+ & $1\times10^{-4}$ & 0.885 & 14 & 0.904 & 0.575 \\
+ & $3\times10^{-4}$ & \textbf{0.889} & 10 & 0.902 & 0.575 \\
+\midrule
+EfficientNet-B0 & $3\times10^{-5}$ & 0.863 & 14 & 0.857 & 0.360 \\
+ & $1\times10^{-4}$ & 0.886 & 5 & 0.894 & 0.511 \\
+ & $3\times10^{-4}$ & \textbf{0.907} & 10 & 0.920 & 0.613 \\
+\midrule
+ViT-S/16 & $3\times10^{-5}$ & \textbf{0.906} & 9 & 0.923 & 0.608 \\
+ & $1\times10^{-4}$ & 0.894 & 8 & 0.918 & 0.613 \\
+ & $3\times10^{-4}$ & 0.893 & 9 & 0.869 & 0.489 \\
+\bottomrule
+\end{tabular}
+\end{table}

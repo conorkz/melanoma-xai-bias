@@ -91,11 +91,12 @@ def plot(frame, output):
                 linewidth=0.6,
             )
         axis.set_xticks(positions)
-        axis.set_xticklabels([
-            "light\n$n=450$",
-            "medium\n$n=450$",
-            "dark\n$n=129$",
-        ])
+        # Images per tone group for one architecture, summed over seeds.
+        first = frame[frame["backbone"] == frame["backbone"].iloc[0]]
+        counts = first.groupby("tone_group")["image_id"].size()
+        axis.set_xticklabels(
+            [f"{tone}\n$n={int(counts.get(tone, 0))}$" for tone in TONES]
+        )
         axis.set_ylabel(title)
         axis.set_ylim(0, 1.0)
         axis.grid(axis="y", color="#DDDDDD", linewidth=0.8)

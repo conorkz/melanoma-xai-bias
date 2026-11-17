@@ -60,6 +60,17 @@ def test_run_ids_cover_all_conditions():
     assert "stage2_vit_s_ce_random_strong_seed1" in ids
 
 
+def test_run_ids_use_run_prefix():
+    evaluator = load_script("evaluate_external")
+
+    class Args:
+        conditions = "ce_random"
+        run_prefix = "stage3"
+
+    ids = evaluator.run_ids(Args, ["vit_s"], [4])
+    assert ids == ["stage3_vit_s_ce_random_seed4"]
+
+
 def test_metrics_for_group_includes_oracle_sensitivity():
     evaluator = load_script("evaluate_external")
     frame = pd.DataFrame(

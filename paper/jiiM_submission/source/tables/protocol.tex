@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Effect of focal loss with class-balanced sampling under the original protocol (Stage 2: shared learning rate, checkpoint by validation balanced accuracy at 0.5, three seeds) and the revised protocol (Stage 3: per-architecture learning rate, checkpoint by validation AUC, five seeds). Sensitivity is at the validation-selected 95\% specificity threshold. Intervals are 95\% t intervals across seeds.}
+\label{tab:protocol}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccc}
+\toprule
+Architecture & Protocol & Seeds & CE sensitivity & CE AUC & $\Delta$ sensitivity, Focal+CB vs CE (95\% t CI) \\
+\midrule
+ResNet-50 & Original & 3 & 0.570 & 0.897 & -0.116 (-0.272 to +0.039) \\
+ & Revised & 5 & 0.580 & 0.906 & -0.040 (-0.105 to +0.025) \\
+\midrule
+EfficientNet-B0 & Original & 3 & 0.556 & 0.914 & -0.079 (-0.219 to +0.061) \\
+ & Revised & 5 & 0.557 & 0.907 & -0.017 (-0.122 to +0.088) \\
+\midrule
+ViT-S/16 & Original & 3 & 0.400 & 0.854 & +0.082 (-0.079 to +0.244) \\
+ & Revised & 5 & 0.620 & 0.923 & -0.024 (-0.106 to +0.059) \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
