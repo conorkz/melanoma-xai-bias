@@ -623,6 +623,50 @@ def seed_ranking_table(
     return "\n".join(lines)
 
 
+def supp_interaction_table(did_summary, caption, label):
+    did = did_summary[did_summary["metric"] == "delta_sensitivity"].copy()
+    if "condition" not in did.columns:
+        did = did.assign(condition="focal2_cb")
+    headers = ["Correction", "Comparison", "$\\Delta$ sensitivity", "95\\% t CI"]
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\small",
+        r"\caption{" + caption + "}",
+        r"\label{" + label + "}",
+        r"\resizebox{\textwidth}{!}{%",
+        r"\begin{tabular}{llcc}",
+        r"\toprule",
+        " & ".join(headers) + r" \\",
+        r"\midrule",
+    ]
+    pairs = (
+        ("efficientnet_b0", "vit_s"),
+        ("resnet50", "vit_s"),
+        ("resnet50", "efficientnet_b0"),
+    )
+    conditions = sorted(
+        did["condition"].unique(), key=lambda value: CONDITION_ORDER.get(value, 99)
+    )
+    for condition in conditions:
+        block = did[did["condition"] == condition]
+        for first, second in pairs:
+            row = block[
+                (block["architecture_a"] == first)
+                & (block["architecture_b"] == second)
+            ]
+            if row.empty:
+                continue
+            row = row.iloc[0]
+            lines.append(
+                f"{CONDITIONS.get(condition, condition)} & "
+                f"{BACKBONES[first]} minus {BACKBONES[second]} & "
+                f"{row['mean']:+.3f} & {row['t_low']:+.3f} to {row['t_high']:+.3f} \\\\"
+            )
+    lines += [r"\bottomrule", r"\end{tabular}", r"}", r"\end{table}", ""]
+    return "\n".join(lines)
+
+
 def protocol_table(stage2_dir, stage3_dir, caption, label):
     """Focal+CB effect and CE AUC under the original and revised protocols."""
     rows = []
@@ -984,6 +1028,14 @@ def main(argv=None):
                 pd.read_csv(seed_dir / "did_per_seed.csv"),
                 "Seed-level paired sensitivity changes relative to the CE baseline, Stage 3. Intervals are 95\\% t intervals across five seeds. The direction column counts the seeds with the stated sign. The interaction rows compare the Focal+CB change of one architecture with that of another.",
                 "tab:ranking",
+            ),
+        )
+        _write(
+            out_dir / "supp_interactions.tex",
+            supp_interaction_table(
+                pd.read_csv(seed_dir / "did_summary.csv"),
+                "Stage 3 interaction intervals for all four corrections and all three architecture pairs. Each value is the difference between two architectures in their change relative to the CE baseline (difference-in-differences in sensitivity at the validation-selected 95\\% specificity threshold). Intervals are 95\\% t intervals across five seeds. Only the focal-only ResNet-50 minus ViT-S/16 interval excludes zero.",
+                "tab:suppinteractions",
             ),
         )
     if all((stage2_seed_dir / name).exists() for name in needed) and (

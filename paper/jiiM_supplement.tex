@@ -41,7 +41,13 @@ Table~\ref{tab:suppxai} reports attribution mass for false negatives and false p
 
 \input{tables/supp_xai_error_type}
 
-\section*{S5 Stage 2 training and ROC figures}
+\section*{S5 Architecture interaction intervals}
+
+Table~\ref{tab:suppinteractions} reports all twelve Stage 3 interaction intervals for the four corrections and three architecture pairs. Only the focal-only ResNet-50 minus ViT-S/16 interval excludes zero.
+
+\input{tables/supp_interactions}
+
+\section*{S6 Stage 2 training and ROC figures}
 
 Figures~\ref{fig:supptraining} and~\ref{fig:supproc} show the training curves and test ROC curve for the median seed of ResNet-50 with the CE baseline under the original protocol. The validation curve is balanced accuracy at the 0.5 threshold, the original checkpoint selection metric.
 
@@ -59,7 +65,7 @@ Figures~\ref{fig:supptraining} and~\ref{fig:supproc} show the training curves an
   \label{fig:supproc}
 \end{figure}
 
-\section*{S6 Data, code, and additional results}
+\section*{S7 Data, code, and additional results}
 
 The lesion-aware split is released as \texttt{results/split\_ham10000\_lesion\_seed42.csv}. Per-sample test predictions are available for all 27 Stage 2 runs and all 75 Stage 3 runs. The full adjusted-model coefficients, dark-skin AUC comparisons, calibration summaries, and XAI metrics are available from the corresponding author upon reasonable request. The repository link is withheld for double-blind review.
 

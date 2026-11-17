@@ -65,9 +65,9 @@ The script reads the Stage 1 and Stage 2 CSVs, the seed-level interval summaries
 ## Status
 
 - Stage 1, Stage 2, fairness, dark-skin robustness, calibration, seed-level ranking and AUC tests, true-class XAI, and HIBA external sections are drafted with the current numbers.
-- The 27-run HIBA validation covers all three conditions. Strong augmentation is the best external condition for all three architectures.
+- The 45-run Stage 3 HIBA validation covers all three conditions. Strong augmentation is the best external condition for all three architectures.
 - PROVe-AI and the clinical dark-skin comparison are not evaluated.
-- The reference list is expanded to 40 entries. Check the final venue style before submission.
+- The reference list is expanded to 46 entries. Check the final venue style before submission.
 - The main manuscript no longer includes the 150 dpi training and ROC figures.
 
 ## Writing rules

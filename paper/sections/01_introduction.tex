@@ -16,9 +16,9 @@ Our contributions are:
 
 \begin{enumerate}
   \item A controlled benchmark of ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under five training conditions, with a lesion-aware split, five seeds, and a validation-selected threshold at 95\% specificity.
-  \item Evidence that an apparently significant architecture-by-imbalance-correction interaction is produced by the training protocol. Under a per-architecture learning rate and threshold-free checkpoint selection, focal loss with class-balanced sampling lowers sensitivity by 1.7 to 4.0 points in all three architectures, no interaction interval for it excludes zero, and the ViT has the highest AUC.
+  \item Evidence that an apparently significant architecture-by-imbalance-correction interaction is produced by the training protocol. Under a per-architecture learning rate and threshold-free checkpoint selection, focal loss with class-balanced sampling lowers sensitivity by 1.7 to 4.0 points in all three architectures, no interaction interval for it excludes zero, and the ViT has the highest point-estimate AUC.
   \item An analysis of which protocol change matters: the checkpoint rule for the CNNs, and both the checkpoint rule and the learning rate for the ViT, whose original baseline was undertrained.
-  \item A lightness-stratified fairness analysis with error models adjusted for acquisition source and lesion contrast. Lighter skin is associated with more false negatives and darker skin with more false positives, and the associations replicate across the two protocols.
+  \item A lightness-stratified fairness analysis with error models adjusted for acquisition source and lesion contrast. Lighter skin is associated with more false negatives in both CNNs and darker skin with more false positives in all three architectures, and the direction replicates across the two protocols.
   \item Calibration, quantitative Grad-CAM, and HIBA external analyses of the revised models.
 \end{enumerate}
 

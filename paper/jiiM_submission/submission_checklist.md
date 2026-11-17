@@ -4,7 +4,8 @@
 
 - [x] Choose the journal: Journal of Imaging Informatics in Medicine (JIIM).
 - [x] Use the JIIM LaTeX submission route and citation-order references (`unsrtnat`).
-- [x] Abstract is 243 words, within the JIIM 150 to 250 range. JIIM has no strict manuscript word limit.
+- [x] Abstract is 248 words, within the JIIM 150 to 250 range. JIIM has no strict manuscript word limit.
+- [x] Six keywords, within the JIIM 4 to 6 range.
 - [x] Subscription route is free; open access is optional.
 
 ## Manuscript metadata

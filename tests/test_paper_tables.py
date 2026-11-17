@@ -285,6 +285,36 @@ def test_protocol_table_compares_both_stages(tmp_path):
     assert "-0.024" in output
 
 
+def test_supp_interaction_table_lists_all_conditions():
+    generator = load_script("build_paper_tables")
+    rows = []
+    for condition in ("focal2_cb", "focal2_random", "ce_cb", "ce_random_strong"):
+        for first, second in (
+            ("efficientnet_b0", "vit_s"),
+            ("resnet50", "vit_s"),
+            ("resnet50", "efficientnet_b0"),
+        ):
+            rows.append(
+                {
+                    "condition": condition,
+                    "architecture_a": first,
+                    "architecture_b": second,
+                    "metric": "delta_sensitivity",
+                    "mean": -0.01,
+                    "sd": 0.05,
+                    "t_low": -0.1,
+                    "t_high": 0.08,
+                    "n_seeds": 5,
+                }
+            )
+    output = generator.supp_interaction_table(
+        pd.DataFrame(rows), "Caption", "tab:suppinteractions"
+    )
+    assert output.count("ResNet-50 minus ViT-S/16") == 4
+    assert "CE+strong" in output
+    assert r"\label{tab:suppinteractions}" in output
+
+
 def test_per_seed_table_lists_every_seed():
     generator = load_script("build_paper_tables")
     frame = pd.DataFrame(
