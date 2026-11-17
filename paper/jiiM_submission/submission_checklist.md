@@ -11,7 +11,7 @@
 ## Manuscript metadata
 
 - [x] Full author list with affiliations. Author order: Sun Baoshan first and corresponding; Nursultan Zhanat second.
-- [x] ORCID for Sun Baoshan: 0000-0003-2193-3232.
+- [x] ORCID for Sun Baoshan: 0009-0008-2967-9201.
 - [x] ORCID for Nursultan Zhanat: 0009-0006-7839-4785.
 - [x] Corresponding author and email.
 - [x] Personal email for Nursultan Zhanat: zhanat.nursultan1@gmail.com.

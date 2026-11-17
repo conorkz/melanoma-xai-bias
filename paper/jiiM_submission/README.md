@@ -19,7 +19,7 @@ Journal: Journal of Imaging Informatics in Medicine (JIIM), Springer.
 - References: 46, numbered in citation order with `unsrtnat`.
 - Main manuscript: 15 tables and 3 figures. Supplement: 5 tables and 2 figures.
 - Author order: Sun Baoshan first and corresponding; Nursultan Zhanat second.
-- Corresponding author: Sun Baoshan, sunbaoshan@tiangong.edu.cn, ORCID 0000-0003-2193-3232.
+- Corresponding author: Sun Baoshan, sunbaoshan@tiangong.edu.cn, ORCID 0009-0008-2967-9201.
 - Second author: Nursultan Zhanat, zhanat.nursultan1@gmail.com, ORCID 0009-0006-7839-4785.
 
 ## Notes

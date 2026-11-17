@@ -28,7 +28,7 @@ Sun Baoshan
 School of Computer Science and Technology, Tiangong University, Tianjin 300387, China
 Tianjin Key Laboratory of Autonomous Intelligence Technology and Systems, Tiangong University, Tianjin 300387, China
 sunbaoshan@tiangong.edu.cn
-ORCID: 0000-0003-2193-3232
+ORCID: 0009-0008-2967-9201
 
 On behalf of the co-author:
 Nursultan Zhanat
