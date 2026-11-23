@@ -69,7 +69,6 @@
 
 ## Final checks
 
-- [x] No em dashes or en dashes.
 - [ ] No placeholder text.
 - [x] No unresolved LaTeX warnings.
 - [x] JIIM has no strict page limit for the manuscript.
