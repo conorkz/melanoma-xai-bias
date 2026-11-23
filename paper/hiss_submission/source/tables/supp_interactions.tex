@@ -1,0 +1,26 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Stage 3 interaction intervals for all four corrections and all three architecture pairs. Each value is the difference between two architectures in their change relative to the CE baseline (difference-in-differences in sensitivity at the validation-selected 95\% specificity threshold). Intervals are 95\% t intervals across five seeds. Only the focal-only ResNet-50 minus ViT-S/16 interval excludes zero.}
+\label{tab:suppinteractions}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcc}
+\toprule
+Correction & Comparison & $\Delta$ sensitivity & 95\% t CI \\
+\midrule
+Focal+CB & EfficientNet-B0 minus ViT-S/16 & +0.006 & -0.115 to +0.128 \\
+Focal+CB & ResNet-50 minus ViT-S/16 & -0.016 & -0.115 to +0.082 \\
+Focal+CB & ResNet-50 minus EfficientNet-B0 & -0.023 & -0.143 to +0.097 \\
+Focal & EfficientNet-B0 minus ViT-S/16 & -0.048 & -0.137 to +0.041 \\
+Focal & ResNet-50 minus ViT-S/16 & -0.069 & -0.135 to -0.002 \\
+Focal & ResNet-50 minus EfficientNet-B0 & -0.020 & -0.134 to +0.093 \\
+CE+CB & EfficientNet-B0 minus ViT-S/16 & -0.027 & -0.136 to +0.082 \\
+CE+CB & ResNet-50 minus ViT-S/16 & -0.026 & -0.109 to +0.057 \\
+CE+CB & ResNet-50 minus EfficientNet-B0 & +0.001 & -0.122 to +0.124 \\
+CE+strong & EfficientNet-B0 minus ViT-S/16 & +0.001 & -0.054 to +0.056 \\
+CE+strong & ResNet-50 minus ViT-S/16 & -0.001 & -0.048 to +0.046 \\
+CE+strong & ResNet-50 minus EfficientNet-B0 & -0.002 & -0.072 to +0.068 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

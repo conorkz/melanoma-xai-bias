@@ -1,0 +1,17 @@
+\section{Limitations}
+
+\begin{itemize}
+  \item Stage 3 was designed after the Stage 2 test results were known. Its settings were fixed before any Stage 3 run, but the decision to run it was prompted by the Stage 2 result.
+  \item The two protocol changes are not fully separated. For the CNNs only the checkpoint rule and the number of seeds changed. For the ViT the learning rate changed as well, and the decomposition rests on single runs with seed 1.
+  \item The learning rate search used one seed and three values, and the selected value lies at the edge of the grid for every architecture ($3\times10^{-4}$ for the CNNs, $3\times10^{-5}$ for the ViT). Better values may lie outside the grid. Other hyperparameters, such as weight decay, the schedule, and the number of epochs, were not tuned per architecture.
+  \item Each Stage 3 condition uses five seeds. The intervals for the Focal+CB changes are 13 to 21 sensitivity points wide, so small real effects of imbalance correction, in either direction, cannot be excluded.
+  \item The training data are HAM10000 only. HIBA adds one external dermoscopic source, but generalization to PH2, BCN20000 \citep{combalia2019bcn20000}, or ISIC 2020 is not measured.
+  \item The endpoint is binary melanoma versus all other diagnoses. Seven-class classification was not evaluated.
+  \item Stage 1 uses 160-pixel images and the original protocol. Its ranking of the corrections is not directly comparable with Stage 3.
+  \item The fairness analysis uses an image-based lightness proxy, not clinical Fitzpatrick labels. The proxy is sensitive to illumination, color calibration, and lesion contrast.
+  \item The pre-declared dark stratum contains 43 test images and six melanomas. The cutoff analysis adds groups with 12 and 23 melanomas, but all dark-stratum estimates remain imprecise.
+  \item The adjusted false-positive and false-negative models are observational. They identify associations, not causal effects, and the false-negative model rests on 186 melanoma images.
+  \item HIBA and PROVe-AI contain Fitzpatrick I-IV only. HIBA has no Fitzpatrick IV melanomas, and the clinical datasets with Fitzpatrick V-VI differ in imaging modality.
+  \item Deletion and insertion curves saturated in the original models, so faithfulness is not measured and the XAI results cover localization only. A second attribution method is not included, and Grad-CAM on a transformer is a coarse approximation.
+  \item No clinician reader study, deployed system, prospective validation, or regulatory analysis is included.
+\end{itemize}

@@ -2,7 +2,7 @@
 
 Melanoma is the most lethal form of skin cancer, and survival depends on early detection. Deep learning models have reached dermatologist-level accuracy on public dermoscopic benchmarks such as HAM10000 and the ISIC challenges \citep{tschandl2018ham10000,codella2018isic}. Three problems remain.
 
-Public datasets are imbalanced. Benign lesions outnumber melanomas by roughly ten to one, and a classifier that predicts the majority class can look accurate while missing cancers. Focal loss and class-balanced sampling are common remedies \citep{lin2017focal}, but their effect is usually reported for one architecture and one training protocol.
+Public datasets are imbalanced. Benign lesions outnumber melanomas by roughly ten to one, and a classifier that predicts the majority class can look accurate while missing cancers. Focal loss and class-balanced sampling are common remedies \citep{lin2017focal}, but their effect is usually reported for one architecture and one training protocol. A 2026 benchmark of sixteen imbalance methods on six CNNs trained every network with the same fixed learning rate and concluded that the effect of imbalance mitigation is specific to the architecture \citep{ahmad2026imbalance}, a conclusion that a shared training protocol can produce on its own.
 
 The datasets are also skewed toward lighter skin. Fitzpatrick skin types V and VI are rare in public dermoscopic data, and models trained on lighter skin can lose sensitivity on darker skin \citep{groh2021fitzpatrick17k,daneshjou2022ddi,ruga2026pipsqueak}. The data needed to measure the gap are themselves scarce.
 

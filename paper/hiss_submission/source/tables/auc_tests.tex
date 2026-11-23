@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\small
+\caption{AUC differences between architectures at the CE baseline and under focal loss with class-balanced sampling, Stage 3. Intervals are 95\% t intervals across five seeds. Positive values mean the first architecture has the higher AUC.}
+\label{tab:auctests}
+\begin{tabular}{llcc}
+\toprule
+Condition & Comparison & $\Delta$ AUC & 95\% t CI \\
+\midrule
+CE & EfficientNet-B0 minus ViT-S/16 & -0.016 & -0.034 to +0.002 \\
+CE & ResNet-50 minus EfficientNet-B0 & -0.002 & -0.023 to +0.020 \\
+CE & ResNet-50 minus ViT-S/16 & -0.017 & -0.028 to -0.006 \\
+\midrule
+Focal+CB & EfficientNet-B0 minus ViT-S/16 & -0.009 & -0.023 to +0.006 \\
+Focal+CB & ResNet-50 minus EfficientNet-B0 & -0.010 & -0.030 to +0.011 \\
+Focal+CB & ResNet-50 minus ViT-S/16 & -0.018 & -0.032 to -0.005 \\
+\bottomrule
+\end{tabular}
+\end{table}

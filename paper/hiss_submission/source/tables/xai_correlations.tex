@@ -1,0 +1,15 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Spearman correlations between attribution mass inside the lesion, lightness group, and error status at the CE baseline, Stage 3. Tone is coded light $=0$, medium $=1$, dark $=2$. A negative mass-tone correlation means less attribution inside the lesion on darker images. Images pool five seeds, so the $p$-values are descriptive.}
+\label{tab:xaicorr}
+\begin{tabular}{lccccc}
+\toprule
+Architecture & Images & $\rho$ (mass, tone) & $p$ & $\rho$ (mass, error) & $p$ \\
+\midrule
+EfficientNet-B0 & 7509 & -0.143 & $9.7\times10^{-36}$ & 0.008 & 0.489 \\
+ResNet-50 & 7626 & -0.107 & $6.2\times10^{-21}$ & -0.186 & $1.4\times10^{-60}$ \\
+ViT-S/16 & 7635 & -0.148 & $2.1\times10^{-38}$ & 0.090 & $4.4\times10^{-15}$ \\
+\bottomrule
+\end{tabular}
+\end{table}

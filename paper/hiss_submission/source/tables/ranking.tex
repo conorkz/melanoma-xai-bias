@@ -1,0 +1,30 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Seed-level paired sensitivity changes relative to the CE baseline, Stage 3. Intervals are 95\% t intervals across five seeds. The direction column counts the seeds with the stated sign. The interaction rows compare the Focal+CB change of one architecture with that of another.}
+\label{tab:ranking}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccc}
+\toprule
+Test & Architecture & $\Delta$ sensitivity & 95\% t CI & Direction \\
+\midrule
+Focal+CB vs CE & ResNet-50 & -0.040 & -0.105 to +0.025 & 3/5 negative \\
+Focal+CB vs CE & EfficientNet-B0 & -0.017 & -0.122 to +0.088 & 3/5 negative \\
+Focal+CB vs CE & ViT-S/16 & -0.024 & -0.106 to +0.059 & 3/5 negative \\
+Focal vs CE & ResNet-50 & -0.045 & -0.111 to +0.021 & 4/5 negative \\
+Focal vs CE & EfficientNet-B0 & -0.025 & -0.073 to +0.024 & 4/5 negative \\
+Focal vs CE & ViT-S/16 & +0.024 & -0.041 to +0.088 & 3/5 positive \\
+CE+CB vs CE & ResNet-50 & -0.053 & -0.120 to +0.014 & 4/5 negative \\
+CE+CB vs CE & EfficientNet-B0 & -0.054 & -0.132 to +0.025 & 4/5 negative \\
+CE+CB vs CE & ViT-S/16 & -0.027 & -0.071 to +0.018 & 3/5 negative \\
+CE+strong vs CE & ResNet-50 & -0.016 & -0.058 to +0.026 & 4/5 negative \\
+CE+strong vs CE & EfficientNet-B0 & -0.014 & -0.072 to +0.044 & 4/5 negative \\
+CE+strong vs CE & ViT-S/16 & -0.015 & -0.040 to +0.010 & 3/5 negative \\
+\midrule
+Interaction, Focal+CB & EfficientNet-B0 minus ViT-S/16 & +0.006 & -0.115 to +0.128 & 4/5 positive \\
+Interaction, Focal+CB & ResNet-50 minus EfficientNet-B0 & -0.023 & -0.143 to +0.097 & 3/5 negative \\
+Interaction, Focal+CB & ResNet-50 minus ViT-S/16 & -0.016 & -0.115 to +0.082 & 3/5 negative \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

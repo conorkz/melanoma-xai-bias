@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Quantitative XAI at the CE baseline on the HAM10000 test split, Stage 3. Grad-CAM targets the true class. Each architecture uses five seeds and all 1,527 test images per seed; $n$ counts image evaluations summed over seeds. Attribution mass is the fraction of the heatmap inside the lesion mask. Values are means across seeds.}
+\label{tab:xai}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+Architecture & Tone group & $n$ & $n$ positive & Attribution mass & Pointing game & Attribution IoU & Error rate \\
+\midrule
+\multirow{3}{*}{ResNet-50} & light & 3220 & 405 & 0.511 & 0.795 & 0.352 & 0.107 \\
+ & medium & 4200 & 495 & 0.453 & 0.730 & 0.331 & 0.092 \\
+ & dark & 215 & 30 & 0.478 & 0.660 & 0.309 & 0.181 \\
+\midrule
+\multirow{3}{*}{EfficientNet-B0} & light & 3220 & 405 & 0.430 & 0.671 & 0.311 & 0.112 \\
+ & medium & 4200 & 495 & 0.350 & 0.574 & 0.260 & 0.092 \\
+ & dark & 215 & 30 & 0.327 & 0.481 & 0.209 & 0.158 \\
+\midrule
+\multirow{3}{*}{ViT-S/16} & light & 3220 & 405 & 0.547 & 0.749 & 0.370 & 0.100 \\
+ & medium & 4200 & 495 & 0.488 & 0.712 & 0.329 & 0.084 \\
+ & dark & 215 & 30 & 0.501 & 0.688 & 0.303 & 0.172 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

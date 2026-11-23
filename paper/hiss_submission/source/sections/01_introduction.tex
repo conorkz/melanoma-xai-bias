@@ -1,0 +1,25 @@
+\section{Introduction}
+
+Melanoma is the most lethal form of skin cancer, and survival depends on early detection. Deep learning models have reached dermatologist-level accuracy on public dermoscopic benchmarks such as HAM10000 and the ISIC challenges \citep{tschandl2018ham10000,codella2018isic}. Three problems remain.
+
+Public datasets are imbalanced. Benign lesions outnumber melanomas by roughly ten to one, and a classifier that predicts the majority class can look accurate while missing cancers. Focal loss and class-balanced sampling are common remedies \citep{lin2017focal}, but their effect is usually reported for one architecture and one training protocol. A 2026 benchmark of sixteen imbalance methods on six CNNs trained every network with the same fixed learning rate and concluded that the effect of imbalance mitigation is specific to the architecture \citep{ahmad2026imbalance}, a conclusion that a shared training protocol can produce on its own.
+
+The datasets are also skewed toward lighter skin. Fitzpatrick skin types V and VI are rare in public dermoscopic data, and models trained on lighter skin can lose sensitivity on darker skin \citep{groh2021fitzpatrick17k,daneshjou2022ddi,ruga2026pipsqueak}. The data needed to measure the gap are themselves scarce.
+
+Deep models are also opaque. Gradient-based attribution methods such as Grad-CAM and Integrated Gradients show which pixels drive a prediction \citep{selvaraju2017gradcam,sundararajan2017ig}, but most dermatology papers use them as illustrations rather than as measurements that can be compared across skin tone groups.
+
+We set out to test whether a standard imbalance correction affects CNNs and a vision transformer differently, and how errors and attributions vary with skin lightness. Our first benchmark (Stage 2) produced a clear answer: focal loss with class-balanced sampling raised ViT-S/16 sensitivity by 8.2 points and lowered ResNet-50 and EfficientNet-B0 by 11.7 and 7.9 points, with every seed agreeing on the direction. An audit of that protocol found two features that could create such a pattern. Checkpoints were selected by validation balanced accuracy at a 0.5 threshold, a rule that behaves differently when the training condition shifts the score scale, and all architectures shared one learning rate. We therefore re-ran the benchmark (Stage 3) with a learning rate selected per architecture, checkpoint selection by validation AUC, five seeds, and two ablations that separate focal loss from class-balanced sampling. The interaction disappeared.
+
+This paper reports both stages. The contrast between them is the main result, because the Stage 2 finding passed the usual checks of seed agreement, a significant interaction, calibration analysis, and external validation. The fairness, calibration, explanation, and external analyses use the Stage 3 models.
+
+Our contributions are:
+
+\begin{enumerate}
+  \item A controlled benchmark of ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 under five training conditions, with a lesion-aware split, five seeds, and a validation-selected threshold at 95\% specificity.
+  \item Evidence that an apparently significant architecture-by-imbalance-correction interaction is produced by the training protocol. Under a per-architecture learning rate and threshold-free checkpoint selection, focal loss with class-balanced sampling lowers sensitivity by 1.7 to 4.0 points in all three architectures, no interaction interval for it excludes zero, and the ViT has the highest point-estimate AUC.
+  \item An analysis of which protocol change matters: the checkpoint rule for the CNNs, and both the checkpoint rule and the learning rate for the ViT, whose original baseline was undertrained.
+  \item A lightness-stratified fairness analysis with error models adjusted for acquisition source and lesion contrast. Lighter skin is associated with more false negatives in both CNNs and darker skin with more false positives in all three architectures, and the direction replicates across the two protocols.
+  \item Calibration, quantitative Grad-CAM, and HIBA external analyses of the revised models.
+\end{enumerate}
+
+The training and fairness analyses use one public dataset. The lightness strata are image-based measurements, not clinical Fitzpatrick labels, and the results do not establish clinical utility.

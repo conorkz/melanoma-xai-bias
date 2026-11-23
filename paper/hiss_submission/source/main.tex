@@ -1,0 +1,58 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[numbers]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+\graphicspath{{figures/}}
+\setlength{\emergencystretch}{2em}
+
+\title{When imbalance correction appears architecture-dependent: a protocol audit of melanoma classifiers with fairness, calibration, and explanation analysis}
+
+\author{
+  Sun Baoshan$^{1,2,*}$ and Nursultan Zhanat$^{1,2}$\\[8pt]
+  \parbox{0.92\textwidth}{\centering\small
+  $^{1}$ School of Computer Science and Technology, Tiangong University, Tianjin 300387, China; sunbaoshan@tiangong.edu.cn (S.B.); zhanat.nursultan1@gmail.com (N.Z.)\\
+  $^{2}$ Tianjin Key Laboratory of Autonomous Intelligence Technology and Systems, Tiangong University, Tianjin 300387, China\\
+  ORCID: Sun Baoshan 0009-0008-2967-9201; Nursultan Zhanat 0009-0006-7839-4785\\
+  $^{*}$ Correspondence: sunbaoshan@tiangong.edu.cn
+  }
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent\textbf{Purpose:} Benchmarks of melanoma classifiers often apply one training protocol to every architecture. We asked whether focal loss with class-balanced sampling affects CNNs and a vision transformer differently, and how errors and attributions vary with skin lightness.
+
+\noindent\textbf{Methods:} We trained ResNet-50, EfficientNet-B0, and ViT-S/16 on HAM10000 with a lesion-aware split and a validation-selected threshold at 95\% specificity. A first protocol used a shared learning rate, checkpoint selection by validation balanced accuracy at 0.5, and three seeds. A revised protocol used a per-architecture learning rate, checkpoint selection by validation AUC, five seeds, and ablations of each component. Error models were adjusted for acquisition source and lesion contrast, and external testing used the HIBA dataset.
+
+\noindent\textbf{Results:} Under the first protocol, the correction raised ViT-S/16 sensitivity by 8.2 points and lowered ResNet-50 and EfficientNet-B0 by 11.7 and 7.9 points, with every seed agreeing and a significant EfficientNet-B0 versus ViT interaction. The revised protocol removed the interaction: the correction lowered sensitivity by 1.7 to 4.0 points in all three architectures, every interval included zero, and the previously undertrained ViT had the highest point-estimate AUC (0.923). Lighter perilesional skin was associated with more false negatives in both CNNs and darker skin with more false positives in all three architectures. The darkest stratum had the highest false positive rate and the lowest Grad-CAM pointing-game accuracy. On HIBA, strong augmentation improved AUC in every seed, while the imbalance correction had no detectable effect.
+
+\noindent\textbf{Conclusion:} Architecture-by-intervention findings should be re-tested under per-architecture tuning and threshold-free checkpoint selection.
+\end{abstract}
+
+\noindent\textbf{Keywords:} melanoma classification, class imbalance, fairness, calibration, explainable artificial intelligence, skin tone
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_methods}
+\input{sections/04_results}
+\input{sections/05_discussion}
+\input{sections/06_limitations}
+\input{sections/07_ethics}
+\input{sections/08_conclusion}
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}

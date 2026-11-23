@@ -1,0 +1,43 @@
+\section{Discussion}
+
+\subsection{An interaction produced by the protocol}
+
+Under the original protocol, the data supported a clean story: focal loss with class-balanced sampling helps a vision transformer and hurts CNNs, every seed agreed on the direction, and one interaction interval excluded zero. Under the revised protocol, the same correction lowers sensitivity slightly in all three architectures, no Focal+CB interaction interval excludes zero, and the transformer has the highest point-estimate AUC. Nothing about the data, the split, the conditions, or the threshold changed between the two stages. Only the learning rate of one architecture, the checkpoint rule, and the number of seeds did.
+
+Two mechanisms explain most of the change. Balanced accuracy at a 0.5 threshold is not neutral across training conditions. Class-balanced sampling and the focal $\alpha$ move the scores toward melanoma, so this rule rewards different epochs in different conditions, and it picked early focal CNN checkpoints and very early CE ViT checkpoints. A threshold-free rule such as validation AUC treats the conditions alike, and the selected epochs became similar across conditions. Second, the shared learning rate of $3\times10^{-4}$ was the best of the three values tried for both CNNs but the worst for the ViT. The Stage 2 ViT baseline was therefore weak, and the apparent Focal+CB benefit for the ViT was largely an improvement over a poorly trained reference.
+
+This pattern is familiar from other areas of machine learning. Comparisons of language models \citep{melis2018evaluation} and generative adversarial networks \citep{lucic2018gans} found that reported differences between methods shrink or vanish once each method receives a comparable tuning budget, and benchmarking studies show that hyperparameter choice and initialization contribute variance that single-configuration comparisons ignore \citep{bouthillier2021variance,dodge2019showyourwork}. Varoquaux and Cheplygina document the same risks in medical imaging \citep{varoquaux2022failures}. Our result adds a specific mechanism to this list: a checkpoint rule that depends on the score scale can interact with an intervention that changes the score scale.
+
+\subsection{What a reader of the original protocol would have concluded}
+
+The Stage 2 result passed the usual checks. Three seeds agreed in direction for every architecture. The EfficientNet-B0 versus ViT interaction excluded zero at the seed level. Calibration analysis showed that the sensitivity change was not a calibration artifact, and the AUC moved in the same direction. The HIBA external evaluation of the Stage 2 models also showed a CNN loss under focal loss. A paper written from Stage 2 alone would have recommended choosing the imbalance correction by architecture.
+
+None of these checks could detect the problem, because they all inherited the same checkpoint rule and learning rate. Seed replication controls the randomness of a fixed protocol, not the protocol. External validation tests the transfer of the selected models, not the selection. The one check that would have caught the problem is a per-architecture learning rate search and a selection rule that does not depend on the score scale, and both were cheap here: the learning rate search took nine runs, about 2.6 GPU hours.
+
+For imbalance correction specifically, the revised results support a modest conclusion. With a fixed operating point chosen on validation data at 95\% specificity, neither focal loss nor class-balanced sampling improves melanoma sensitivity for any of the three architectures on HAM10000, and class-balanced sampling alone tends to reduce it and to worsen calibration. Because the operating point is re-selected on validation data, shifting the scores toward melanoma does little that threshold selection does not already do; the correction would have to improve the ranking of the cases, and it did not detectably change the AUC.
+
+\subsection{The fairness signal is error-type-specific and protocol-independent}
+
+The fairness results carry over from the original to the revised protocol. In the adjusted models, lighter perilesional skin is associated with more false negatives in both CNNs and darker skin with more false positives in all three architectures, after adjustment for acquisition source, lesion contrast, age, sex, site, and lesion size. The false-negative odds ratio is about 2 for both CNNs and 1.42 for the ViT, whose interval just includes 1. The false-positive association excludes 1 in all three architectures. In a pooled model of any error the lightness effect is close to null, which shows how a single error rate hides the shift between error types.
+
+The group-level analysis points the same way with less precision. The dark stratum ($L^*\leq55$) has the lowest AUC and the highest false positive rate in all 15 Stage 3 configurations, but only four of 90 per-run AUC comparisons exclude zero, and the stratum contains six melanomas. The false positive elevation persists at the 58 and 60 cutoffs. The dark stratum is also the worst calibrated in every architecture.
+
+Lesion contrast carries independent signal. High-contrast lesions are more often called malignant, whether or not they are, and low-contrast melanomas are more often missed. Contrast and lightness are correlated, yet both remain in the adjusted models. Dark lesions on light skin are high contrast, which is one plausible route by which lightness and error type become linked, but the models cannot separate the image property from any other feature correlated with it.
+
+The practical consequence is that a fairness audit for a melanoma classifier should report false positive and false negative rates separately by skin lightness. A model can have equal AUC across groups while missing more melanomas on lighter skin and sending more benign lesions to biopsy on darker skin.
+
+\subsection{What XAI adds}
+
+All three architectures place less Grad-CAM attribution inside the lesion on darker images, and the dark stratum has the lowest pointing-game accuracy and attribution IoU in every architecture. The direction holds for a standard CNN, an efficient CNN, and a transformer, and it held under the original protocol as well. Attribution therefore gives a group-level signal that agrees with the error analysis: the stratum where the attribution peak most often falls outside the lesion is the stratum with the most false positives.
+
+At the level of single images the signal is weak. The mass-error correlation is negative for ResNet-50, null for EfficientNet-B0, and slightly positive for ViT-S/16, and the false-negative and false-positive masses do not separate consistently. A deployment system should not use this score to flag individual predictions. It could use the group-level pattern to monitor a new cohort: a drop in attribution mass inside the lesion suggests that the model is relying less on the lesion in that cohort.
+
+The XAI results also changed with the protocol. Under the original protocol the ViT had by far the weakest localization, which would have supported a story about transformers attending to the wrong regions. Under the revised protocol the ViT localizes at least as well as the CNNs. Explanation quality, like accuracy, depends on how the model was trained, and a comparison of attribution across architectures inherits the same protocol risks as a comparison of accuracy.
+
+\subsection{The data bottleneck}
+
+The external dermoscopic datasets with Fitzpatrick labels, HIBA and PROVe-AI, contain Fitzpatrick I-IV only, and HIBA has no Fitzpatrick IV melanoma. The clinical datasets with Fitzpatrick V-VI, such as DDI, SCIN, and PASSION, differ from HAM10000 in imaging modality. This study can quantify the representation gap and report the error-type shift within the available lightness range, but a precise dark-skin sensitivity estimate requires new dermoscopic data or a carefully controlled cross-modality study.
+
+\subsection{Recommendations}
+
+For benchmarks that compare architectures under training interventions, we recommend three practices. First, select checkpoints with a metric that does not depend on the score scale, such as validation AUC, or with the metric at the operating point that will be reported. Second, tune at least the learning rate separately for each architecture and report the search. Third, report architecture-by-intervention interactions with seed-level intervals and with the number of comparisons made, and treat an isolated significant interaction as a hypothesis until it survives a change of protocol.
